@@ -49,7 +49,7 @@ MAC:
 E2EE:
 : End to End Encryption (AKA Inner Encryption)
 HBH:
- Hob By Hob (AKA Outer Encryption)
+: Hop By Hop (AKA Outer Encryption)
 
 
 # Background
@@ -86,7 +86,7 @@ Intuitively SRTP+DTLS is used for HBH encryption, however it is more challenging
 #SFrame
 We propose a frame level encryption schema for the E2EE layer to decrease the overhead by having a single IV and authentication tag per the media frame and not per RTP packet, and the encrypted frame will be packetized using a generic
 RTP packetized and not codec dependent packetized anymore. 
-In order for SFU to work, media metadata will be moved to a generic frame frame header extension which will be authenticated end to end. This extensions will include metadata such as resolution, frame rate, frame begin and end marks, etc.
+In order for SFU to work, media metadata will be moved to a generic frame RTP header extension which will be authenticated end to end. This extensions will include metadata such as resolution, frame rate, frame begin and end marks, etc.
 
 The SFrame payload is constructed by a generic packetizer that splits the E2E encrypted media frame into one or more RTP packet and add the SFrame header to the beginning of the first packet and auth tag to the end of the last packet.
 
@@ -302,8 +302,22 @@ Is arrived and decrypted.
 <TODO>
 
 ## SFU
-<TODO>
+Selective Forwarding Units (SFUs) as described in https://tools.ietf.org/html/rfc7667#section-3.7 receives the RTP streams from each participant and selects which ones should be forwarded to each of the other participants.
+There are several approaches about how to do this stream selection but in general, in order to do so, the SFU needs to access metadata associated to each frame and modify the RTP information of the incoming packets when they are transimted to the received pariticpants.
 
+This section describes how this normal SFU modes of operation interacts with the E2EE provided by SFrame
+
+###LastN and RTP stream reusage
+The SFU may choose to send only a certain number of streams based on the voice activity of the participants. To reduce the number of SDP O/A required to establish a new RTP stream, the SFU may decide to reuse previously existing RTP sessions or even pre-allocate a predefined number of RTP streams and choose in each moment in time which participant media will be sending through it.
+This means that in the same RTP stream (defined by either SSRC or MID) may carry media from different streams of different participants. As different keys are used by each participant for encoding their media, the receiver will be able to verify which is the sender of the media coming within the RTP stream at any given point if time, preventing the SFU trying to impersonate any of the participants with another participant's media.
+Note that in order to prevent impersonation by a malicios participant (not the SFU) usage of the signature is required. In case of video, the a new signature should be started each time a key frame is sent to allow the reciever to identify the source faster after a switch.
+
+###Simulcast
+The sender of a simulcast stream may use the same SRC for all the simulcast streams from the same media source or use a different SRC for each of them, in any case it is transparent to the SFU which will be able to perform the simulcast layer switching normally.
+The senders are already able to receive different SRCs from different participants due to LastN and RTP Stream reusage, so supporting simulcast uses same mechanisms.
+ 
+###SVC
+In both temporal and spatial scalability, the SFU may choose to drop layers in order to match a certain bitrate or forward specific media sizes or frames per second. In order to support it, the sender MUST encode each spatial layer of a given picture in a different frame. That is, an RTP frame may contain more than one SFrame encrypted frame with same SRC and incrementing frame counter.
 
 # Security Considerations
 

@@ -294,7 +294,14 @@ For a conference with a single incoming audio stream (@ 50 pps) and 4 incoming v
 Some codes support partial decoding, where it can decrypt individual packets without waiting for the full frame to arrive, with SFrame this won't be possible because the decoder will not access the packets until the entire frame
 Is arrived and decrypted. 
 
+## RTP payload type
+<TODO>
+
+## Generic frame marking extension
+<TODO>
+
 ## SFU
+<TODO>
 
 
 # Security Considerations

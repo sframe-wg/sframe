@@ -206,7 +206,7 @@ Every client in the call knows the secret key for all other clients so it can de
 Adding a digital signature to each encrypted frame will be an overkill, instead we propose adding signature over N frames. 
 
 ~~~~~
-Signature = Sign(Hash(Frame1) || Hash(Frame(2) || ...|| Hash(FrameN))
+Signature = Sign(Hash(Frame1) || Hash(Frame2) || ...|| Hash(FrameN))
 ~~~~~
 
 Because some frames could be lost and never delivered, when the signature is sent, it will also send all the hashes it used to calculate the signature, and the recipient client will only use these hashes if they didn't receive the matching frame. For example Client A sends a signature	every 5 frames, so it sends the signature and Hash(Frame1), ...,Hash(Frame5), client B received only frames 1,2,4 and 5. When B receives the signature and the hashes, it will compute the hashes of frames 1,2,4 and 5 locally and use the received Hash(Frame3) to verify the signature. It is up to the application to decide what to do when signature verification fails.

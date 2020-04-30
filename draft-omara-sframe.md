@@ -192,7 +192,8 @@ IV = (SRC||CTR) XOR Salt key
 SFrame supports two ciphers, the only difference is the length of the authentication tag, where 10 bytes is used for video and 4 bytes for audio
 
 1- AES_CM_128_HMAC_SHA256_80
-1- AES_CM_128_HMAC_SHA256_32
+
+2- AES_CM_128_HMAC_SHA256_32
 
 It uses AES counter mode for encryption with 128 bit key, SHA256 hash for the HKDF key derivation.
 

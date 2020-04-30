@@ -310,5 +310,8 @@ Is arrived and decrypted.
 ## Key Management
 Key exchange mechanism is out of scope of this document, however every client MUST change their keys when new clients joins or leaves the call for "Forward Secrecy" and "Post Compromise Security".
 
+## Authentication tag length
+<TODO>
+
 # IANA Considerations
 This document makes no requests of IANA.

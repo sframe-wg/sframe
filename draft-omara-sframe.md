@@ -22,6 +22,18 @@ author:
     name: Justin Uberti
     organization: Google
     email: juberti@google.com
+
+ -
+    ins: A. GOUAILLARD
+    name: Alexandre GOUAILLARD
+    organization: CoSMo Software
+    email: Alex.GOUAILLARD@cosmosoftware.io 
+
+ -
+    ins: S. Murillo
+    name: Sergio Garcia Murillo
+    organization: CoSMo Software
+    email: sergio.garcia.murillo@cosmosoftware.io 
  
 
 

@@ -266,7 +266,7 @@ The sender of a simulcast stream may use the same SRC for all the simulcast stre
 The senders are already able to receive different SRCs from different participants due to LastN and RTP Stream reuse, so supporting simulcast uses same mechanisms.
  
 ### SVC
-In both temporal and spatial scalability, the SFU may choose to drop layers in order to match a certain bitrate or forward specific media sizes or frames per second. In order to support it, the sender MUST encode each spatial layer of a given picture in a different frame. That is, an RTP frame may contain more than one SFrame encrypted frame with same SSRC and incrementing frame counter.
+In both temporal and spatial scalability, the SFU may choose to drop layers in order to match a certain bitrate or forward specific media sizes or frames per second. In order to support it, the sender MUST encode each spatial layer of a given picture in a different frame. That is, an RTP frame may contain more than one SFrame encrypted frame with same source (SRC) and incrementing frame counter.
 
 ## Partial Decoding
 Some codes support partial decoding, where it can decrypt individual packets without waiting for the full frame to arrive, with SFrame this won't be possible because the decoder will not access the packets until the entire frame

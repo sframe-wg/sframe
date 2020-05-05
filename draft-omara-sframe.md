@@ -65,10 +65,13 @@ HBH:
 
 
 # Background
-Modern multi-part conference call systems include SFU server to efficiently forward the RTP streams to the end points based on their bandwidth. In order for the SFU to work properly it needs to access and modify some metadata about these streams which is not possible if the RTP packets are end to end encrypted and authenticated. So two layers of encryptions and authentication are required:
-	1- E2EE between the endpoints
-	2- HBH between the the endpoints and SFU 
-Intuitively SRTP+DTLS is used for HBH encryption, however it is more challenging to design the E2EE due to the bandwidth overhead, mainly the extra authentication tag per packet.
+Modern multi-party video call systems use Selective Forwarding Unit (SFU) servers to efficiently route RTP streams to call endpoints based on factors such as available bandwidth, desired video size, codec support, and other factors. In order for the SFU to work properly though, it needs to be able to access RTP data, which is not possible if the entire RTP packets are end- to-end encrypted and authenticated. 
+
+As such, two layers of encryptions and authentication are required:
+	1- Hop-by-hop (HBH) encryption of media and metadata between the the endpoints and SFU 
+	2- End-to-end encryption of media between the endpoints
+
+While DTLS-SRTP can be used as an efficient HBH mechanism, it is inherently point-to-point and therefore not suitable for a SFU context. In addition, given the various scenarios in which video calling occurs, minimizing the bandwidth overhead of end-to-end encryption is also an important goal.
 
 ~~~~~
   +-------------------------------+-------------------------------+^+
@@ -96,11 +99,11 @@ Intuitively SRTP+DTLS is used for HBH encryption, however it is more challenging
 ~~~~~
 
 #SFrame
-We propose a frame level encryption schema for the E2EE layer to decrease the overhead by having a single IV and authentication tag per the media frame and not per RTP packet, and the encrypted frame will be packetized using a generic
-RTP packetized and not codec dependent packetized anymore. 
-In order for SFU to work, media metadata will be moved to a generic frame RTP header extension which will be authenticated end to end. This extensions will include metadata such as resolution, frame rate, frame begin and end marks, etc.
+We propose a frame level encryption mechanism that provides effective end-to-end encryption, is simple to implement, has no dependencies on RTP, and minimizes encryption bandwidth overhead. Regarding overhead, because SFrame encrypts on a frame, rather than packet basis, bandwidth overhead of is reduced by having a single IV and authentication tag for each media frame.
 
-The SFrame payload is constructed by a generic packetizer that splits the E2E encrypted media frame into one or more RTP packet and add the SFrame header to the beginning of the first packet and auth tag to the end of the last packet.
+Also, because media is encrypted prior to packetization, the encrypted frame is packetized using a generic RTP packetizer instead of codec-dependent packetization mechanisms. With this move to a generic packetizer, media metadata is moved from codec-specific mechanisms to a generic frame RTP header extension which, while visible to the SFU, is authenticated end-to- end. This extension includes necessary metadata such as resolution, frame beginning and end markers, etc.
+
+The generic packetizer splits the E2E encrypted media frame into one or more RTP packets and adds the SFrame header to the beginning of the first packet and an auth tag to the end of the last packet.
 
 ~~~~~
                            +---------------+  +---------------+
@@ -122,7 +125,7 @@ The SFrame payload is constructed by a generic packetizer that splits the E2E en
            |               +-------+-------+          |            |
            |               |               |          |            |
            |               |   encrypted   |          v            |
-           |               |     frame     +---->Authenticat<------+
+           |               |     frame     +---->Authenticate<-----+
            +               |               |          +
        encode CTR          |               |          |
            +               +-------+-------+          |
@@ -146,7 +149,7 @@ The SFrame payload is constructed by a generic packetizer that splits the E2E en
                                          
 ~~~~~
 
-The E2EE keys used to encrypt the frame are exchanged out of band using a secure channel. E2EE key management and rotation is out of the scope of this document. 
+The E2EE keys used to encrypt the frame are exchanged out of band using a secure channel. E2EE key management and rotation is out of scope for this document. 
 
 
 ## SFrame Header

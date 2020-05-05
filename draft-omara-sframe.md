@@ -164,10 +164,13 @@ The frame counter itself can be encoded in a variable length format to decrease 
 
 S 1 bit
 Signature flag, indicates the payload contains a signature of set. 
+
 LEN (3 bits)
 The CTR length fields in bytes. 
+
 SRC (4 bits)
 4 bits source stream id
+
 CTR (Variable length) 
 Frame counter up to 8 bytes long
 
@@ -176,7 +179,7 @@ Frame counter up to 8 bytes long
 ## Encryption Schema
 
 ### Key Derviation
-Each client creates a 32 bytes secret key K and share it with with other participants via an E2EE channel. From K, we derive 3 secrets:
+Each client creates a 32 bytes secret key K and share it with with other participants via an E2EE channel. From K, three different secrets are derived:
 
 1- Salt key used to calculate the IV
 

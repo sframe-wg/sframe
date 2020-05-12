@@ -36,6 +36,90 @@ author:
     email: sergio.garcia.murillo@cosmosoftware.io 
  
 
+informative:
+
+  MLSARCH:
+       title: "Messaging Layer Security Architecture"
+       date: 2020
+       author:
+         -  ins: E. Omara
+            name: Emad Omara
+            organization: Google
+            email: emadomara@google.com
+         -  
+            ins: R. Barnes
+            name: Richard Barnes
+            organization: Cisco
+            email: rlb@ipv.sx
+         -
+	    ins: E. Rescorla 
+            name: Eric Rescorla
+            organization: Mozilla 
+            email: ekr@rtfm.com
+         -
+            ins: S. Inguva 
+            name: Srinivas Inguva 
+            organization: Twitter 
+            email: singuva@twitter.com
+         -
+            ins: A. Kwon 
+            name: Albert Kwon
+            organization: MIT 
+            email: kwonal@mit.edu
+         -
+            ins: A. Duric 
+            name: Alan Duric
+            organization: Wire 
+            email: alan@wire.com 
+
+
+  MLSPROTO:
+       title: "Messaging Layer Security Protocol"
+       date: 2020
+       author:
+         -  ins: R. Barnes
+            name: Richard Barnes
+            organization: Cisco
+            email: rlb@ipv.sx
+         -
+            ins: J. Millican
+            name: Jon Millican
+            organization: Facebook
+            email: jmillican@fb.com
+         -
+            ins: E. Omara
+            name: Emad Omara
+            organization: Google
+            email: emadomara@google.com
+         -
+            ins: K. Cohn-Gordon
+            name: Katriel Cohn-Gordon
+            organization: University of Oxford
+            email: me@katriel.co.uk
+         -
+            ins: R. Robert
+            name: Raphael Robert
+            organization: Wire
+            email: raphael@wire.com
+
+  PERC:
+       target: https://datatracker.ietf.org/doc/rfc8723/
+       title: PERC
+       date: 2020
+       author:
+       -
+          ins: C. Jennings
+          organization: Cisco Systems
+       -
+          ins: P. Jones
+          organization: Cisco Systems
+       -
+          ins: R. Barnes
+          organization: Cisco Systems
+       -
+          ins: A.B. Roach
+          organization: Mozilla
+
 
 --- abstract
 
@@ -96,7 +180,7 @@ Intuitively SRTP+DTLS is used for HBH encryption, however it is more challenging
 ~~~~~
 
 #SFrame
-We propose a frame level encryption schema for the E2EE layer to decrease the overhead by having a single IV and authentication tag per the media frame and not per RTP packet, and the encrypted frame will be packetized using a generic
+We propose to add second layer of encryption using keys only known to the client endpoints and negotiated through an E2EE channel. Each client endpoint uses a different symmetric key to encrypt their outgoing traffic. The new encryption is done at the frame level instead of packet level to decrease the overhead by having a single IV and authentication tag per the media frame and not per RTP packet, and the encrypted frame will be packetized using a generic
 RTP packetized and not codec dependent packetized anymore. 
 In order for SFU to work, media metadata will be moved to a generic frame RTP header extension which will be authenticated end to end. This extensions will include metadata such as resolution, frame rate, frame begin and end marks, etc.
 
@@ -122,7 +206,7 @@ The SFrame payload is constructed by a generic packetizer that splits the E2E en
            |               +-------+-------+          |            |
            |               |               |          |            |
            |               |   encrypted   |          v            |
-           |               |     frame     +---->Authenticat<------+
+           |               |     frame     +---->Authenticate<------+
            +               |               |          +
        encode CTR          |               |          |
            +               +-------+-------+          |
@@ -150,26 +234,26 @@ The E2EE keys used to encrypt the frame are exchanged out of band using a secure
 
 
 ## SFrame Header
-Since each endpoint can send multiple media layers, each stream will have a unique frame counter that will be used to derive the encryption IV. To guarantee uniqueness across all streams and avoid IV reuse, the frame counter will have be prefixed by a stream id which will be 0 to N where N is the total number of outgoing streams.
-The expected number of outgoing streams will be between 4 and 9 streams, using 4 bits for stream id will support up to 16 streams. 
+Since each endpoint can send multiple media layers, each frame will have a unique frame counter that will be used to derive the encryption IV. The frame counter must be unique and monodically increasing to avoid IV reuse.
 
 The frame counter itself can be encoded in a variable length format to decrease the overhead, the following encoding schema is used 
 
 ~~~~~
 +---------+---------------------------------+
-|S|LEN|SRC|           CTR...                |
+|S| R |LEN|           CTR...                |
 +---------+---------------------------------+
             SFrame header format 
 ~~~~~
 
+The first byte in the header is fixed and contains the header metadata
 S 1 bit
 Signature flag, indicates the payload contains a signature of set. 
 
-LEN (3 bits)
-The CTR length fields in bytes. 
+Reserved (4 bits)
+Reserved bits
 
-SRC (4 bits)
-4 bits source stream id
+LEN (3 bits)
+The length of the CTR fields in bytes.
 
 CTR (Variable length) 
 Frame counter up to 8 bytes long
@@ -178,8 +262,8 @@ Frame counter up to 8 bytes long
 
 ## Encryption Schema
 
-### Key Derviation
-Each client creates a 32 bytes secret key K and share it with with other participants via an E2EE channel. From K, three different secrets are derived:
+### Key Derivation
+Each client creates a 32 bytes secret key K and share it with with other participants via an E2EE channel. From K, we derive 3 secrets:
 
 1- Salt key used to calculate the IV
 
@@ -235,7 +319,8 @@ The receiving clients buffer all packets that belongs to the same frame using th
 For frames that are failed to decrypt because there is not key available yet, SFrame will buffer them and retries to decrypt them once a key is received. 
 
 ### Duplicate Frames
-Unlike messaging application, in video calls, receiving a duplicate frame doesn't necessary mean the client is under a replay attack, there are other reasons that might cause this, for example the sender might just be sending them in case of packet loss. SFrame decryptors keeps track of all received frame ids for each incoming stream and returns and error when it detects a duplicate frame.
+Unlike messaging application, in video calls, receiving a duplicate frame doesn't necessary mean the client is under a replay attack, there are other reasons that might cause this, for example the sender might just be sending them in case of packet loss. SFrame decryptors use the last received frame counter to protect against this. It allows only older frame pithing a short interval to support out of order delivery.
+
 
 ### Key Rotation
 Because the E2EE keys could be rotated during the call when people join and leave, these new keys are exchanged using the same E2EE secure channel using to exchange the initial keys. Sending new fresh keys is an expensive operation, so the key management component might chose to send new keys only when other clients leave the call and use hash ratcheting for the join case, so no need to send a new key to the clients who are already on the call. SFrame supports both modes
@@ -262,6 +347,13 @@ Signature = Sign(Hash(Frame1) || Hash(Frame2) || ...|| Hash(FrameN))
 Because some frames could be lost and never delivered, when the signature is sent, it will also send all the hashes it used to calculate the signature, and the recipient client will only use these hashes if they didn't receive the matching frame. For example Client A sends a signature	every 5 frames, so it sends the signature and Hash(Frame1), ...,Hash(Frame5), client B received only frames 1,2,4 and 5. When B receives the signature and the hashes, it will compute the hashes of frames 1,2,4 and 5 locally and use the received Hash(Frame3) to verify the signature. It is up to the application to decide what to do when signature verification fails.
 
 The signature keys are exchanged out of band along the secret keys. 
+
+# Key Management 
+SFrame must be integrated with an E2EE key management framework to exchange and rotate the encryption keys such as {{MLSPROTO}} which scales to very large groups. Call members will create a MLS group to exchange the encryption keys for all further calls for that group. When a client joins the call, they create a random key material and encrypt it to every other client on the call using their MLS application secret. This key material is passed to SFrame to derive SFrame keys for that client. 
+When group membership changes, the active clients in the call must update their keys for "Forward Secrecy" and "Post Compromise Security". Key ratcheting can be used when a new member joins the group but for member leave events, a fresh key material will be generated by each client endpoint in the call and encrypt it using their MLS application secret.
+
+If authentication is enabled, every client will also generate public-private key pair for signing and exchange the public part with the secret key material.
+
 
 # Media Considerations
 
@@ -332,8 +424,8 @@ Overhead bps = (Counter length + 1 + 4 ) * 8 * fps
 ~~~~~
 
 ## SFrame vs PERC-lite
-PERC {{https://datatracker.ietf.org/doc/rfc8723/}} has significant overhead over SFrame because the overhead is per packet, not per frame, and OHB which duplicates any RTP header/extension field modified by the SFU.
-PERC-Lite is slightly better because it doesn’t use the OHB anymore, however it still does per packet encryption using SRTP. 
+{{PERC}} has significant overhead over SFrame because the overhead is per packet, not per frame, and OHB which duplicates any RTP header/extension field modified by the SFU.
+PERC-Lite {{https://mailarchive.ietf.org/arch/msg/perc/SB0qMHWz6EsDtz3yIEX0HWp5IEY/}} is slightly better because it doesn’t use the OHB anymore, however it still does per packet encryption using SRTP. 
 Below the the overheard in PERC_lite implemented by Cosmos Software which uses extra 11 bytes per packet to preserve the PT, SEQ_NUM, TIME_STAMP and SSRC fields in addition to the extra MAC tag per packet.
 
 OverheadPerPacket = 11 + MAC length 

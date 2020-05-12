@@ -234,7 +234,7 @@ The E2EE keys used to encrypt the frame are exchanged out of band using a secure
 
 
 ## SFrame Header
-Since each endpoint can send multiple media layers, each stream will have a unique frame counter that will be used to derive the encryption IV. The frame counter must be unique and monodically increasing to avoid IV reuse.
+Since each endpoint can send multiple media layers, each frame will have a unique frame counter that will be used to derive the encryption IV. The frame counter must be unique and monodically increasing to avoid IV reuse.
 
 The frame counter itself can be encoded in a variable length format to decrease the overhead, the following encoding schema is used 
 

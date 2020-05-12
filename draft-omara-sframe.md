@@ -317,7 +317,8 @@ The receiving clients buffer all packets that belongs to the same frame using th
 For frames that are failed to decrypt because there is not key available yet, SFrame will buffer them and retries to decrypt them once a key is received. 
 
 ### Duplicate Frames
-Unlike messaging application, in video calls, receiving a duplicate frame doesn't necessary mean the client is under a replay attack, there are other reasons that might cause this, for example the sender might just be sending them in case of packet loss. SFrame decryptors keeps track of all received frame ids for each incoming stream and returns and error when it detects a duplicate frame.
+Unlike messaging application, in video calls, receiving a duplicate frame doesn't necessary mean the client is under a replay attack, there are other reasons that might cause this, for example the sender might just be sending them in case of packet loss. SFrame decryptors use the last received frame counter to protect against this. It allows only older frame pithing a short interval to support out of order delivery.
+
 
 ### Key Rotation
 Because the E2EE keys could be rotated during the call when people join and leave, these new keys are exchanged using the same E2EE secure channel using to exchange the initial keys. Sending new fresh keys is an expensive operation, so the key management component might chose to send new keys only when other clients leave the call and use hash ratcheting for the join case, so no need to send a new key to the clients who are already on the call. SFrame supports both modes

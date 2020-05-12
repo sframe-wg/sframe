@@ -96,7 +96,7 @@ Intuitively SRTP+DTLS is used for HBH encryption, however it is more challenging
 ~~~~~
 
 #SFrame
-We propose a frame level encryption schema for the E2EE layer to decrease the overhead by having a single IV and authentication tag per the media frame and not per RTP packet, and the encrypted frame will be packetized using a generic
+We propose to add second layer of encryption using keys only known to the client endpoints and negotiated through an E2EE channel. Each client endpoint uses a different symmetric key to encrypt their outgoing traffic. The new encryption is done at the frame level instead of packet level to decrease the overhead by having a single IV and authentication tag per the media frame and not per RTP packet, and the encrypted frame will be packetized using a generic
 RTP packetized and not codec dependent packetized anymore. 
 In order for SFU to work, media metadata will be moved to a generic frame RTP header extension which will be authenticated end to end. This extensions will include metadata such as resolution, frame rate, frame begin and end marks, etc.
 
@@ -122,7 +122,7 @@ The SFrame payload is constructed by a generic packetizer that splits the E2E en
            |               +-------+-------+          |            |
            |               |               |          |            |
            |               |   encrypted   |          v            |
-           |               |     frame     +---->Authenticat<------+
+           |               |     frame     +---->Authenticate<------+
            +               |               |          +
        encode CTR          |               |          |
            +               +-------+-------+          |
@@ -150,24 +150,25 @@ The E2EE keys used to encrypt the frame are exchanged out of band using a secure
 
 
 ## SFrame Header
-Since each endpoint can send multiple media layers, each stream will have a unique frame counter that will be used to derive the encryption IV. To guarantee uniqueness across all streams and avoid IV reuse, the frame counter will have be prefixed by a stream id which will be 0 to N where N is the total number of outgoing streams.
-The expected number of outgoing streams will be between 4 and 9 streams, using 4 bits for stream id will support up to 16 streams. 
+Since each endpoint can send multiple media layers, each stream will have a unique frame counter that will be used to derive the encryption IV. The frame counter must be unique and monodically increasing to avoid IV reuse.
 
 The frame counter itself can be encoded in a variable length format to decrease the overhead, the following encoding schema is used 
 
 ~~~~~
 +---------+---------------------------------+
-|S|LEN|SRC|           CTR...                |
+|S| R |LEN|           CTR...                |
 +---------+---------------------------------+
             SFrame header format 
 ~~~~~
 
+The first byte in the header is fixed and contains the header metadata
 S 1 bit
 Signature flag, indicates the payload contains a signature of set. 
+Reserved (4 bits)
+Reserved bits
 LEN (3 bits)
-The CTR length fields in bytes. 
-SRC (4 bits)
-4 bits source stream id
+The length of the CTR fields in bytes.
+
 CTR (Variable length) 
 Frame counter up to 8 bytes long
 
@@ -175,7 +176,7 @@ Frame counter up to 8 bytes long
 
 ## Encryption Schema
 
-### Key Derviation
+### Key Derivation
 Each client creates a 32 bytes secret key K and share it with with other participants via an E2EE channel. From K, we derive 3 secrets:
 
 1- Salt key used to calculate the IV

@@ -248,8 +248,10 @@ The frame counter itself can be encoded in a variable length format to decrease 
 The first byte in the header is fixed and contains the header metadata
 S 1 bit
 Signature flag, indicates the payload contains a signature of set. 
+
 Reserved (4 bits)
 Reserved bits
+
 LEN (3 bits)
 The length of the CTR fields in bytes.
 

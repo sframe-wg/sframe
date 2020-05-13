@@ -344,9 +344,64 @@ Adding a digital signature to each encrypted frame will be an overkill, instead 
 Signature = Sign(Hash(Frame1) || Hash(Frame2) || ...|| Hash(FrameN))
 ~~~~~
 
-Because some frames could be lost and never delivered, when the signature is sent, it will also send all the hashes it used to calculate the signature, and the recipient client will only use these hashes if they didn't receive the matching frame. For example Client A sends a signature	every 5 frames, so it sends the signature and Hash(Frame1), ...,Hash(Frame5), client B received only frames 1,2,4 and 5. When B receives the signature and the hashes, it will compute the hashes of frames 1,2,4 and 5 locally and use the received Hash(Frame3) to verify the signature. It is up to the application to decide what to do when signature verification fails.
+Because some frames could be lost and never delivered, when the signature is sent, it will also send all the hashes it used to calculate the signature, and the recipient client will only use these hashes if they didn't receive the matching frame. For example Client A sends a signature every 5 frames, so it sends the signature and Hash(Frame1), ...,Hash(Frame5), client B received only frames 1,2,4 and 5. When B receives the signature and the hashes, it will compute the hashes of frames 1,2,4 and 5 locally and use the received Hash(Frame3) to verify the signature. It is up to the application to decide what to do when signature verification fails.
 
 The signature keys are exchanged out of band along the secret keys. 
+
+The signature will be sent on the last frame of the calculated frames, and its HMAC will not be present on the HMAC list to reduce the overhead.
+
+When using SVC, the hash will be calculated over all the frames of the different spatial layers within the same superframe/picture. However the SFU will be able to drop frames within the same stream (either spatial or temporal) to match target bitrate.
+
+If the signature is sent on a frame which layer that is dropped by the SFU, the receiver will not be receive it and perform the signature of the other received layers.
+
+An easy way of solving the issue would be to perform signature only on the base layer or take into consideration the frame dependency graph and send multiple signatures in parallel (each for a branch of the dependency graph).
+
+In case of simulcast or K-SVC, each spatial layer sould be autheticated with different signatures to prevent the SFU to discard frames with the signature info.
+
+The signature and the HMAC list will be sent in the SFrame header, after the frame counter (CTR) and the SFrame header metadata signature bit (S) set to 1, with the following format:
+
+~~~~~
+     0                   1                   2                   3
+     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |     SLEN      |      Signature Data (length = SLEN)           |
+    +-+-+-+-+-+-+-+-+                                               +
+    :                                                               :
+    +               +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |               | HNUM  | HLEN  | HMAC 0 (length=2*(HLEN+2))    :
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    :                               | HMAC 1 (length=2*(HLEN+2))    :
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    :                               |                               :
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+                               +
+    :                                                               :
+    +                  (HMACS of size HLEN)                         +
+    :                                                               :
+    +                               +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    :                               | HMAC N (N=HNUM-1)   	    :
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    :                               | HNUM  | HLEN  |               :
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+               +
+    :                                                               :
+    +                  (HNUM HMACS of size HLEN)                    +
+    :                                                               :
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |HNUM=0 |HLEN=0 |
+    +-+-+-+-+-+-+-+-+
+    
+                             Signature info
+~~~~~   
+
+The first byte (SLEN) is the length of the signature data which is appended afterwards.    
+    
+After the signature there will be 1 or more blocks of HMACs with of the same size. Each HMAC block will have 1 byte header indicating the number of HMACs present and the size in bytes of each HMAC in the block. HMACs present in each block may or may not be in frame order.
+
+Number of HMAC (HNUM): 4 bits
+      Number of HMACs present in this block.
+HMAC length (HLEN): 4 bits
+      Size of the HMACS in the block, calculated as follows length=2*(HLEN+2). This allows HMAC sizes in the ranges of 4 to 34 bytes.
+
+To indicate the end of the HMACS blocks, an HMAC header block with HNUM=0 and HLEN=0 will be inserted.
 
 # Key Management 
 SFrame must be integrated with an E2EE key management framework to exchange and rotate the encryption keys such as {{MLSPROTO}} which scales to very large groups. Call members will create a MLS group to exchange the encryption keys for all further calls for that group. When a client joins the call, they create a random key material and encrypt it to every other client on the call using their MLS application secret. This key material is passed to SFrame to derive SFrame keys for that client. 

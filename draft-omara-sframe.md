@@ -236,6 +236,35 @@ The generic packetizer splits the E2E encrypted media frame into one or more RTP
 
 The E2EE keys used to encrypt the frame are exchanged out of band using a secure channel. E2EE key management and rotation is out of scope for this document. 
 
+## SFrame Payload Format
+
+~~~~~
+                +------------+------------------------------------------+^+
+  SFrame Header |S|LEN|X|KID |         Frame Counter                    | |
+                +------------+-----+------------------------------------+ |
+                | Signature Header |          Signature                 | |
+   Optional     +------------------+------------------------------------+ |
+Signature Block |                                                       | |
+                |                Frames hashes list                     | |
+                |                                                       | |
+              +^+-------------------------------------------------------+ |
+              | |                                                       | |
+              | |                                                       | |
+              | |                                                       | |
+              | |                                                       | |
+              | |                  Encrypted Frame                      | |
+              | |                                                       | |
+              | |                                                       | |
+              | |                                                       | |
+              | |                                                       | |
+              +^+-------------------------------------------------------+^+
+              | |                 Authentication Tag                    | |
+              | +-------------------------------------------------------+ |
+              |                                                           |
+              |                                                           |
+              +----+Encrypted Portion            Authenticated Portion+---+
+
+~~~~~
 
 ## SFrame Header
 Since each endpoint can send multiple media layers, each frame will have a unique frame counter that will be used to derive the encryption IV. The frame counter must be unique and monodically increasing to avoid IV reuse.
@@ -320,22 +349,6 @@ IV = (CTR) XOR Salt key
 ~~~~~
 
 
-### Cipher Suites
-
-#### SFrame
-SFrame supports two ciphers, the only difference is the length of the authentication tag, where 10 bytes is used for video and 4 bytes for audio
-
-1- AES_CM_128_HMAC_SHA256_80
-
-2- AES_CM_128_HMAC_SHA256_32
-
-It uses AES counter mode for encryption with 128 bit key, SHA256 hash for the HKDF key derivation.
-
-#### DTLS-SRTP
-SRTP is used as an outer encryption, since the media payload is already encrypted, and SRTP only protects the RTP headers, one implementation could use 4 bytes outer auth tag to decrease the overhead, however it is up to the application to use other ciphers like AES-128-GCM with full authentication tag.
-
-It is possible that future versions of this draft will define other ciphers.
-
 ### Encryption
 After encoding the frame and before packetizing it, the necessary media metadata will be moved out of the encoded frame buffer, to be used later in the RTP header extension. The encoded frame and the metadata buffer are passed to SFrame encryptor which internally keeps track of the number of frames encrypted so far. 
 The encryptor constructs SFrame header using frame counter and key id and derive the encryption IV. The frame is encrypted using the encryption key and the header, encrypted frame and the media metadata are authenticated using the authentication key. The authentication tag is then truncated (If supported by the cipher suite) and prepended at the end of the ciphertext.
@@ -345,10 +358,12 @@ The encrypted payload is then passed to a generic RTP packetized to construct th
 ### Decryption
 The receiving clients buffer all packets that belongs to the same frame using the frame beginning and ending marks in the generic RTP header extension, and once all packets are available, it passes it to Frame for decryption. SFrame maintains multiple decryptor objects, one for each client in the call. Initially the client might not have the mapping between the incoming streams the user's keys, in this case SFrame tries all unmapped keys until it finds one that passes the authentication verification and use it to decrypt the frame. If the client has the mapping ready, it can push it down to SFrame later.
 
+The KeyId field in the SFrame header is used to find the right key for that user, which is incremented by the sender when they change to a new key. 
+
 For frames that are failed to decrypt because there is not key available yet, SFrame will buffer them and retries to decrypt them once a key is received. 
 
 ### Duplicate Frames
-Unlike messaging application, in video calls, receiving a duplicate frame doesn't necessary mean the client is under a replay attack, there are other reasons that might cause this, for example the sender might just be sending them in case of packet loss. SFrame decryptors use the last received frame counter to protect against this. It allows only older frame pithing a short interval to support out of order delivery.
+Unlike messaging application, in video calls, receiving a duplicate frame doesn't necessary mean the client is under a replay attack, there are other reasons that might cause this, for example the sender might just be sending them in case of packet loss. SFrame decryptors use the highest received frame counter to protect against this. It allows only older frame pithing a short interval to support out of order delivery.
 
 
 ### Key Rotation
@@ -376,6 +391,31 @@ Signature = Sign(Hash(Frame1) || Hash(Frame2) || ...|| Hash(FrameN))
 Because some frames could be lost and never delivered, when the signature is sent, it will also send all the hashes it used to calculate the signature, and the recipient client will only use these hashes if they didn't receive the matching frame. For example Client A sends a signature	every 5 frames, so it sends the signature and Hash(Frame1), ...,Hash(Frame5), client B received only frames 1,2,4 and 5. When B receives the signature and the hashes, it will compute the hashes of frames 1,2,4 and 5 locally and use the received Hash(Frame3) to verify the signature. It is up to the application to decide what to do when signature verification fails.
 
 The signature keys are exchanged out of band along the secret keys. 
+
+
+## Ciphersuites
+
+### SFrame
+Each SFrame session uses a single ciphersuite that specifies the following primitives:
+
+o A hash function
+This is used for the Key derivation and frame hashes for signture. We recommend using SHA256 hash function.
+
+o An AEAD encryption algorithm [RFC5116]
+While any AEAD algorithm can be used to encrypt the frame, we recommend using algorithms with safe MAC truncation like AES-CTR and HMAC to reduce the per-frame overhead. In this case we can use 80 bits MAC for video frames and 32 bits for audio frames similar to DTLS-SRTP cipher suites:
+
+1- AES_CM_128_HMAC_SHA256_80
+
+2- AES_CM_128_HMAC_SHA256_32
+
+o [Optional] A signature algorithm
+If signature is supported, we recommend using ed25519 
+
+
+### DTLS-SRTP
+SRTP is used as an outer encryption, since the media payload is already encrypted, and SRTP only protects the RTP headers, one implementation could use 4 bytes outer auth tag to decrease the overhead, however it is up to the application to use other ciphers like AES-128-GCM with full authentication tag.
+
+It is possible that future versions of this draft will define other ciphers.
 
 # Key Management 
 SFrame must be integrated with an E2EE key management framework to exchange and rotate the encryption keys such as {{MLSPROTO}} which scales to very large groups. Call members will create a MLS group to exchange the encryption keys for all further calls for that group. When a client joins the call, they create a random key material and encrypt it to every other client on the call using their MLS application secret. This key material is passed to SFrame to derive SFrame keys for that client. 

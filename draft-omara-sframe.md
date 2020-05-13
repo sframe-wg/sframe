@@ -236,29 +236,54 @@ The E2EE keys used to encrypt the frame are exchanged out of band using a secure
 ## SFrame Header
 Since each endpoint can send multiple media layers, each frame will have a unique frame counter that will be used to derive the encryption IV. The frame counter must be unique and monodically increasing to avoid IV reuse.
 
-The frame counter itself can be encoded in a variable length format to decrease the overhead, the following encoding schema is used 
+As each sender will use their own key for encryption, so the SFrame header will include the key id to allow the receiver to identify the key that needs to be used for decrypting. 
+
+Both the frame counter and the key id are encoded in a variable length format to decrease the overhead, so the first byte in the Sframe header is fixed and contains the header metadata with the following format:
 
 ~~~~~
-+---------+---------------------------------+
-|S| R |LEN|           CTR...                |
-+---------+---------------------------------+
-            SFrame header format 
+ 0 1 2 3 4 5 6 7
++-+-+-+-+-+-+-+-+
+|S|LEN  |X|  K  |
++-+-+-+-+-+-+-+-+
+SFrame header metadata
 ~~~~~
 
-The first byte in the header is fixed and contains the header metadata
-S 1 bit
-Signature flag, indicates the payload contains a signature of set. 
+Signature flag (S): 1 bit
+    This field indicates the payload contains a signature of set. 
+Counter Length (LEN): 3 bits
+    This field indicates the length of the CTR fields in bytes.
+Extended Key Id Flag (X): 1 bit    
+     Indicates if the key field contains the key id or the key length.
+Key or Key Length: 3 bits
+     This field containts the key id (KID) if the X flag is set to 0, or the key length (KLEN) if set to 1.
 
-Reserved (4 bits)
-Reserved bits
+If X flag is 0 then the KID is in the range of 0-7 and the frame counter (CTR) is found in the next LEN bytes:
 
-LEN (3 bits)
-The length of the CTR fields in bytes.
+~~~~~
+ 0 1 2 3 4 5 6 7
++-+-+-+-+-+-+-+-+---------------------------------+
+|S|LEN  |0| KID |    CTR... (length=LEN)          |
++-+-+-+-+-+-+-+-+---------------------------------+
+~~~~~
 
-CTR (Variable length) 
-Frame counter up to 8 bytes long
+Key id (KID): 3 bits
+     The key id (0-7).
+Frame counter (CTR): (Variable length) 
+     Frame counter value up to 8 bytes long.
 
+if X flag is 1 then KLEN is the length of the key (KID), that is found after the SFrame header metadata byte. After the key id (KID), the frame counter (CTR) will be found in the next LEN bytes:
 
+ 0 1 2 3 4 5 6 7
++-+-+-+-+-+-+-+-+---------------------------------+---------------------------------+
+|S|LEN  |1|KLEN |      KID... (length=KLEN)       |    CTR... (length=LEN)          |
++-+-+-+-+-+-+-+-+---------------------------------+---------------------------------+
+
+Key length (KLEN): 3 bits
+     The key length in bytes.
+Key id (KID): (Variable length) 
+     The key id value up to 8 bytes long.
+Frame counter (CTR): (Variable length) 
+     Frame counter value up to 8 bytes long.
 
 ## Encryption Schema
 
@@ -284,10 +309,10 @@ Key = HKDF(K, 'SFrameAuthenticationKey', 32)
 ~~~~~
 
 
-The IV is 128 bits long and calculated from the SRC and CTR field of the Frame header:
+The IV is 128 bits long and calculated from the CTR field of the Frame header:
 
 ~~~~~
-IV = (SRC||CTR) XOR Salt key
+IV = (CTR) XOR Salt key
 ~~~~~
 
 
@@ -308,8 +333,8 @@ SRTP is used as an outer encryption, since the media payload is already encrypte
 It is possible that future versions of this draft will define other ciphers.
 
 ### Encryption
-The sending client maps the outgoing streams and give them unique indices: 0, 1,.. etc. As mentioned above SFrame supports up to 16 outgoing stream. After encoding the frame and before packetizing it, the necessary media metadata will be moved out of the encoded frame buffer, to be used later in the RTP header extension. The encoded frame, the metadata buffer and the stream index are passed to SFrame encryptor which internally keeps track of the number of frames encrypted so far for that stream. 
-The encryptor constructs SFrame header using the stream index and frame counter and derive the encryption IV. The frame is encrypted using the encryption key and the header, encrypted frame and the media metadata are authenticated using the authentication key. The authentication tag is then truncated (If supported by the cipher suite) and prepended at the end of the ciphertext.
+After encoding the frame and before packetizing it, the necessary media metadata will be moved out of the encoded frame buffer, to be used later in the RTP header extension. The encoded frame and the metadata buffer are passed to SFrame encryptor which internally keeps track of the number of frames encrypted so far. 
+The encryptor constructs SFrame header using frame counter and key id and derive the encryption IV. The frame is encrypted using the encryption key and the header, encrypted frame and the media metadata are authenticated using the authentication key. The authentication tag is then truncated (If supported by the cipher suite) and prepended at the end of the ciphertext.
 
 The encrypted payload is then passed to a generic RTP packetized to construct the RTP packets and encrypts it using SRTP keys for the outer encryption to the media server.
 
@@ -369,11 +394,10 @@ This means that in the same RTP stream (defined by either SSRC or MID) may carry
 Note that in order to prevent impersonation by a malicious participant (not the SFU) usage of the signature is required. In case of video, the a new signature should be started each time a key frame is sent to allow the receiver to identify the source faster after a switch.
 
 ### Simulcast
-The sender of a simulcast stream may use the same SRC for all the simulcast streams from the same media source or use a different SRC for each of them, in any case it is transparent to the SFU which will be able to perform the simulcast layer switching normally.
-The senders are already able to receive different SRCs from different participants due to LastN and RTP Stream reuse, so supporting simulcast uses same mechanisms.
+When using simulcast, the same input image will produce N different encoded frames (one per simulcat layer) which would be processed inpependently by the frame encryptor and assigned an unique counter for each.
  
 ### SVC
-In both temporal and spatial scalability, the SFU may choose to drop layers in order to match a certain bitrate or forward specific media sizes or frames per second. In order to support it, the sender MUST encode each spatial layer of a given picture in a different frame. That is, an RTP frame may contain more than one SFrame encrypted frame with same source (SRC) and incrementing frame counter.
+In both temporal and spatial scalability, the SFU may choose to drop layers in order to match a certain bitrate or forward specific media sizes or frames per second. In order to support it, the sender MUST encode each spatial layer of a given picture in a different frame. That is, an RTP frame may contain more than one SFrame encrypted frame with an incrementing frame counter.
 
 ## Partial Decoding
 Some codes support partial decoding, where it can decrypt individual packets without waiting for the full frame to arrive, with SFrame this won't be possible because the decoder will not access the packets until the entire frame

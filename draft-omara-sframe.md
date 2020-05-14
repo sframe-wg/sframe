@@ -345,7 +345,7 @@ Key = HKDF(K, 'SFrameAuthenticationKey', 32)
 The IV is 128 bits long and calculated from the KeyId and the CTR field of the Frame header:
 
 ~~~~~
-IV = (KeyId  CTR) XOR Salt key
+IV = (KeyId || CTR) XOR Salt key
 ~~~~~
 
 

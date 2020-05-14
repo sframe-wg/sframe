@@ -121,6 +121,22 @@ informative:
           organization: Mozilla
 
 
+  PERCLITE:
+       target: https://tools.ietf.org/html/draft-murillo-perc-lite-01
+       title: PERC-Lite
+       date: 2020
+       author:
+       -
+         ins: A. GOUAILLARD
+         name: Alexandre GOUAILLARD
+         organization: CoSMo Software
+         email: Alex.GOUAILLARD@cosmosoftware.io
+       -
+        ins: S. Murillo
+        name: Sergio Garcia Murillo
+        organization: CoSMo Software
+        email: sergio.garcia.murillo@cosmosoftware.io
+
 --- abstract
 
 This document describes a new end to end encryption and authentication schema for WebRTC media frames in a multiparty conference call where the central media server (SFU) will have access to the needed metadata in order for it work without getting access the encrypted media. 
@@ -593,13 +609,13 @@ Overhead bps = (Counter length + 1 + 4 ) * 8 * fps
 
 ## SFrame vs PERC-lite
 {{PERC}} has significant overhead over SFrame because the overhead is per packet, not per frame, and OHB which duplicates any RTP header/extension field modified by the SFU.
-PERC-Lite {{https://mailarchive.ietf.org/arch/msg/perc/SB0qMHWz6EsDtz3yIEX0HWp5IEY/}} is slightly better because it doesn’t use the OHB anymore, however it still does per packet encryption using SRTP. 
-Below the the overheard in PERC_lite implemented by Cosmos Software which uses extra 11 bytes per packet to preserve the PT, SEQ_NUM, TIME_STAMP and SSRC fields in addition to the extra MAC tag per packet.
+{{PERCLITE}} {{https://mailarchive.ietf.org/arch/msg/perc/SB0qMHWz6EsDtz3yIEX0HWp5IEY/}} is slightly better because it doesn’t use the OHB anymore, however it still does per packet encryption using SRTP. 
+Below the the overheard in {{PERCLITE}} implemented by Cosmos Software which uses extra 11 bytes per packet to preserve the PT, SEQ_NUM, TIME_STAMP and SSRC fields in addition to the extra MAC tag per packet.
 
 OverheadPerPacket = 11 + MAC length 
 Overhead bps = PacketPerSecond * OverHeadPerPacket * 8
 
-Similar to SFrame, we will assume the MAC length will always be 4 bytes for audio and video even though it is not the case in this PERC-lite implementation
+Similar to SFrame, we will assume the MAC length will always be 4 bytes for audio and video even though it is not the case in this {{PERCLITE}} implementation
 
 ### Audio
 ~~~~~

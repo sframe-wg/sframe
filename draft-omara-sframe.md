@@ -211,7 +211,7 @@ The generic packetizer splits the E2E encrypted media frame into one or more RTP
       |                                                       |
       |  +----------+      +------------+      +-----------+  |
       |  |          |      |   SFrame   |      |Packetizer |  |       DTLS+SRTP
-      |  |  Enocer  +----->+    Enc     +----->+           +-------------------------+
+      |  | Encoder  +----->+    Enc     +----->+           +-------------------------+
  ,+.  |  |          |      |            |      |           |  |   +--+  +--+  +--+   |
  `|'  |  +----------+      +-----+------+      +-----------+  |   |  |  |  |  |  |   |
  /|\  |                          ^                            |   |  |  |  |  |  |   |

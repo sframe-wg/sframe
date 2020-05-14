@@ -236,33 +236,29 @@ The generic packetizer splits the E2E encrypted media frame into one or more RTP
 
 The E2EE keys used to encrypt the frame are exchanged out of band using a secure channel. E2EE key management and rotation is out of scope for this document. 
 
-## SFrame Payload Format
+## SFrame Format
 
 ~~~~~
-                +------------+------------------------------------------+^+
-  SFrame Header |S|LEN|X|KID |         Frame Counter                    | |
-                +------------+-----+------------------------------------+ |
-                | Signature Header |          Signature                 | |
-   Optional     +------------------+------------------------------------+ |
-Signature Block |                                                       | |
-                |                Frames hashes list                     | |
-                |                                                       | |
-              +^+-------------------------------------------------------+ |
-              | |                                                       | |
-              | |                                                       | |
-              | |                                                       | |
-              | |                                                       | |
-              | |                  Encrypted Frame                      | |
-              | |                                                       | |
-              | |                                                       | |
-              | |                                                       | |
-              | |                                                       | |
-              +^+-------------------------------------------------------+^+
-              | |                 Authentication Tag                    | |
-              | +-------------------------------------------------------+ |
-              |                                                           |
-              |                                                           |
-              +----+Encrypted Portion            Authenticated Portion+---+
+ 
+  +------------+------------------------------------------+^+ 
+  |S|LEN|X|KID |         Frame Counter                    | |
++^+------------+------------------------------------------+ |
+| |                                                       | |
+| |                                                       | |
+| |                                                       | |
+| |                                                       | |
+| |                  Encrypted Frame                      | |
+| |                                                       | |
+| |                                                       | |
+| |                                                       | |
+| |                                                       | |
++^+-------------------------------------------------------+^+
+| |                 Authentication Tag                    | |
+| +-------------------------------------------------------+ |
+|                                                           |
+|                                                           |
++----+Encrypted Portion            Authenticated Portion+---+
+
 
 ~~~~~
 
@@ -288,7 +284,7 @@ Counter Length (LEN): 3 bits
 Extended Key Id Flag (X): 1 bit    
      Indicates if the key field contains the key id or the key length.
 Key or Key Length: 3 bits
-     This field containts the key id (KID) if the X flag is set to 0, or the key length (KLEN) if set to 1.
+     This field contains the key id (KID) if the X flag is set to 0, or the key length (KLEN) if set to 1.
 
 If X flag is 0 then the KID is in the range of 0-7 and the frame counter (CTR) is found in the next LEN bytes:
 
@@ -385,7 +381,7 @@ Every client in the call knows the secret key for all other clients so it can de
 
 Adding a digital signature to each encrypted frame will be an overkill, instead we propose adding signature over multiple frames.
 
-The signature is calculated by contatenating the authentication tags of the frames that the sender wants to authenticate (in reverse sent order) and signing it with the signature key. Signature keys are exchanged out of band along the secret keys.
+The signature is calculated by concatenating the authentication tags of the frames that the sender wants to authenticate (in reverse sent order) and signing it with the signature key. Signature keys are exchanged out of band along the secret keys.
 
 ~~~~~
 Signature = Sign(Key, AuthTag(Frame N) || AuthTag(Frame N-1) || ...|| AuthTag(Frame N-M))
@@ -428,7 +424,7 @@ Note that the authentication tag for the current frame will only authenticate th
 
 The last byte (NUM) after the authentication tag list and before the signature indicates the number of the authentication tags from previous frames present in the current frame. All the authentications tags MUST have the same size, which MUST be equal to the authentication tag size of the current frame. The signature is fixed size depending on the signature algorithm used (for example, 64 bytes for Ed25519).
 
-The receiver has to keep track of all the frames received but yet not verified, by storing the authentication tags of each received frame. When a signature is received, the reciever will verify it with the signature key associated to the key id of the frame the singature was sent in. If the verification is sucessful, the received will mark the frames as authenticated and remove them from the list of the not verified frames. It is up to the application to decide what to do when signature verification fails.
+The receiver has to keep track of all the frames received but yet not verified, by storing the authentication tags of each received frame. When a signature is received, the receiver will verify it with the signature key associated to the key id of the frame the signature was sent in. If the verification is successful, the received will mark the frames as authenticated and remove them from the list of the not verified frames. It is up to the application to decide what to do when signature verification fails.
 
 When using SVC, the hash will be calculated over all the frames of the different spatial layers within the same superframe/picture. However the SFU will be able to drop frames within the same stream (either spatial or temporal) to match target bitrate.
 
@@ -436,7 +432,7 @@ If the signature is sent on a frame which layer that is dropped by the SFU, the 
 
 An easy way of solving the issue would be to perform signature only on the base layer or take into consideration the frame dependency graph and send multiple signatures in parallel (each for a branch of the dependency graph).
 
-In case of simulcast or K-SVC, each spatial layer sould be authenticated with different signatures to prevent the SFU to discard frames with the signature info.
+In case of simulcast or K-SVC, each spatial layer should be authenticated with different signatures to prevent the SFU to discard frames with the signature info.
 
 In any case, it is possible that the frame with the signature is lost or the SFU drops it, so the receiver MUST be prepared to not receive a signature for a frame and remove it from the pending to be verified list after a timeout. 
 
@@ -448,7 +444,7 @@ In any case, it is possible that the frame with the signature is lost or the SFU
 Each SFrame session uses a single ciphersuite that specifies the following primitives:
 
 o A hash function
-This is used for the Key derivation and frame hashes for signture. We recommend using SHA256 hash function.
+This is used for the Key derivation and frame hashes for signature. We recommend using SHA256 hash function.
 
 o An AEAD encryption algorithm [RFC5116]
 While any AEAD algorithm can be used to encrypt the frame, we recommend using algorithms with safe MAC truncation like AES-CTR and HMAC to reduce the per-frame overhead. In this case we can use 80 bits MAC for video frames and 32 bits for audio frames similar to DTLS-SRTP cipher suites:
@@ -467,10 +463,18 @@ SRTP is used as an outer encryption, since the media payload is already encrypte
 It is possible that future versions of this draft will define other ciphers.
 
 # Key Management 
-SFrame must be integrated with an E2EE key management framework to exchange and rotate the encryption keys such as {{MLSPROTO}} which scales to very large groups. Call members will create a MLS group to exchange the encryption keys for all further calls for that group. When a client joins the call, they create a random key material and encrypt it to every other client on the call using their MLS application secret. This key material is passed to SFrame to derive SFrame keys for that client. 
-When group membership changes, the active clients in the call must update their keys for "Forward Secrecy" and "Post Compromise Security". Key ratcheting can be used when a new member joins the group but for member leave events, a fresh key material will be generated by each client endpoint in the call and encrypt it using their MLS application secret.
+SFrame must be integrated with an E2EE key management framework to exchange and rotate the encryption keys. This framework will maintain a group of participant endpoints who are in the call. At call setup time, each endpoint will create a fresh key material and optionally signing key pair for that call and encrypt them to every other endpoints. They encrypted keys are delivered by the messaging delivery server using a reliable channel. 
 
-If authentication is enabled, every client will also generate public-private key pair for signing and exchange the public part with the secret key material.
+The key management framework will monitor the group changes, and exchange new keys when necessary. It is up to the application to define this group, for example one application could have ephemeral group for every call and keep rotating key when end points joins or leave the call, while another app could have a persisted group that can be used for multiple calls and exchange keys with all group endpoints for every call.
+
+
+When a new key material is created during the call, we recommend not to start using it immediately in SFrame to give time for the new keys to be delivered. If the application supports delivery receipts, it can be used to track if the key is delivered to all other endpoints on the call before using it. 
+
+Keys must have a sequential id starting from 0 and incremented eery time a new key is generated for this endpoint. The key id will be added in the SFrame header during encryption, so the recipient know which key to use for the decryption.
+ 
+
+## SFrame-MLS
+While any other E2EE key management framework can be used with SFrame, there is a big advantage if it is used with {{MLSARCH}} which supports group natively and can support very large groups an efficiently. When {{MLSPROTO}} is used, the endpoints keys (AKA Application secret) can be used directly for SFrame without the need to exchange separate key material. The application secret is rotated automatically by {{MLSPROTO}} when group membership changes. 
 
 
 # Media Considerations
@@ -487,7 +491,7 @@ This means that in the same RTP stream (defined by either SSRC or MID) may carry
 Note that in order to prevent impersonation by a malicious participant (not the SFU) usage of the signature is required. In case of video, the a new signature should be started each time a key frame is sent to allow the receiver to identify the source faster after a switch.
 
 ### Simulcast
-When using simulcast, the same input image will produce N different encoded frames (one per simulcat layer) which would be processed inpependently by the frame encryptor and assigned an unique counter for each.
+When using simulcast, the same input image will produce N different encoded frames (one per simulcast layer) which would be processed independently by the frame encryptor and assigned an unique counter for each.
  
 ### SVC
 In both temporal and spatial scalability, the SFU may choose to drop layers in order to match a certain bitrate or forward specific media sizes or frames per second. In order to support it, the sender MUST encode each spatial layer of a given picture in a different frame. That is, an RTP frame may contain more than one SFrame encrypted frame with an incrementing frame counter.

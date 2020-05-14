@@ -347,36 +347,42 @@ The signature is calculated by contatenating the authentication tags of the fram
 Signature = Sign(Key, AuthTag(Frame N) || AuthTag(Frame N-1) || ...|| AuthTag(Frame N-M))
 ~~~~~
 
-The signature and the list of authentication tags will be sent on the last frame used to calculate the signature, after the SFrame header, and the SFrame header metadata signature bit (S) will be set to 1. 
-
-The authentication tags for the previous frames covered by the signature will be appended at end of the frame, after the current frame authentication tag, in the same order that the signature was calculated:
+The authentication tags for the previous frames covered by the signature and the signature itself will be appended at end of the frame, after the current frame authentication tag, in the same order that the signature was calculated, and the SFrame header metadata signature bit (S) will be set to 1. 
 
 ~~~~~
-    +------------------+
-    | SFrame header S=1|
-    +------------------+
-    |  Signature       |
-    +------------------+
-    |  Encrypted       |
-    |  payload         |
-    |                  |
-    +------------------+
-    |  auth tag N      |
-    +------------------+ 
-    |  auth tag N-1    |
-    +------------------+ 
-    |  ........        |
-    +------------------+ 
-    |  auth tag N-M    |
-    +-----+------------+ 
-    | NUM |
-    +-----+ 
-   
+
+
+    +^ +------------------+
+    |  | SFrame header S=1|
+    |  +------------------+
+    |  |  Encrypted       |
+    |  |  payload         |
+    |  |                  |
+    |^ +------------------+ ^+
+    |  |  Auth Tag N      |  |
+    |  +------------------+  |
+    |  |  Auth Tag N-1    |  |
+    |  +------------------+  |
+    |  |    ........      |  |
+    |  +------------------+  |
+    |  |  Auth Tag N-M    |  |
+    |  +------------------+ ^|
+    |  | NUM | Signature  :  |
+    |  +-----+            +  |
+    |  :                  |  |
+    |  +------------------+  |
+    |                        |
+    +-> Authenticated with   +-> Signed with
+        Auth Tag N               Signature
+
+
+    Encrypted Frame with Signature
+
 ~~~~~   
 
-Note that the authentication tag for the current frame will only authenticate the SFrame header and the payload, not the signature nor the previous frames's authentication tags (N-1 to N-M) used to calculate the signature.
+Note that the authentication tag for the current frame will only authenticate the SFrame header and the encrypted payload, ant not the signature nor the previous frames's authentication tags (N-1 to N-M) used to calculate the signature.
 
-The last byte (NUM) will indicate the number of the preivous authentication tags present in the current frame. All the authentications tags MUST have the same size, which MUST be equal to the authentication tag size of the current frame.
+The last byte (NUM) after the authentication tag list and before the signature indicates the number of the authentication tags from previous frames present in the current frame. All the authentications tags MUST have the same size, which MUST be equal to the authentication tag size of the current frame. The signature is fixed size depending on the signature algorithm used (for example, 64 bytes for Ed25519).
 
 The receiver has to keep track of all the frames received but yet not verified, by storing the authentication tags of each received frame. When a signature is received, the reciever will verify it with the signature key associated to the key id of the frame the singature was sent in. If the verification is sucessful, the received will mark the frames as authenticated and remove them from the list of the not verified frames. It is up to the application to decide what to do when signature verification fails.
 

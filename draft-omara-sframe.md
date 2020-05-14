@@ -191,46 +191,51 @@ Also, because media is encrypted prior to packetization, the encrypted frame is 
 The generic packetizer splits the E2E encrypted media frame into one or more RTP packets and adds the SFrame header to the beginning of the first packet and an auth tag to the end of the last packet.
 
 ~~~~~
-                           +---------------+  +---------------+
-                           |               |  | frame metadata+----+
-                           |               |  +---------------+    |
-                           |     frame     |                       |
-                           |               |                       |
-                           |               |                       |
-                           +-------+-------+                       |
-                                   |                               |
-          CTR +---------------> IV |Enc Key <----Master Key        |
-                 derive IV         |                  |            |
-           +                       |                  |            |
-           |                       +                  v            |
-           |                    encrypt           Auth Key         |
-           |                       |                  +            |
-           |                       |                  |            |
-           |                       v                  |            |
-           |               +-------+-------+          |            |
-           |               |               |          |            |
-           |               |   encrypted   |          v            |
-           |               |     frame     +---->Authenticate<-----+
-           +               |               |          +
-       encode CTR          |               |          |
-           +               +-------+-------+          |
-           |                       |                  |
-           |                       |                  |
-           |                       |                  |
-           |              generic RTP packetize       |
-           |                       +                  |
-           |                       |                  |
-           |                       |                  +--------------+
-+----------+                       v                                 |
-|                                                                    |
-|   +---------------+      +---------------+     +---------------+   |
-+-> | SFrame header |      |               |     |               |   |
-    +---------------+      |               |     |  payload N/N  |   |
-    |               |      |  payload 2/N  |     |               |   |
-    |  payload 1/N  |      |               |     +---------------+   |
-    |               |      |               |     |    auth tag   | <-+
-    +---------------+      +---------------+     +---------------+
- 
+
+       +---------------------------------------------------------------------------------+
+       |                                                                                 |
+       |  +----------+         +------------+        +-----------+    +--+  +--+  +--+   |                     +------------+
+       |  |  Media   |         |   SFrame   |        |Packetizer |    |  |  |  |  |  |   |      DTLS-SRTP      |   Media    |
+       |  |  Source  +-------->+    Enc     +------->+           +--->+  |  |  |  |  +------------------------>+   Server   |
+ ,-.   |  |          |         |            |        |           |    |  |  |  |  |  |   |                     |            |
+ `|'   |  +----------+         +-----+------+        +-----------+    +--+  +--+  +--+   |                     +-----+------+
+ /|\   |                             ^                                                   |                           |
+  +    |                             |                                                   |                           |
+ / \   |                             |                                                   |                           |
+Alice  |                       +-----+------+                                            |                           |
+       |                       |Key Manager |                                            |                           |
+       |                       +-----+------+                                            |                           |
+       |                             ^                                                   |                           |
+       |                             |                                                   |                           |
+       |                             |                                                   |                           |
+       +---------------------------------------------------------------------------------+                           |
+                                     |                                                                               |
+                                     |                                                                               |
+                                     |                                                                           DTLS|SRTP
+                                     |                                                                               |
+                                 E2EE|Channel                                                                        |
+                                     |                                                                               |
+                                     |                                                                               |
+                                     |                                                                               |
+                                     |                                                                               |
+       +---------------------------------------------------------------------------------+                           |
+       |                             |                                                   |                           |
+       |                             |                                                   |                           |
+       |                             v                                                   |                           |
+       |                       +-----+------+                                            |                           |
+       |                       |Key Manager |                                            |                           |
+       |                       +-----+------+                                            |                           |
+ ,-.   |                             |                                                   |                           |
+ `|'   |                             |                                                   |                           |
+ /|\   |                             v                                                   |                           v
+  +    |  +----------+         +-----+------+        +-----------+    +--+  +--+  +--+   |                     +-----+------+
+ / \   |  |  Media   |         |   SFrame   |        |   De-     |    |  |  |  |  |  |   |                     |   Media    |
+ Bob   |  |  Dest    +<--------+    Dec     +<-------+Packetizer +<---+  |  |  |  |  +<------------------------+   Server   |
+       |  |          |         |            |        |           |    |  |  |  |  |  |   |       DTLS-SRTP     |            |
+       |  +----------+         +------------+        +-----------+    +--+  +--+  +--+   |                     +------------+
+       |                                                                                 |
+       +---------------------------------------------------------------------------------+
+                            SFrame media flow from Alice to Bob 
                                          
 ~~~~~
 
@@ -350,6 +355,50 @@ After encoding the frame and before packetizing it, the necessary media metadata
 The encryptor constructs SFrame header using frame counter and key id and derive the encryption IV. The frame is encrypted using the encryption key and the header, encrypted frame and the media metadata are authenticated using the authentication key. The authentication tag is then truncated (If supported by the cipher suite) and prepended at the end of the ciphertext.
 
 The encrypted payload is then passed to a generic RTP packetized to construct the RTP packets and encrypts it using SRTP keys for the outer encryption to the media server.
+
+~~~~~
+
+                           +---------------+  +---------------+
+                           |               |  | frame metadata+----+
+                           |               |  +---------------+    |
+                           |     frame     |                       |
+                           |               |                       |
+                           |               |                       |
+                           +-------+-------+                       |
+                                   |                               |
+          CTR +---------------> IV |Enc Key <----Master Key        |
+                 derive IV         |                  |            |
+           +                       |                  |            |
+           |                       +                  v            |
+           |                    encrypt           Auth Key         |
+           |                       |                  +            |
+           |                       |                  |            |
+           |                       v                  |            |
+           |               +-------+-------+          |            |
+           |               |               |          |            |
+           |               |   encrypted   |          v            |
+           |               |     frame     +---->Authenticate<-----+
+           +               |               |          +
+       encode CTR          |               |          |
+           +               +-------+-------+          |
+           |                       |                  |
+           |                       |                  |
+           |                       |                  |
+           |              generic RTP packetize       |
+           |                       +                  |
+           |                       |                  |
+           |                       |                  +--------------+
++----------+                       v                                 |
+|                                                                    |
+|   +---------------+      +---------------+     +---------------+   |
++-> | SFrame header |      |               |     |               |   |
+    +---------------+      |               |     |  payload N/N  |   |
+    |               |      |  payload 2/N  |     |               |   |
+    |  payload 1/N  |      |               |     +---------------+   |
+    |               |      |               |     |    auth tag   | <-+
+    +---------------+      +---------------+     +---------------+
+                         Encryption flow
+~~~~~
 
 ### Decryption
 The receiving clients buffer all packets that belongs to the same frame using the frame beginning and ending marks in the generic RTP header extension, and once all packets are available, it passes it to Frame for decryption. SFrame maintains multiple decryptor objects, one for each client in the call. Initially the client might not have the mapping between the incoming streams the user's keys, in this case SFrame tries all unmapped keys until it finds one that passes the authentication verification and use it to decrypt the frame. If the client has the mapping ready, it can push it down to SFrame later.
@@ -473,7 +522,7 @@ When a new key material is created during the call, we recommend not to start us
 Keys must have a sequential id starting from 0 and incremented eery time a new key is generated for this endpoint. The key id will be added in the SFrame header during encryption, so the recipient know which key to use for the decryption.
  
 
-## SFrame-MLS
+## MLS-SFrame
 While any other E2EE key management framework can be used with SFrame, there is a big advantage if it is used with {{MLSARCH}} which supports group natively and can support very large groups an efficiently. When {{MLSPROTO}} is used, the endpoints keys (AKA Application secret) can be used directly for SFrame without the need to exchange separate key material. The application secret is rotated automatically by {{MLSPROTO}} when group membership changes. 
 
 

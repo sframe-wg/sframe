@@ -582,7 +582,7 @@ For a conference with a single incoming audio stream (@ 50 pps) and 4 incoming v
 Key exchange mechanism is out of scope of this document, however every client MUST change their keys when new clients joins or leaves the call for "Forward Secrecy" and "Post Compromise Security". 
 
 ## Authentication tag length
-The cipher suites defined in this draft use short authentication tags for both inner and outer encryption, however it can easily support other ciphers with full authentication tag if the short ones are proved insecure. 
+The cipher suites defined in this draft use short authentication tags for encryption, however it can easily support other ciphers with full authentication tag if the short ones are proved insecure. 
 
 # IANA Considerations
 This document makes no requests of IANA.

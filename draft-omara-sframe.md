@@ -355,9 +355,9 @@ The authentication tags for the previous frames covered by the signature will be
     +------------------+
     | SFrame header S=1|
     +------------------+
-    | Signature        |
+    |  Signature       |
     +------------------+
-    |                  |
+    |  Encrypted       |
     |  payload         |
     |                  |
     +------------------+
@@ -367,14 +367,14 @@ The authentication tags for the previous frames covered by the signature will be
     +------------------+ 
     |  ........        |
     +------------------+ 
-    |  auth tag M      |
+    |  auth tag N-M    |
     +-----+------------+ 
     | NUM |
     +-----+ 
    
 ~~~~~   
 
-Note that the authentication tag for the current frame will only authenticate the SFrame header and the payload, not the signature nor the previous authentication tags present on the frame.
+Note that the authentication tag for the current frame will only authenticate the SFrame header and the payload, not the signature nor the previous frames's authentication tags (N-1 to N-M) used to calculate the signature.
 
 The last byte (NUM) will indicate the number of the preivous authentication tags present in the current frame. All the authentications tags MUST have the same size, which MUST be equal to the authentication tag size of the current frame.
 

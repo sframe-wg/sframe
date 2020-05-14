@@ -321,10 +321,12 @@ Frame counter (CTR): (Variable length)
 
 if X flag is 1 then KLEN is the length of the key (KID), that is found after the SFrame header metadata byte. After the key id (KID), the frame counter (CTR) will be found in the next LEN bytes:
 
+~~~~~
  0 1 2 3 4 5 6 7
 +-+-+-+-+-+-+-+-+---------------------------+---------------------------+
 |S|LEN  |1|KLEN |   KID... (length=KLEN)    |    CTR... (length=LEN)    |
 +-+-+-+-+-+-+-+-+---------------------------+---------------------------+
+~~~~~
 
 Key length (KLEN): 3 bits
      The key length in bytes.

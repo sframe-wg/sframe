@@ -382,7 +382,7 @@ The receiver has to keep track of all the frames received but yet not verified, 
 
 When using SVC, the hash will be calculated over all the frames of the different spatial layers within the same superframe/picture. However the SFU will be able to drop frames within the same stream (either spatial or temporal) to match target bitrate.
 
-If the signature is sent on a frame which layer that is dropped by the SFU, the receiver will not be receive it and perform the signature of the other received layers.
+If the signature is sent on a frame which layer that is dropped by the SFU, the receiver will not receive it and will not be able to perform the signature of the other received layers.
 
 An easy way of solving the issue would be to perform signature only on the base layer or take into consideration the frame dependency graph and send multiple signatures in parallel (each for a branch of the dependency graph).
 

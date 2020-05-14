@@ -496,6 +496,15 @@ When using simulcast, the same input image will produce N different encoded fram
 ### SVC
 In both temporal and spatial scalability, the SFU may choose to drop layers in order to match a certain bitrate or forward specific media sizes or frames per second. In order to support it, the sender MUST encode each spatial layer of a given picture in a different frame. That is, an RTP frame may contain more than one SFrame encrypted frame with an incrementing frame counter.
 
+## Video Key Frames
+Forward and Post-Compromise Security requires that the e2ee keys are updated anytime a participant joins/leave the call.
+
+The key exchange happens async and on a different path than the SFU signaling and media. So it may happen that when a new participant joins the call and the SFU side requests a key frame, the sender generates the e2ee encrypted frame with a key not known by the receiver, so it will be discarded. When the sender updates his sending key with the new key, it will send it in a non-key frame, so the receiver will be able to decrypt it, but not decode it.
+
+Receiver will re-request an key frame then, but due to sender and sfu policies, that new key frame could take some time to be generated.
+
+If the sender sends a key frame when the new e2ee key is in use, the time required for the new participant to display the video is minimized.
+
 ## Partial Decoding
 Some codes support partial decoding, where it can decrypt individual packets without waiting for the full frame to arrive, with SFrame this won't be possible because the decoder will not access the packets until the entire frame
 Is arrived and decrypted. 

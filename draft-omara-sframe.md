@@ -284,7 +284,7 @@ Counter Length (LEN): 3 bits
 Extended Key Id Flag (X): 1 bit    
      Indicates if the key field contains the key id or the key length.
 Key or Key Length: 3 bits
-     This field containts the key id (KID) if the X flag is set to 0, or the key length (KLEN) if set to 1.
+     This field contains the key id (KID) if the X flag is set to 0, or the key length (KLEN) if set to 1.
 
 If X flag is 0 then the KID is in the range of 0-7 and the frame counter (CTR) is found in the next LEN bytes:
 
@@ -381,7 +381,7 @@ Every client in the call knows the secret key for all other clients so it can de
 
 Adding a digital signature to each encrypted frame will be an overkill, instead we propose adding signature over multiple frames.
 
-The signature is calculated by contatenating the authentication tags of the frames that the sender wants to authenticate (in reverse sent order) and signing it with the signature key. Signature keys are exchanged out of band along the secret keys.
+The signature is calculated by concatenating the authentication tags of the frames that the sender wants to authenticate (in reverse sent order) and signing it with the signature key. Signature keys are exchanged out of band along the secret keys.
 
 ~~~~~
 Signature = Sign(Key, AuthTag(Frame N) || AuthTag(Frame N-1) || ...|| AuthTag(Frame N-M))
@@ -424,7 +424,7 @@ Note that the authentication tag for the current frame will only authenticate th
 
 The last byte (NUM) after the authentication tag list and before the signature indicates the number of the authentication tags from previous frames present in the current frame. All the authentications tags MUST have the same size, which MUST be equal to the authentication tag size of the current frame. The signature is fixed size depending on the signature algorithm used (for example, 64 bytes for Ed25519).
 
-The receiver has to keep track of all the frames received but yet not verified, by storing the authentication tags of each received frame. When a signature is received, the reciever will verify it with the signature key associated to the key id of the frame the singature was sent in. If the verification is sucessful, the received will mark the frames as authenticated and remove them from the list of the not verified frames. It is up to the application to decide what to do when signature verification fails.
+The receiver has to keep track of all the frames received but yet not verified, by storing the authentication tags of each received frame. When a signature is received, the receiver will verify it with the signature key associated to the key id of the frame the signature was sent in. If the verification is successful, the received will mark the frames as authenticated and remove them from the list of the not verified frames. It is up to the application to decide what to do when signature verification fails.
 
 When using SVC, the hash will be calculated over all the frames of the different spatial layers within the same superframe/picture. However the SFU will be able to drop frames within the same stream (either spatial or temporal) to match target bitrate.
 
@@ -432,7 +432,7 @@ If the signature is sent on a frame which layer that is dropped by the SFU, the 
 
 An easy way of solving the issue would be to perform signature only on the base layer or take into consideration the frame dependency graph and send multiple signatures in parallel (each for a branch of the dependency graph).
 
-In case of simulcast or K-SVC, each spatial layer sould be authenticated with different signatures to prevent the SFU to discard frames with the signature info.
+In case of simulcast or K-SVC, each spatial layer should be authenticated with different signatures to prevent the SFU to discard frames with the signature info.
 
 In any case, it is possible that the frame with the signature is lost or the SFU drops it, so the receiver MUST be prepared to not receive a signature for a frame and remove it from the pending to be verified list after a timeout. 
 
@@ -444,7 +444,7 @@ In any case, it is possible that the frame with the signature is lost or the SFU
 Each SFrame session uses a single ciphersuite that specifies the following primitives:
 
 o A hash function
-This is used for the Key derivation and frame hashes for signture. We recommend using SHA256 hash function.
+This is used for the Key derivation and frame hashes for signature. We recommend using SHA256 hash function.
 
 o An AEAD encryption algorithm [RFC5116]
 While any AEAD algorithm can be used to encrypt the frame, we recommend using algorithms with safe MAC truncation like AES-CTR and HMAC to reduce the per-frame overhead. In this case we can use 80 bits MAC for video frames and 32 bits for audio frames similar to DTLS-SRTP cipher suites:
@@ -483,7 +483,7 @@ This means that in the same RTP stream (defined by either SSRC or MID) may carry
 Note that in order to prevent impersonation by a malicious participant (not the SFU) usage of the signature is required. In case of video, the a new signature should be started each time a key frame is sent to allow the receiver to identify the source faster after a switch.
 
 ### Simulcast
-When using simulcast, the same input image will produce N different encoded frames (one per simulcat layer) which would be processed inpependently by the frame encryptor and assigned an unique counter for each.
+When using simulcast, the same input image will produce N different encoded frames (one per simulcast layer) which would be processed independently by the frame encryptor and assigned an unique counter for each.
  
 ### SVC
 In both temporal and spatial scalability, the SFU may choose to drop layers in order to match a certain bitrate or forward specific media sizes or frames per second. In order to support it, the sender MUST encode each spatial layer of a given picture in a different frame. That is, an RTP frame may contain more than one SFrame encrypted frame with an incrementing frame counter.

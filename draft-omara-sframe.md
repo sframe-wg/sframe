@@ -336,19 +336,49 @@ K(i) = HKDF(K(i-1), 'SFrameRatchetKey', 32)
 Frame will set the key immediately on the decrypts when it is received and destroys the old key material, so if the key manager sends a new key during the call, it is recommended not to start using it immediately and wait for a short time to make sure it is delivered to all other clients before using it to decrease the number of decryption failure. It is up to the application and the key manager to define how long this period is.
  
 ## Authentication
+
 Every client in the call knows the secret key for all other clients so it can decrypt their traffic, it means a malicious client can impersonate any other client in the call by using the victim key to encrypt their traffic. This might not be a problem for consumer application where the number of clients in the call is small and users know each others, however for enterprise use case where large conference call is common, an authentication mechanism is needed to protect against malicious users. This authentication will come with extra cost.
 
-Adding a digital signature to each encrypted frame will be an overkill, instead we propose adding signature over N frames. 
+Adding a digital signature to each encrypted frame will be an overkill, instead we propose adding signature over multiple frames.
+
+The signature is calculated by contatenating the authentication tags of the frames that the sender wants to authenticate (in reverse sent order) and signing it with the signature key. Signature keys are exchanged out of band along the secret keys.
 
 ~~~~~
-Signature = Sign(Hash(Frame1) || Hash(Frame2) || ...|| Hash(FrameN))
+Signature = Sign(Key, AuthTag(Frame N) || AuthTag(Frame N-1) || ...|| AuthTag(Frame N-M))
 ~~~~~
 
-Because some frames could be lost and never delivered, when the signature is sent, it will also send all the hashes it used to calculate the signature, and the recipient client will only use these hashes if they didn't receive the matching frame. For example Client A sends a signature every 5 frames, so it sends the signature and Hash(Frame1), ...,Hash(Frame5), client B received only frames 1,2,4 and 5. When B receives the signature and the hashes, it will compute the hashes of frames 1,2,4 and 5 locally and use the received Hash(Frame3) to verify the signature. It is up to the application to decide what to do when signature verification fails.
+The signature and the list of authentication tags will be sent on the last frame used to calculate the signature, after the SFrame header, and the SFrame header metadata signature bit (S) will be set to 1. 
 
-The signature keys are exchanged out of band along the secret keys. 
+The authentication tags for the previous frames covered by the signature will be appended at end of the frame, after the current frame authentication tag, in the same order that the signature was calculated:
 
-The signature will be sent on the last frame of the calculated frames, and its HMAC will not be present on the HMAC list to reduce the overhead.
+~~~~~
+    +------------------+
+    | SFrame header S=1|
+    +------------------+
+    | Signature        |
+    +------------------+
+    |                  |
+    |  payload         |
+    |                  |
+    +------------------+
+    |  auth tag N      |
+    +------------------+ 
+    |  auth tag N-1    |
+    +------------------+ 
+    |  ........        |
+    +------------------+ 
+    |  auth tag M      |
+    +-----+------------+ 
+    | NUM |
+    +-----+ 
+   
+~~~~~   
+
+Note that the authentication tag for the current frame will only authenticate the SFrame header and the payload, not the signature nor the previous authentication tags present on the frame.
+
+The last byte (NUM) will indicate the number of the preivous authentication tags present in the current frame. All the authentications tags MUST have the same size, which MUST be equal to the authentication tag size of the current frame.
+
+The receiver has to keep track of all the frames received but yet not verified, by storing the authentication tags of each received frame. When a signature is received, the reciever will verify it with the signature key associated to the key id of the frame the singature was sent in. If the verification is sucessful, the received will mark the frames as authenticated and remove them from the list of the not verified frames. It is up to the application to decide what to do when signature verification fails.
 
 When using SVC, the hash will be calculated over all the frames of the different spatial layers within the same superframe/picture. However the SFU will be able to drop frames within the same stream (either spatial or temporal) to match target bitrate.
 
@@ -356,52 +386,10 @@ If the signature is sent on a frame which layer that is dropped by the SFU, the 
 
 An easy way of solving the issue would be to perform signature only on the base layer or take into consideration the frame dependency graph and send multiple signatures in parallel (each for a branch of the dependency graph).
 
-In case of simulcast or K-SVC, each spatial layer sould be autheticated with different signatures to prevent the SFU to discard frames with the signature info.
+In case of simulcast or K-SVC, each spatial layer sould be authenticated with different signatures to prevent the SFU to discard frames with the signature info.
 
-The signature and the HMAC list will be sent in the SFrame header, after the frame counter (CTR) and the SFrame header metadata signature bit (S) set to 1, with the following format:
+In any case, it is possible that the frame with the signature is lost or the SFU drops it, so the receiver MUST be prepared to not receive a signature for a frame and remove it from the pending to be verified list after a timeout. 
 
-~~~~~
-     0                   1                   2                   3
-     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-    |     SLEN      |      Signature Data (length = SLEN)           |
-    +-+-+-+-+-+-+-+-+                                               +
-    :                                                               :
-    +               +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-    |               | HNUM  | HLEN  | HMAC 0 (length=2*(HLEN+2))    :
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-    :                               | HMAC 1 (length=2*(HLEN+2))    :
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-    :                               |                               :
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+                               +
-    :                                                               :
-    +                  (HMACS of size HLEN)                         +
-    :                                                               :
-    +                               +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-    :                               | HMAC N (N=HNUM-1)   	    :
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-    :                               | HNUM  | HLEN  |               :
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+               +
-    :                                                               :
-    +                  (HNUM HMACS of size HLEN)                    +
-    :                                                               :
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-    |HNUM=0 |HLEN=0 |
-    +-+-+-+-+-+-+-+-+
-    
-                             Signature info
-~~~~~   
-
-The first byte (SLEN) is the length of the signature data which is appended afterwards.    
-    
-After the signature there will be 1 or more blocks of HMACs with of the same size. Each HMAC block will have 1 byte header indicating the number of HMACs present and the size in bytes of each HMAC in the block. HMACs present in each block may or may not be in frame order.
-
-Number of HMAC (HNUM): 4 bits
-      Number of HMACs present in this block.
-HMAC length (HLEN): 4 bits
-      Size of the HMACS in the block, calculated as follows length=2*(HLEN+2). This allows HMAC sizes in the ranges of 4 to 34 bytes.
-
-To indicate the end of the HMACS blocks, an HMAC header block with HNUM=0 and HLEN=0 will be inserted.
 
 # Key Management 
 SFrame must be integrated with an E2EE key management framework to exchange and rotate the encryption keys such as {{MLSPROTO}} which scales to very large groups. Call members will create a MLS group to exchange the encryption keys for all further calls for that group. When a client joins the call, they create a random key material and encrypt it to every other client on the call using their MLS application secret. This key material is passed to SFrame to derive SFrame keys for that client. 

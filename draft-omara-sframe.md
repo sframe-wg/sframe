@@ -210,8 +210,8 @@ The generic packetizer splits the E2E encrypted media frame into one or more RTP
       +-------------------------------------------------------+
       |                                                       |
       |  +----------+      +------------+      +-----------+  |
-      |  |  Media   |      |   SFrame   |      |Packetizer |  |       DTLS+SRTP
-      |  |  Source  +----->+    Enc     +----->+           +-------------------------+
+      |  |          |      |   SFrame   |      |Packetizer |  |       DTLS+SRTP
+      |  |  Enocer  +----->+    Enc     +----->+           +-------------------------+
  ,+.  |  |          |      |            |      |           |  |   +--+  +--+  +--+   |
  `|'  |  +----------+      +-----+------+      +-----------+  |   |  |  |  |  |  |   |
  /|\  |                          ^                            |   |  |  |  |  |  |   |
@@ -244,8 +244,8 @@ Alice |                    +-----+------+                     |   Encrypted Pack
  /|\  |                          |                            |   |  |  |  |  |  |   |
   +   |                          v                            |   |  |  |  |  |  |   |
  / \  |  +----------+      +-----+------+      +-----------+  |   |  |  |  |  |  |   |
- Bob  |  |  Media   |      |   SFrame   |      |   De+     |  |   +--+  +--+  +--+   |
-      |  |  Dest    +<-----+    Dec     +<-----+Packetizer +<------------------------+
+ Bob  |  |          |      |   SFrame   |      |   De+     |  |   +--+  +--+  +--+   |
+      |  | Decoder  +<-----+    Dec     +<-----+Packetizer +<------------------------+
       |  |          |      |            |      |           |  |        DTLS+SRTP
       |  +----------+      +------------+      +-----------+  |
       |                                                       |
@@ -322,9 +322,9 @@ Frame counter (CTR): (Variable length)
 if X flag is 1 then KLEN is the length of the key (KID), that is found after the SFrame header metadata byte. After the key id (KID), the frame counter (CTR) will be found in the next LEN bytes:
 
  0 1 2 3 4 5 6 7
-+-+-+-+-+-+-+-+-+---------------------------------+---------------------------------+
-|S|LEN  |1|KLEN |      KID... (length=KLEN)       |    CTR... (length=LEN)          |
-+-+-+-+-+-+-+-+-+---------------------------------+---------------------------------+
++-+-+-+-+-+-+-+-+---------------------------+---------------------------+
+|S|LEN  |1|KLEN |   KID... (length=KLEN)    |    CTR... (length=LEN)    |
++-+-+-+-+-+-+-+-+---------------------------+---------------------------+
 
 Key length (KLEN): 3 bits
      The key length in bytes.

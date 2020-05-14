@@ -236,33 +236,29 @@ The generic packetizer splits the E2E encrypted media frame into one or more RTP
 
 The E2EE keys used to encrypt the frame are exchanged out of band using a secure channel. E2EE key management and rotation is out of scope for this document. 
 
-## SFrame Payload Format
+## SFrame Format
 
 ~~~~~
-                +------------+------------------------------------------+^+
-  SFrame Header |S|LEN|X|KID |         Frame Counter                    | |
-                +------------+-----+------------------------------------+ |
-                | Signature Header |          Signature                 | |
-   Optional     +------------------+------------------------------------+ |
-Signature Block |                                                       | |
-                |                Frames hashes list                     | |
-                |                                                       | |
-              +^+-------------------------------------------------------+ |
-              | |                                                       | |
-              | |                                                       | |
-              | |                                                       | |
-              | |                                                       | |
-              | |                  Encrypted Frame                      | |
-              | |                                                       | |
-              | |                                                       | |
-              | |                                                       | |
-              | |                                                       | |
-              +^+-------------------------------------------------------+^+
-              | |                 Authentication Tag                    | |
-              | +-------------------------------------------------------+ |
-              |                                                           |
-              |                                                           |
-              +----+Encrypted Portion            Authenticated Portion+---+
+ 
+  +------------+------------------------------------------+^+ 
+  |S|LEN|X|KID |         Frame Counter                    | |
++^+------------+------------------------------------------+ |
+| |                                                       | |
+| |                                                       | |
+| |                                                       | |
+| |                                                       | |
+| |                  Encrypted Frame                      | |
+| |                                                       | |
+| |                                                       | |
+| |                                                       | |
+| |                                                       | |
++^+-------------------------------------------------------+^+
+| |                 Authentication Tag                    | |
+| +-------------------------------------------------------+ |
+|                                                           |
+|                                                           |
++----+Encrypted Portion            Authenticated Portion+---+
+
 
 ~~~~~
 

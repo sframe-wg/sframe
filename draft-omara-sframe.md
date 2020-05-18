@@ -162,13 +162,32 @@ MAC:
 : Message Authentication Code
 
 E2EE:
-: End to End Encryption (AKA Inner Encryption)
+: End to End Encryption
 
 HBH:
-: Hop By Hop (AKA Outer Encryption)
+: Hop By Hop
+
+KMS:
+: Key Management System
 
 
-# Background
+# Goals
+1- Provide an E2EE mechanism for video conference with low overhead.
+
+2- Decouple the media encryption from the key management and allows to be used with different KMS.
+
+3- Easy to implement in the clients.
+
+4- Minimize the changes needed in the SFU servers.
+
+4- Transparent to FEC and RTX
+
+5- Supports popular video codecs
+
+3- Works with non-RTP transports (like QUIC/WebTransport)
+
+
+# Introduction
 Modern multi-party video call systems use Selective Forwarding Unit (SFU) servers to efficiently route RTP streams to call endpoints based on factors such as available bandwidth, desired video size, codec support, and other factors. In order for the SFU to work properly though, it needs to be able to access RTP data, which is not possible if the entire RTP packets are end- to-end encrypted and authenticated. 
 
 As such, two layers of encryptions and authentication are required:
@@ -258,7 +277,7 @@ Alice |                    +-----+------+                     |   Encrypted Pack
                                          
 ~~~~~
 
-The E2EE keys used to encrypt the frame are exchanged out of band using a secure channel. E2EE key management and rotation is out of scope for this document. 
+The E2EE keys used to encrypt the frame are exchanged out of band using a secure E2EE channel. 
 
 ## SFrame Format
 

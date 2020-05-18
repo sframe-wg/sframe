@@ -154,12 +154,16 @@ capitals, as shown here.
 
 SFU: 
 : Selective Forwarding Unit (AKA RTP Switch)
+
 IV: 
 : Initialization Vector
+
 MAC:
 : Message Authentication Code
+
 E2EE:
 : End to End Encryption (AKA Inner Encryption)
+
 HBH:
 : Hop By Hop (AKA Outer Encryption)
 
@@ -197,6 +201,7 @@ While DTLS-SRTP can be used as an efficient HBH mechanism, it is inherently poin
                                                                      
                         SRTP packet format 
 ~~~~~
+
 
 #SFrame
 We propose a frame level encryption mechanism that provides effective end-to-end encryption, is simple to implement, has no dependencies on RTP, and minimizes encryption bandwidth overhead. Regarding overhead, because SFrame encrypts on a frame, rather than packet basis, bandwidth overhead of is reduced by having a single IV and authentication tag for each media frame.

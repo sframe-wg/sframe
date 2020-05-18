@@ -586,7 +586,7 @@ In both temporal and spatial scalability, the SFU may choose to drop layers in o
 
 ## Partial Decoding
 Some codes support partial decoding, where it can decrypt individual packets without waiting for the full frame to arrive, with SFrame this won't be possible because the decoder will not access the packets until the entire frame
-is arrived and decrypted. If this is a critical feature to the application, SFrame code work instead on parts of the frame that are decodable like NAL units in H264.
+is arrived and decrypted.
 
 # Overhead
 The encryption overhead will vary between audio and video streams, because in audio each packet is considered a separate frame, so it will always have extra MAC and IV, however a video frame usually consists of multiple RTP packets.

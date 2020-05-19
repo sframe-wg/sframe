@@ -27,14 +27,14 @@ author:
     ins: A. GOUAILLARD
     name: Alexandre GOUAILLARD
     organization: CoSMo Software
-    email: Alex.GOUAILLARD@cosmosoftware.io 
+    email: Alex.GOUAILLARD@cosmosoftware.io
 
  -
     ins: S. Murillo
     name: Sergio Garcia Murillo
     organization: CoSMo Software
-    email: sergio.garcia.murillo@cosmosoftware.io 
- 
+    email: sergio.garcia.murillo@cosmosoftware.io
+
 
 informative:
 
@@ -46,31 +46,31 @@ informative:
             name: Emad Omara
             organization: Google
             email: emadomara@google.com
-         -  
+         -
             ins: R. Barnes
             name: Richard Barnes
             organization: Cisco
             email: rlb@ipv.sx
          -
-	    ins: E. Rescorla 
+	    ins: E. Rescorla
             name: Eric Rescorla
-            organization: Mozilla 
+            organization: Mozilla
             email: ekr@rtfm.com
          -
-            ins: S. Inguva 
-            name: Srinivas Inguva 
-            organization: Twitter 
+            ins: S. Inguva
+            name: Srinivas Inguva
+            organization: Twitter
             email: singuva@twitter.com
          -
-            ins: A. Kwon 
+            ins: A. Kwon
             name: Albert Kwon
-            organization: MIT 
+            organization: MIT
             email: kwonal@mit.edu
          -
-            ins: A. Duric 
+            ins: A. Duric
             name: Alan Duric
-            organization: Wire 
-            email: alan@wire.com 
+            organization: Wire
+            email: alan@wire.com
 
 
   MLSPROTO:
@@ -139,62 +139,22 @@ informative:
 
 --- abstract
 
-This document describes a new end to end encryption and authentication schema for WebRTC media frames in a multiparty conference call where the central media server (SFU) will have access to the needed metadata in order for it work without getting access the encrypted media. 
-This proposal uses the entire media frame instead of individual RTP packet as the encryptable unit to decrease the encryption overhead.
+This document describes the Secure Frame (SFrame) end-to-end encryption and authentication mechanism for media frames in a multiparty conference call, in which central media servers (SFUs) can access the media metadata needed to make forwarding decisions without having access to the actual media.
+The proposed mechanism differs from other approaches through its use of media frames as the encryptable unit, instead of individual RTP packets, which makes it more bandwidth efficient and also allows use with non-RTP transports.
 
 --- middle
 
-# Terminology
-
-The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
-"SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and
-"OPTIONAL" in this document are to be interpreted as described in
-BCP 14 {{!RFC2119}} {{!RFC8174}} when, and only when, they appear in all
-capitals, as shown here.
-
-SFU: 
-: Selective Forwarding Unit (AKA RTP Switch)
-
-IV: 
-: Initialization Vector
-
-MAC:
-: Message Authentication Code
-
-E2EE:
-: End to End Encryption
-
-HBH:
-: Hop By Hop
-
-KMS:
-: Key Management System
-
-
-# Goals
-1- Provide an E2EE mechanism for video conference with low overhead.
-
-2- Decouple the media encryption from the key management and allows to be used with different KMS.
-
-3- Easy to implement in the clients.
-
-4- Minimize the changes needed in the SFU servers.
-
-4- Transparent to FEC and RTX
-
-5- Supports popular video codecs
-
-3- Works with non-RTP transports (like QUIC/WebTransport)
-
 
 # Introduction
-Modern multi-party video call systems use Selective Forwarding Unit (SFU) servers to efficiently route RTP streams to call endpoints based on factors such as available bandwidth, desired video size, codec support, and other factors. In order for the SFU to work properly though, it needs to be able to access RTP data, which is not possible if the entire RTP packets are end- to-end encrypted and authenticated. 
+Modern multi-party video call systems use Selective Forwarding Unit (SFU) servers to efficiently route RTP streams to call endpoints based on factors such as available bandwidth, desired video size, codec support, and other factors. In order for the SFU to work properly though, it needs to be able to access RTP metadata and RTCP feedback messages, which is not possible if all RTP/RTCP traffic is end-to-end encrypted.
 
 As such, two layers of encryptions and authentication are required:
-	1- Hop-by-hop (HBH) encryption of media and metadata between the the endpoints and SFU 
-	2- End-to-end encryption of media between the endpoints
+	1- Hop-by-hop (HBH) encryption of media, metadata, and feedback messages between the the endpoints and SFU
+	2- End-to-end (E2E) encryption of media between the endpoints
 
 While DTLS-SRTP can be used as an efficient HBH mechanism, it is inherently point-to-point and therefore not suitable for a SFU context. In addition, given the various scenarios in which video calling occurs, minimizing the bandwidth overhead of end-to-end encryption is also an important goal.
+
+This document proposes a new end-to-end encryption mechanism known as SFrame, specifically designed to work in group conference calls with SFUs.
 
 ~~~~~
   +-------------------------------+-------------------------------+^+
@@ -217,16 +177,67 @@ While DTLS-SRTP can be used as an efficient HBH mechanism, it is inherently poin
 | +---------------------------------------------------------------+ |
 |                                                                   |
 ++ Encrypted Portion*                      Authenticated Portion +--+
-                                                                     
-                        SRTP packet format 
+
+                        SRTP packet format
 ~~~~~
+
+# Terminology
+
+The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+"SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and
+"OPTIONAL" in this document are to be interpreted as described in
+BCP 14 {{!RFC2119}} {{!RFC8174}} when, and only when, they appear in all
+capitals, as shown here.
+
+SFU:
+: Selective Forwarding Unit (AKA RTP Switch)
+
+IV:
+: Initialization Vector
+
+MAC:
+: Message Authentication Code
+
+E2EE:
+: End to End Encryption
+
+HBH:
+: Hop By Hop
+
+KMS:
+: Key Management System
+
+# Goals
+SFrame is designed to be a suitable E2EE protection scheme for conference call
+media in a broad range of scenarios, as outlined by the following goals:
+
+1. Provide an secure E2EE mechanism for audio and video in conference calls
+   that can be used with arbitrary SFU servers.
+
+2. Decouple media encryption from key management to allow SFrame to be used
+   with an arbitrary KMS.
+
+3. Minimize packet expansion to allow successful conferencing in as many
+   network conditions as possible.
+
+4. Independence from the underlying transport, including use in non-RTP
+   transports, e.g., WebTransport.
+
+5. When used with RTP and its associated error resilience mechanisms, i.e., RTX
+   and FEC, require no special handling for RTX and FEC packets.
+
+6. Minimize the changes needed in SFU servers.
+
+7. Minimize the changes needed in endpoints.
+
+8. Work with the most popular audio and video codecs used in conferencing
+   scenarios.
 
 
 #SFrame
-We propose a frame level encryption mechanism that provides effective end-to-end encryption, is simple to implement, has no dependencies on RTP, and minimizes encryption bandwidth overhead. Because SFrame encrypts the full frame, rather than packet basis, bandwidth overhead is reduced by having a single IV and authentication tag for each media frame.
+We propose a frame level encryption mechanism that provides effective end-to-end encryption, is simple to implement, has no dependencies on RTP, and minimizes encryption bandwidth overhead. Because SFrame encrypts the full frame, rather than individual packets, bandwidth overhead is reduced by having a single IV and authentication tag for each media frame.
 
-Also, because media is encrypted prior to packetization, the encrypted frame is packetized using a generic RTP packetizer instead of codec-dependent packetization mechanisms. With this move to a generic packetizer, media metadata is moved from codec-specific mechanisms to a generic frame RTP header extension which, while visible to the SFU, is authenticated end-to- end. This extension includes necessary metadata such as resolution, frame beginning and end markers, etc.
-
+Also, because media is encrypted prior to packetization, the encrypted frame is packetized using a generic RTP packetizer instead of codec-dependent packetization mechanisms. With this move to a generic packetizer, media metadata is moved from codec-specific mechanisms to a generic frame RTP header extension which, while visible to the SFU, is authenticated end-to-end. This extension includes metadata needed for SFU routing such as resolution, frame beginning and end markers, etc.
 
 The generic packetizer splits the E2E encrypted media frame into one or more RTP packets and adds the SFrame header to the beginning of the first packet and an auth tag to the end of the last packet.
 
@@ -274,16 +285,16 @@ Alice |                    +-----+------+                     |   Encrypted Pack
       |  +----------+      +------------+      +-----------+  |
       |                                                       |
       +-------------------------------------------------------+
-                                         
+
 ~~~~~
 
-The E2EE keys used to encrypt the frame are exchanged out of band using a secure E2EE channel. 
+The E2EE keys used to encrypt the frame are exchanged out of band using a secure E2EE channel.
 
 ## SFrame Format
 
 ~~~~~
- 
-  +------------+------------------------------------------+^+ 
+
+  +------------+------------------------------------------+^+
   |S|LEN|X|KID |         Frame Counter                    | |
 +^+------------+------------------------------------------+ |
 | |                                                       | |
@@ -306,9 +317,9 @@ The E2EE keys used to encrypt the frame are exchanged out of band using a secure
 ~~~~~
 
 ## SFrame Header
-Since each endpoint can send multiple media layers, each frame will have a unique frame counter that will be used to derive the encryption IV. The frame counter must be unique and monodically increasing to avoid IV reuse.
+Since each endpoint can send multiple media layers, each frame will have a unique frame counter that will be used to derive the encryption IV. The frame counter must be unique and monotonically increasing to avoid IV reuse.
 
-As each sender will use their own key for encryption, so the SFrame header will include the key id to allow the receiver to identify the key that needs to be used for decrypting. 
+As each sender will use their own key for encryption, so the SFrame header will include the key id to allow the receiver to identify the key that needs to be used for decrypting.
 
 Both the frame counter and the key id are encoded in a variable length format to decrease the overhead, so the first byte in the Sframe header is fixed and contains the header metadata with the following format:
 
@@ -321,10 +332,10 @@ SFrame header metadata
 ~~~~~
 
 Signature flag (S): 1 bit
-    This field indicates the payload contains a signature if set. 
+    This field indicates the payload contains a signature if set.
 Counter Length (LEN): 3 bits
     This field indicates the length of the CTR fields in bytes.
-Extended Key Id Flag (X): 1 bit    
+Extended Key Id Flag (X): 1 bit
      Indicates if the key field contains the key id or the key length.
 Key or Key Length: 3 bits
      This field contains the key id (KID) if the X flag is set to 0, or the key length (KLEN) if set to 1.
@@ -340,7 +351,7 @@ If X flag is 0 then the KID is in the range of 0-7 and the frame counter (CTR) i
 
 Key id (KID): 3 bits
      The key id (0-7).
-Frame counter (CTR): (Variable length) 
+Frame counter (CTR): (Variable length)
      Frame counter value up to 8 bytes long.
 
 if X flag is 1 then KLEN is the length of the key (KID), that is found after the SFrame header metadata byte. After the key id (KID), the frame counter (CTR) will be found in the next LEN bytes:
@@ -354,9 +365,9 @@ if X flag is 1 then KLEN is the length of the key (KID), that is found after the
 
 Key length (KLEN): 3 bits
      The key length in bytes.
-Key id (KID): (Variable length) 
+Key id (KID): (Variable length)
      The key id value up to 8 bytes long.
-Frame counter (CTR): (Variable length) 
+Frame counter (CTR): (Variable length)
      Frame counter value up to 8 bytes long.
 
 ## Encryption Schema
@@ -391,7 +402,7 @@ IV = CTR XOR Salt key
 
 
 ### Encryption
-After encoding the frame and before packetizing it, the necessary media metadata will be moved out of the encoded frame buffer, to be used later in the RTP generic frame header extension. The encoded frame, the metadata buffer and the frame counter are passed to SFrame encryptor. 
+After encoding the frame and before packetizing it, the necessary media metadata will be moved out of the encoded frame buffer, to be used later in the RTP generic frame header extension. The encoded frame, the metadata buffer and the frame counter are passed to SFrame encryptor.
 The encryptor constructs SFrame header using frame counter and key id and derive the encryption IV. The frame is encrypted using the encryption key and the header, encrypted frame, the media metadata and the header are authenticated using the authentication key. The authentication tag is then truncated (If supported by the cipher suite) and prepended at the end of the ciphertext.
 
 The encrypted payload is then passed to a generic RTP packetized to construct the RTP packets and encrypts it using SRTP keys for the HBH encryption to the media server.
@@ -443,9 +454,9 @@ The encrypted payload is then passed to a generic RTP packetized to construct th
 ### Decryption
 The receiving clients buffer all packets that belongs to the same frame using the frame beginning and ending marks in the generic RTP frame header extension, and once all packets are available, it passes it to Frame for decryption. SFrame maintains multiple decryptor objects, one for each client in the call. Initially the client might not have the mapping between the incoming streams the user's keys, in this case SFrame tries all unmapped keys until it finds one that passes the authentication verification and use it to decrypt the frame. If the client has the mapping ready, it can push it down to SFrame later.
 
-The KeyId field in the SFrame header is used to find the right key for that user, which is incremented by the sender when they switch to a new key. 
+The KeyId field in the SFrame header is used to find the right key for that user, which is incremented by the sender when they switch to a new key.
 
-For frames that are failed to decrypt because there is not key available yet, SFrame will buffer them and retries to decrypt them once a key is received. 
+For frames that are failed to decrypt because there is not key available yet, SFrame will buffer them and retries to decrypt them once a key is received.
 
 ### Duplicate Frames
 Unlike messaging application, in video calls, receiving a duplicate frame doesn't necessary mean the client is under a replay attack, there are other reasons that might cause this, for example the sender might just be sending them in case of packet loss. SFrame decryptors use the highest received frame counter to protect against this. It allows only older frame pithing a short interval to support out of order delivery.
@@ -463,7 +474,7 @@ K(i) = HKDF(K(i-1), 'SFrameRatchetKey', 32)
 
 #### New Key
 SFrame will set the key immediately on the decrypts when it is received and destroys the old key material, so if the key manager sends a new key during the call, it is recommended not to start using it immediately and wait for a short time to make sure it is delivered to all other clients before using it to decrease the number of decryption failure. It is up to the application and the key manager to define how long this period is.
- 
+
 
 ## Authentication
 Every client in the call knows the secret key for all other clients so it can decrypt their traffic, it also means a malicious client can impersonate any other client in the call by using the victim key to encrypt their traffic. This might not be a problem for consumer application where the number of clients in the call is small and users know each others, however for enterprise use case where large conference calls are common, an authentication mechanism is needed to protect against malicious users. This authentication will come with extra cost.
@@ -476,7 +487,7 @@ The signature is calculated by concatenating the authentication tags of the fram
 Signature = Sign(Key, AuthTag(Frame N) || AuthTag(Frame N-1) || ...|| AuthTag(Frame N-M))
 ~~~~~
 
-The authentication tags for the previous frames covered by the signature and the signature itself will be appended at end of the frame, after the current frame authentication tag, in the same order that the signature was calculated, and the SFrame header metadata signature bit (S) will be set to 1. 
+The authentication tags for the previous frames covered by the signature and the signature itself will be appended at end of the frame, after the current frame authentication tag, in the same order that the signature was calculated, and the SFrame header metadata signature bit (S) will be set to 1.
 
 ~~~~~
 
@@ -507,7 +518,7 @@ The authentication tags for the previous frames covered by the signature and the
 
     Encrypted Frame with Signature
 
-~~~~~   
+~~~~~
 
 Note that the authentication tag for the current frame will only authenticate the SFrame header and the encrypted payload, ant not the signature nor the previous frames's authentication tags (N-1 to N-M) used to calculate the signature.
 
@@ -523,7 +534,7 @@ An easy way of solving the issue would be to perform signature only on the base 
 
 In case of simulcast or K-SVC, each spatial layer should be authenticated with different signatures to prevent the SFU to discard frames with the signature info.
 
-In any case, it is possible that the frame with the signature is lost or the SFU drops it, so the receiver MUST be prepared to not receive a signature for a frame and remove it from the pending to be verified list after a timeout. 
+In any case, it is possible that the frame with the signature is lost or the SFU drops it, so the receiver MUST be prepared to not receive a signature for a frame and remove it from the pending to be verified list after a timeout.
 
 
 
@@ -543,26 +554,26 @@ While any AEAD algorithm can be used to encrypt the frame, we recommend using al
 2- AES_CM_128_HMAC_SHA256_32
 
 o [Optional] A signature algorithm
-If signature is supported, we recommend using ed25519 
+If signature is supported, we recommend using ed25519
 
 
 ### DTLS-SRTP
 SRTP is used as an HBH encryption, since the media payload is already encrypted, and SRTP only protects the RTP headers, one implementation could use 4 bytes outer auth tag to decrease the overhead, however it is up to the application to use other ciphers like AES-128-GCM with full authentication tag.
 
 
-# Key Management 
-SFrame must be integrated with an E2EE key management framework to exchange and rotate the encryption keys. This framework will maintain a group of participant endpoints who are in the call. At call setup time, each endpoint will create a fresh key material and optionally signing key pair for that call and encrypt the key material and the public signing key to every other endpoints. They encrypted keys are delivered by the messaging delivery server using a reliable channel. 
+# Key Management
+SFrame must be integrated with an E2EE key management framework to exchange and rotate the encryption keys. This framework will maintain a group of participant endpoints who are in the call. At call setup time, each endpoint will create a fresh key material and optionally signing key pair for that call and encrypt the key material and the public signing key to every other endpoints. They encrypted keys are delivered by the messaging delivery server using a reliable channel.
 
 The KMS will monitor the group changes, and exchange new keys when necessary. It is up to the application to define this group, for example one application could have ephemeral group for every call and keep rotating key when end points joins or leave the call, while another application could have a persisted group that can be used for multiple calls and exchange keys with all group endpoints for every call.
 
 
-When a new key material is created during the call, we recommend not to start using it immediately in SFrame to give time for the new keys to be delivered. If the application supports delivery receipts, it can be used to track if the key is delivered to all other endpoints on the call before using it. 
+When a new key material is created during the call, we recommend not to start using it immediately in SFrame to give time for the new keys to be delivered. If the application supports delivery receipts, it can be used to track if the key is delivered to all other endpoints on the call before using it.
 
 Keys must have a sequential id starting from 0 and incremented eery time a new key is generated for this endpoint. The key id will be added in the SFrame header during encryption, so the recipient know which key to use for the decryption.
- 
+
 
 ## MLS-SFrame
-While any other E2EE KMS can be used with SFrame, there is a big advantage if it is used with {{MLSARCH}} which natively supports very large groups efficiently. When {{MLSPROTO}} is used, the endpoints keys (AKA Application secret) can be used directly for SFrame without the need to exchange separate key material. The application secret is rotated automatically by {{MLSPROTO}} when group membership changes. 
+While any other E2EE KMS can be used with SFrame, there is a big advantage if it is used with {{MLSARCH}} which natively supports very large groups efficiently. When {{MLSPROTO}} is used, the endpoints keys (AKA Application secret) can be used directly for SFrame without the need to exchange separate key material. The application secret is rotated automatically by {{MLSPROTO}} when group membership changes.
 
 
 # Media Considerations
@@ -580,7 +591,7 @@ Note that in order to prevent impersonation by a malicious participant (not the 
 
 ### Simulcast
 When using simulcast, the same input image will produce N different encoded frames (one per simulcast layer) which would be processed independently by the frame encryptor and assigned an unique counter for each.
- 
+
 ### SVC
 In both temporal and spatial scalability, the SFU may choose to drop layers in order to match a certain bitrate or forward specific media sizes or frames per second. In order to support it, the sender MUST encode each spatial layer of a given picture in a different frame. That is, an RTP frame may contain more than one SFrame encrypted frame with an incrementing frame counter.
 
@@ -643,10 +654,10 @@ Overhead bps = (Counter length + 1 + 4 ) * 8 * fps
 
 ## SFrame vs PERC-lite
 {{PERC}} has significant overhead over SFrame because the overhead is per packet, not per frame, and OHB (Original Header Block) which duplicates any RTP header/extension field modified by the SFU.
-{{PERCLITE}} {{https://mailarchive.ietf.org/arch/msg/perc/SB0qMHWz6EsDtz3yIEX0HWp5IEY/}} is slightly better because it doesn’t use the OHB anymore, however it still does per packet encryption using SRTP. 
+{{PERCLITE}} {{https://mailarchive.ietf.org/arch/msg/perc/SB0qMHWz6EsDtz3yIEX0HWp5IEY/}} is slightly better because it doesn’t use the OHB anymore, however it still does per packet encryption using SRTP.
 Below the the overheard in {{PERCLITE}} implemented by Cosmos Software which uses extra 11 bytes per packet to preserve the PT, SEQ_NUM, TIME_STAMP and SSRC fields in addition to the extra MAC tag per packet.
 
-OverheadPerPacket = 11 + MAC length 
+OverheadPerPacket = 11 + MAC length
 Overhead bps = PacketPerSecond * OverHeadPerPacket * 8
 
 Similar to SFrame, we will assume the HBH authentication tag length will always be 4 bytes for audio and video even though it is not the case in this {{PERCLITE}} implementation
@@ -676,10 +687,10 @@ For a conference with a single incoming audio stream (@ 50 pps) and 4 incoming v
 # Security Considerations
 
 ## Key Management
-Key exchange mechanism is out of scope of this document, however every client MUST change their keys when new clients joins or leaves the call for "Forward Secrecy" and "Post Compromise Security". 
+Key exchange mechanism is out of scope of this document, however every client MUST change their keys when new clients joins or leaves the call for "Forward Secrecy" and "Post Compromise Security".
 
 ## Authentication tag length
-The cipher suites defined in this draft use short authentication tags for encryption, however it can easily support other ciphers with full authentication tag if the short ones are proved insecure. 
+The cipher suites defined in this draft use short authentication tags for encryption, however it can easily support other ciphers with full authentication tag if the short ones are proved insecure.
 
 # IANA Considerations
 This document makes no requests of IANA.

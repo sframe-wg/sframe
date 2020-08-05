@@ -394,10 +394,12 @@ Key = HKDF(K, 'SFrameAuthenticationKey', 32)
 ~~~~~
 
 
-The IV is 128 bits long and calculated from the CTR field of the Frame header:
+The IV is 128 bits long and calculated from the CTR field of the Frame header. First the var int CTR is decoded into 16 bytes long field, where CTR fills the 
+the 8 most significant bytes and low 8 bytes are always filled with zeros:
 
 ~~~~~
-IV = CTR XOR Salt key
+CTR16 = DecodeVarInt(CTR, 16)
+IV = CTR16 XOR Salt key
 ~~~~~
 
 

@@ -75,9 +75,8 @@ This document proposes a new end-to-end encryption mechanism known as SFrame, sp
 | +---------------------------------------------------------------+ |
 |                                                                   |
 ++ Encrypted Portion*                      Authenticated Portion +--+
-
-                        SRTP packet format
 ~~~~~
+{: title="SRTP packet format"}
 
 # Terminology
 
@@ -183,7 +182,6 @@ Alice |                    +-----+------+                     |   Encrypted Pack
       |  +----------+      +------------+      +-----------+  |
       |                                                       |
       +-------------------------------------------------------+
-
 ~~~~~
 
 The E2EE keys used to encrypt the frame are exchanged out of band using a secure E2EE channel.
@@ -191,7 +189,6 @@ The E2EE keys used to encrypt the frame are exchanged out of band using a secure
 ## SFrame Format
 
 ~~~~~
-
   +------------+------------------------------------------+^+
   |S|LEN|X|KID |         Frame Counter                    | |
 +^+------------+------------------------------------------+ |
@@ -210,8 +207,6 @@ The E2EE keys used to encrypt the frame are exchanged out of band using a secure
 |                                                           |
 |                                                           |
 +----+Encrypted Portion            Authenticated Portion+---+
-
-
 ~~~~~
 
 ## SFrame Header
@@ -346,8 +341,8 @@ The encrypted payload is then passed to a generic RTP packetized to construct th
     |  payload 1/N  |      |               |     +---------------+   |
     |               |      |               |     |    auth tag   | <-+
     +---------------+      +---------------+     +---------------+
-                         Encryption flow
 ~~~~~
+{: title="Encryption flow" }
 
 ### Decryption
 The receiving clients buffer all packets that belongs to the same frame using the frame beginning and ending marks in the generic RTP frame header extension, and once all packets are available, it passes it to Frame for decryption. SFrame maintains multiple decryptor objects, one for each client in the call. Initially the client might not have the mapping between the incoming streams the user's keys, in this case SFrame tries all unmapped keys until it finds one that passes the authentication verification and use it to decrypt the frame. If the client has the mapping ready, it can push it down to SFrame later.
@@ -412,11 +407,8 @@ The authentication tags for the previous frames covered by the signature and the
     |                        |
     +-> Authenticated with   +-> Signed with
         Auth Tag N               Signature
-
-
-    Encrypted Frame with Signature
-
 ~~~~~
+{: title="Encrypted Frame with Signature" }
 
 Note that the authentication tag for the current frame will only authenticate the SFrame header and the encrypted payload, ant not the signature nor the previous frames's authentication tags (N-1 to N-M) used to calculate the signature.
 

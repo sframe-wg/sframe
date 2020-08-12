@@ -290,48 +290,56 @@ IV = CTR XOR Salt key
 After encoding the frame and before packetizing it, the necessary media metadata will be moved out of the encoded frame buffer, to be used later in the RTP generic frame header extension. The encoded frame, the metadata buffer and the frame counter are passed to SFrame encryptor.
 The encryptor constructs SFrame header using frame counter and key id and derive the encryption IV. The frame is encrypted using the encryption key and the header, encrypted frame, the media metadata and the header are authenticated using the authentication key. The authentication tag is then truncated (If supported by the cipher suite) and prepended at the end of the ciphertext.
 
+~~~~~
+frame_nonce = CTR XOR master_salt
+
+header = encode_sframe_header(S, CTR, KID)
+header_and_metadata = header + metadata
+
+encrypted_frame = AEAD.Encrypt(key=master_key,
+                               nonce=frame_nonce,
+                               aad=header_and_metadata
+                               plaintext=frame)
+~~~~~
+
 The encrypted payload is then passed to a generic RTP packetized to construct the RTP packets and encrypts it using SRTP keys for the HBH encryption to the media server.
 
 ~~~~~
 
-                           +---------------+  +---------------+
-                           |               |  | frame metadata+----+
-                           |               |  +---------------+    |
-                           |     frame     |                       |
-                           |               |                       |
-                           |               |                       |
-                           +-------+-------+                       |
-                                   |                               |
-          CTR +---------------> IV |Enc Key <----Master Key        |
-                 derive IV         |                  |            |
-           +                       |                  |            |
-           |                       +                  v            |
-           |                    encrypt           Auth Key         |
-           |                       |                  +            |
-           |                       |                  |            |
-           |                       v                  |            |
-           |               +-------+-------+          |            |
-           |               |               |          |            |
-           |               |   encrypted   |          v            |
-           |               |     frame     +---->Authenticate<-----+
-           +               |               |          +
-       encode CTR          |               |          |
-           +               +-------+-------+          |
-           |                       |                  |
-           |                       |                  |
-           |                       |                  |
-           |              generic RTP packetize       |
-           |                       +                  |
-           |                       |                  |
-           |                       |                  +--------------+
-+----------+                       v                                 |
-|                                                                    |
-|   +---------------+      +---------------+     +---------------+   |
-+-> | SFrame header |      |               |     |               |   |
-    +---------------+      |               |     |  payload N/N  |   |
-    |               |      |  payload 2/N  |     |               |   |
-    |  payload 1/N  |      |               |     +---------------+   |
-    |               |      |               |     |    auth tag   | <-+
+                           +---------------+  +----------------+
+                           |               |  | frame metadata |
+                           |               |  +-------+--------+
+                           |     frame     |          |         
+                           |               |          |        
+                           |               |          |         
+                           +-------+-------+          |        
+                                   |                  |
+                                   | AAD <------------+
+          CTR +------------------->| IV
+                 derive IV         | Enc Key <---- Master Key        
+           +                       |        
+           |                  AEAD encrypt
+           |                       |        
+           |                       v        
+           |               +-------+-------+
+           |               |               |
+           |               |               |
+           |               |   encrypted   |
+           |               |     frame     |
+       encode CTR          |               |
+           |               |               |
+           |               +-------+-------+
+           |                       |        
+           |              generic RTP packetize
+           |                       |           
++----------+                       v           
+|                                              
+|   +---------------+      +---------------+     +---------------+
++-> | SFrame header |      |               |     |               |
+    +---------------+      |               |     |               |
+    |               |      |  payload 2/N  |     |  payload N/N  |
+    |  payload 1/N  |      |               |     |               |
+    |               |      |               |     |               |
     +---------------+      +---------------+     +---------------+
 ~~~~~
 {: title="Encryption flow" }
@@ -422,25 +430,35 @@ In any case, it is possible that the frame with the signature is lost or the SFU
 
 ## Ciphersuites
 
-### SFrame
 Each SFrame session uses a single ciphersuite that specifies the following primitives:
 
-o A hash function
-This is used for the Key derivation and frame hashes for signature. We recommend using SHA256 hash function.
+o A hash function used for key derivation and hashing signature inputs
 
-o An AEAD encryption algorithm {{!RFC5116}}
-While any AEAD algorithm can be used to encrypt the frame, we recommend using algorithms with safe MAC truncation like AES-CTR and HMAC to reduce the per-frame overhead. In this case we can use 80 bits MAC for video frames and 32 bits for audio frames similar to DTLS-SRTP cipher suites:
+o An AEAD encryption algorithm [RFC5116] used for frame encryption, optionally
+  with a truncated authentication tag
 
-1. AES_CM_128_HMAC_SHA256_80
-2. AES_CM_128_HMAC_SHA256_32
+o [Optional] A signature algorithm
 
-o (Optional) A signature algorithm
-If signature is supported, we recommend using ed25519
+This document defines the following ciphersuites:
 
+| Value  | Name                           | Reference |
+|:-------|:-------------------------------|:----------|
+| 0x0001 | AES\_CM\_128\_HMAC\_SHA256\_80 | RFC XXXX  |
+| 0x0002 | AES\_CM\_128\_HMAC\_SHA256\_32 | RFC XXXX  |
+| 0x0003 | AES\_GCM\_128\_SHA256          | RFC XXXX  |
+| 0x0004 | AES\_GCM\_256\_SHA512          | RFC XXXX  |
 
-### DTLS-SRTP
-SRTP is used as an HBH encryption, since the media payload is already encrypted, and SRTP only protects the RTP headers, one implementation could use 4 bytes outer auth tag to decrease the overhead, however it is up to the application to use other ciphers like AES-128-GCM with full authentication tag.
+<!-- RFC EDITOR: Please replace XXXX above with the RFC number assigned to this
+document -->
 
+In the "AES\_CM" suites, the length of the authentication tag is indicated by
+the last value: "\_80" indicates a ten-byte tag and "\_32" indicates a four-byte
+tag.
+
+In a session that uses multiple media streams, different ciphersuites might be
+configured for different media streams.  For example, in order to conserve
+bandwidth, a session might use a ciphersuite with 80-bit tags for video frames
+and another ciphersuite with 32-bit tags for audio frames.
 
 # Key Management
 SFrame must be integrated with an E2EE key management framework to exchange and rotate the encryption keys. This framework will maintain a group of participant endpoints who are in the call. At call setup time, each endpoint will create a fresh key material and optionally signing key pair for that call and encrypt the key material and the public signing key to every other endpoints. They encrypted keys are delivered by the messaging delivery server using a reliable channel.

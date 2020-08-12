@@ -35,108 +35,6 @@ author:
     organization: CoSMo Software
     email: sergio.garcia.murillo@cosmosoftware.io
 
-
-informative:
-
-  MLSARCH:
-       title: "Messaging Layer Security Architecture"
-       date: 2020
-       author:
-         -  ins: E. Omara
-            name: Emad Omara
-            organization: Google
-            email: emadomara@google.com
-         -
-            ins: R. Barnes
-            name: Richard Barnes
-            organization: Cisco
-            email: rlb@ipv.sx
-         -
-	    ins: E. Rescorla
-            name: Eric Rescorla
-            organization: Mozilla
-            email: ekr@rtfm.com
-         -
-            ins: S. Inguva
-            name: Srinivas Inguva
-            organization: Twitter
-            email: singuva@twitter.com
-         -
-            ins: A. Kwon
-            name: Albert Kwon
-            organization: MIT
-            email: kwonal@mit.edu
-         -
-            ins: A. Duric
-            name: Alan Duric
-            organization: Wire
-            email: alan@wire.com
-
-
-  MLSPROTO:
-       title: "Messaging Layer Security Protocol"
-       date: 2020
-       author:
-         -  ins: R. Barnes
-            name: Richard Barnes
-            organization: Cisco
-            email: rlb@ipv.sx
-         -
-            ins: J. Millican
-            name: Jon Millican
-            organization: Facebook
-            email: jmillican@fb.com
-         -
-            ins: E. Omara
-            name: Emad Omara
-            organization: Google
-            email: emadomara@google.com
-         -
-            ins: K. Cohn-Gordon
-            name: Katriel Cohn-Gordon
-            organization: University of Oxford
-            email: me@katriel.co.uk
-         -
-            ins: R. Robert
-            name: Raphael Robert
-            organization: Wire
-            email: raphael@wire.com
-
-  PERC:
-       target: https://datatracker.ietf.org/doc/rfc8723/
-       title: PERC
-       date: 2020
-       author:
-       -
-          ins: C. Jennings
-          organization: Cisco Systems
-       -
-          ins: P. Jones
-          organization: Cisco Systems
-       -
-          ins: R. Barnes
-          organization: Cisco Systems
-       -
-          ins: A.B. Roach
-          organization: Mozilla
-
-
-  PERCLITE:
-       target: https://tools.ietf.org/html/draft-murillo-perc-lite-01
-       title: PERC-Lite
-       date: 2020
-       author:
-       -
-         ins: A. GOUAILLARD
-         name: Alexandre GOUAILLARD
-         organization: CoSMo Software
-         email: Alex.GOUAILLARD@cosmosoftware.io
-       -
-        ins: S. Murillo
-        name: Sergio Garcia Murillo
-        organization: CoSMo Software
-        email: sergio.garcia.murillo@cosmosoftware.io
-
 --- abstract
 
 This document describes the Secure Frame (SFrame) end-to-end encryption and authentication mechanism for media frames in a multiparty conference call, in which central media servers (SFUs) can access the media metadata needed to make forwarding decisions without having access to the actual media.
@@ -546,14 +444,14 @@ Each SFrame session uses a single ciphersuite that specifies the following primi
 o A hash function
 This is used for the Key derivation and frame hashes for signature. We recommend using SHA256 hash function.
 
-o An AEAD encryption algorithm [RFC5116]
+o An AEAD encryption algorithm {{!RFC5116}}
 While any AEAD algorithm can be used to encrypt the frame, we recommend using algorithms with safe MAC truncation like AES-CTR and HMAC to reduce the per-frame overhead. In this case we can use 80 bits MAC for video frames and 32 bits for audio frames similar to DTLS-SRTP cipher suites:
 
 1- AES_CM_128_HMAC_SHA256_80
 
 2- AES_CM_128_HMAC_SHA256_32
 
-o [Optional] A signature algorithm
+o (Optional) A signature algorithm
 If signature is supported, we recommend using ed25519
 
 
@@ -573,7 +471,7 @@ Keys must have a sequential id starting from 0 and incremented eery time a new k
 
 
 ## MLS-SFrame
-While any other E2EE KMS can be used with SFrame, there is a big advantage if it is used with {{MLSARCH}} which natively supports very large groups efficiently. When {{MLSPROTO}} is used, the endpoints keys (AKA Application secret) can be used directly for SFrame without the need to exchange separate key material. The application secret is rotated automatically by {{MLSPROTO}} when group membership changes.
+While any other E2EE KMS can be used with SFrame, there is a big advantage if it is used with {{?I-D.ietf-mls-architecture}} which natively supports very large groups efficiently. When {{?I-D.ietf-mls-protocol}} is used, the endpoints keys (AKA Application secret) can be used directly for SFrame without the need to exchange separate key material. The application secret is rotated automatically by {{?I-D.ietf-mls-protocol}} when group membership changes.
 
 
 # Media Considerations
@@ -653,14 +551,14 @@ Overhead bps = (Counter length + 1 + 4 ) * 8 * fps
 ~~~~~
 
 ## SFrame vs PERC-lite
-{{PERC}} has significant overhead over SFrame because the overhead is per packet, not per frame, and OHB (Original Header Block) which duplicates any RTP header/extension field modified by the SFU.
-{{PERCLITE}} {{https://mailarchive.ietf.org/arch/msg/perc/SB0qMHWz6EsDtz3yIEX0HWp5IEY/}} is slightly better because it doesn’t use the OHB anymore, however it still does per packet encryption using SRTP.
-Below the the overheard in {{PERCLITE}} implemented by Cosmos Software which uses extra 11 bytes per packet to preserve the PT, SEQ_NUM, TIME_STAMP and SSRC fields in addition to the extra MAC tag per packet.
+{{?RFC8723}} has significant overhead over SFrame because the overhead is per packet, not per frame, and OHB (Original Header Block) which duplicates any RTP header/extension field modified by the SFU.
+{{?I-D.murillo-perc-lite}} {{https://mailarchive.ietf.org/arch/msg/perc/SB0qMHWz6EsDtz3yIEX0HWp5IEY/}} is slightly better because it doesn’t use the OHB anymore, however it still does per packet encryption using SRTP.
+Below the the overheard in {{?I-D.murillo-perc-lite}} implemented by Cosmos Software which uses extra 11 bytes per packet to preserve the PT, SEQ_NUM, TIME_STAMP and SSRC fields in addition to the extra MAC tag per packet.
 
 OverheadPerPacket = 11 + MAC length
 Overhead bps = PacketPerSecond * OverHeadPerPacket * 8
 
-Similar to SFrame, we will assume the HBH authentication tag length will always be 4 bytes for audio and video even though it is not the case in this {{PERCLITE}} implementation
+Similar to SFrame, we will assume the HBH authentication tag length will always be 4 bytes for audio and video even though it is not the case in this {{?I-D.murillo-perc-lite}} implementation
 
 ### Audio
 ~~~~~

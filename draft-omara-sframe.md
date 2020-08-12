@@ -47,8 +47,9 @@ The proposed mechanism differs from other approaches through its use of media fr
 Modern multi-party video call systems use Selective Forwarding Unit (SFU) servers to efficiently route RTP streams to call endpoints based on factors such as available bandwidth, desired video size, codec support, and other factors. In order for the SFU to work properly though, it needs to be able to access RTP metadata and RTCP feedback messages, which is not possible if all RTP/RTCP traffic is end-to-end encrypted.
 
 As such, two layers of encryptions and authentication are required:
-  1- Hop-by-hop (HBH) encryption of media, metadata, and feedback messages between the the endpoints and SFU
-  2- End-to-end (E2E) encryption of media between the endpoints
+
+  1. Hop-by-hop (HBH) encryption of media, metadata, and feedback messages between the the endpoints and SFU
+  2. End-to-end (E2E) encryption of media between the endpoints
 
 While DTLS-SRTP can be used as an efficient HBH mechanism, it is inherently point-to-point and therefore not suitable for a SFU context. In addition, given the various scenarios in which video calling occurs, minimizing the bandwidth overhead of end-to-end encryption is also an important goal.
 
@@ -268,24 +269,15 @@ Frame counter (CTR): (Variable length)
 ### Key Derivation
 Each client creates a 32 bytes secret key K and share it with with other participants via an E2EE channel. From K, we derive 3 secrets:
 
-1- Salt key used to calculate the IV
+1. A Salt key used to calculate the IV
+2. An encryption key to encrypt the media frame
+3. An authentication key to authenticate the encrypted frame and the media metadata
 
 ~~~~~
-Key = HKDF(K, 'SFrameSaltKey', 16)
+salt_key = HKDF(K, 'SFrameSaltKey', 16)
+enc_key = HKDF(K, 'SFrameEncryptionKey', 16)
+auth_key = HKDF(K, 'SFrameAuthenticationKey', 32)
 ~~~~~
-
-2- Encryption key to encrypt the media frame
-
-~~~~~
-Key = HKDF(K, 'SFrameEncryptionKey', 16)
-~~~~~
-
-3- Authentication key to authenticate the encrypted frame and the media metadata
-
-~~~~~
-Key = HKDF(K, 'SFrameAuthenticationKey', 32)
-~~~~~
-
 
 The IV is 128 bits long and calculated from the CTR field of the Frame header:
 
@@ -439,9 +431,8 @@ This is used for the Key derivation and frame hashes for signature. We recommend
 o An AEAD encryption algorithm {{!RFC5116}}
 While any AEAD algorithm can be used to encrypt the frame, we recommend using algorithms with safe MAC truncation like AES-CTR and HMAC to reduce the per-frame overhead. In this case we can use 80 bits MAC for video frames and 32 bits for audio frames similar to DTLS-SRTP cipher suites:
 
-1- AES_CM_128_HMAC_SHA256_80
-
-2- AES_CM_128_HMAC_SHA256_32
+1. AES_CM_128_HMAC_SHA256_80
+2. AES_CM_128_HMAC_SHA256_32
 
 o (Optional) A signature algorithm
 If signature is supported, we recommend using ed25519

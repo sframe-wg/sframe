@@ -266,88 +266,137 @@ Frame counter (CTR): (Variable length)
 
 ## Encryption Schema
 
+SFrame encryption uses an AEAD encryption algorithm and hash function defined by
+the ciphersuite in use (see {{ciphersuites}}).  We will refer to the following
+aspects of the AEAD algorithm below:
+
+* `AEAD.Encrypt` and `AEAD.Decrypt` - The encryption and decryption functions
+  for the AEAD.  We follow the convention of RFC 5116 {{!RFC5116}} and consider
+  the authentication tag part of the ciphertext produced by `AEAD.Encrypt` (as
+  opposed to a separate field as in SRTP {{?RFC3711}}).
+
+* `AEAD.Nk` - The size of a key for the encryption algorithm, in bytes
+
+* `AEAD.Nn` - The size of a nonce for the encryption algorithm, in bytes
+
 ### Key Derivation
-Each client creates a 32 bytes secret key K and share it with with other participants via an E2EE channel. From K, we derive 3 secrets:
+
+Each client creates a secret key `base\_key` and shares it with the other
+participants via an E2E secure channel.  From `base\_key`, we derive the
+following values using HKDF {{!RFC5869}}:
 
 1. A Salt key used to calculate the IV
 2. An encryption key to encrypt the media frame
 3. An authentication key to authenticate the encrypted frame and the media metadata
 
 ~~~~~
-salt_key = HKDF(K, 'SFrameSaltKey', 16)
-enc_key = HKDF(K, 'SFrameEncryptionKey', 16)
-auth_key = HKDF(K, 'SFrameAuthenticationKey', 32)
+sframe_secret = HKDF-Extract(K, 'SFrame10')
+sframe_key = HKDF-Expand(sframe_secret, 'key', AEAD.Nk)
+sframe_salt = HKDF-Expand(sframe_secret, 'nonce', AEAD.Nn)
 ~~~~~
 
-The IV is 128 bits long and calculated from the CTR field of the Frame header:
-
-~~~~~
-IV = CTR XOR Salt key
-~~~~~
-
+Each SFrame KID value identifies a `base\_key`, and thus both the
+`sframe\_secret` and `sframe\_salt` values to be used for encryption and
+decryption.
 
 ### Encryption
+
 After encoding the frame and before packetizing it, the necessary media metadata will be moved out of the encoded frame buffer, to be used later in the RTP generic frame header extension. The encoded frame, the metadata buffer and the frame counter are passed to SFrame encryptor.
-The encryptor constructs SFrame header using frame counter and key id and derive the encryption IV. The frame is encrypted using the encryption key and the header, encrypted frame, the media metadata and the header are authenticated using the authentication key. The authentication tag is then truncated (If supported by the cipher suite) and prepended at the end of the ciphertext.
+
+SFrame encryption uses the AEAD encryption algorithm for the ciphersuite in use.
+The key for the encryption is the `sframe\_key` and the nonce is formed by XORing
+the `sframe\_salt` with the current counter, encoded as a big-endian integer of
+length `AEAD.Nn`.
+
+The encryptor forms an SFrame header using the S, CTR, and KID values provided.
+The encoded header is provided as AAD to the AEAD encryption operation, with any
+frame metadata appended.
 
 ~~~~~
-frame_nonce = CTR XOR master_salt
+def encrypt(S, CTR, KID, frame_metadata, frame):
+  sframe_key, sframe_salt = key_store[KID]
 
-header = encode_sframe_header(S, CTR, KID)
-header_and_metadata = header + metadata
+  frame_ctr = encode_big_endian(CTR, AEAD.Nn)
+  frame_nonce = xor(sframe_salt, frame_ctr)
 
-encrypted_frame = AEAD.Encrypt(key=master_key,
-                               nonce=frame_nonce,
-                               aad=header_and_metadata
-                               plaintext=frame)
+  header = encode_sframe_header(S, CTR, KID)
+  frame_aad = header + frame_metadata
+
+  encrypted_frame = AEAD.Encrypt(sframe_key, frame_nonce, frame_aad, frame)
+  return header + encrypted_frame
 ~~~~~
 
-The encrypted payload is then passed to a generic RTP packetized to construct the RTP packets and encrypts it using SRTP keys for the HBH encryption to the media server.
+The encrypted payload is then passed to a generic RTP packetized to construct the RTP packets and encrypt it using SRTP keys for the HBH encryption to the media server.
 
 ~~~~~
 
-                           +---------------+  +----------------+
-                           |               |  | frame metadata |
-                           |               |  +-------+--------+
-                           |     frame     |          |         
-                           |               |          |        
-                           |               |          |         
-                           +-------+-------+          |        
-                                   |                  |
-                                   | AAD <------------+
-          CTR +------------------->| IV
-                 derive IV         | Enc Key <---- Master Key        
-           +                       |        
-           |                  AEAD encrypt
-           |                       |        
-           |                       v        
-           |               +-------+-------+
-           |               |               |
-           |               |               |
-           |               |   encrypted   |
-           |               |     frame     |
-       encode CTR          |               |
-           |               |               |
-           |               +-------+-------+
-           |                       |        
-           |              generic RTP packetize
-           |                       |           
-+----------+                       v           
-|                                              
-|   +---------------+      +---------------+     +---------------+
-+-> | SFrame header |      |               |     |               |
-    +---------------+      |               |     |               |
-    |               |      |  payload 2/N  |     |  payload N/N  |
-    |  payload 1/N  |      |               |     |               |
-    |               |      |               |     |               |
-    +---------------+      +---------------+     +---------------+
+   +----------------+  +---------------+
+   | frame metadata |  |               |
+   +-------+--------+  |               |
+           |           |     frame     |         
+           |           |               |        
+           |           |               |         
+           |           +-------+-------+        
+           |                   |
+header ----+------------------>| AAD
++-----+                        |
+|  S  |                        |
++-----+                        |
+| KID +--+--> sframe_key ----->| Key
+|     |  |                     |
+|     |  +--> sframe_salt -+   |
++-----+                    |   |
+| CTR +--------------------+-->| Nonce
+|     |                        |
+|     |                        |
++-----+                        |
+   |                       AEAD.Encrypt
+   |                           |
+   |                           V
+   |                   +-------+-------+
+   |                   |               |
+   |                   |               |
+   |                   |   encrypted   |
+   |                   |     frame     |
+   |                   |               |
+   |                   |               |
+   |                   +-------+-------+
+   |                           |        
+   |                  generic RTP packetize
+   |                           |           
+   |                           v           
+   V                                       
++---------------+      +---------------+     +---------------+
+| SFrame header |      |               |     |               |
++---------------+      |               |     |               |
+|               |      |  payload 2/N  |     |  payload N/N  |
+|  payload 1/N  |      |               |     |               |
+|               |      |               |     |               |
++---------------+      +---------------+     +---------------+
 ~~~~~
 {: title="Encryption flow" }
 
 ### Decryption
-The receiving clients buffer all packets that belongs to the same frame using the frame beginning and ending marks in the generic RTP frame header extension, and once all packets are available, it passes it to Frame for decryption. SFrame maintains multiple decryptor objects, one for each client in the call. Initially the client might not have the mapping between the incoming streams the user's keys, in this case SFrame tries all unmapped keys until it finds one that passes the authentication verification and use it to decrypt the frame. If the client has the mapping ready, it can push it down to SFrame later.
+The receiving clients buffer all packets that belongs to the same frame using the frame beginning and ending marks in the generic RTP frame header extension, and once all packets are available, it passes it to SFrame for decryption. SFrame maintains multiple decryptor objects, one for each client in the call. Initially the client might not have the mapping between the incoming streams the user's keys, in this case SFrame tries all unmapped keys until it finds one that passes the authentication verification and use it to decrypt the frame. If the client has the mapping ready, it can push it down to SFrame later.
+
+<!-- OPEN ISSUE: It is not safe to rely on successful decryption as a sign that
+you have the right key.  We should signal the key explicitly. -->
 
 The KeyId field in the SFrame header is used to find the right key for that user, which is incremented by the sender when they switch to a new key.
+
+~~~~~
+def decrypt(frame_metadata, sframe):
+  header, encrypted_frame = split_header(sframe)
+  S, CTR, KID = parse_header(header)
+
+  sframe_key, sframe_salt = key_store[KID]
+
+  frame_ctr = encode_big_endian(CTR, AEAD.Nn)
+  frame_nonce = xor(sframe_salt, frame_ctr)
+  frame_aad = header + frame_metadata
+
+  return AEAD.Decrypt(sframe_key, frame_nonce, frame_aad, encrypted_frame)
+~~~~~
 
 For frames that are failed to decrypt because there is not key available yet, SFrame will buffer them and retries to decrypt them once a key is received.
 
@@ -427,7 +476,6 @@ In case of simulcast or K-SVC, each spatial layer should be authenticated with d
 In any case, it is possible that the frame with the signature is lost or the SFU drops it, so the receiver MUST be prepared to not receive a signature for a frame and remove it from the pending to be verified list after a timeout.
 
 
-
 ## Ciphersuites
 
 Each SFrame session uses a single ciphersuite that specifies the following primitives:
@@ -441,24 +489,72 @@ o [Optional] A signature algorithm
 
 This document defines the following ciphersuites:
 
-| Value  | Name                           | Reference |
-|:-------|:-------------------------------|:----------|
-| 0x0001 | AES\_CM\_128\_HMAC\_SHA256\_80 | RFC XXXX  |
-| 0x0002 | AES\_CM\_128\_HMAC\_SHA256\_32 | RFC XXXX  |
-| 0x0003 | AES\_GCM\_128\_SHA256          | RFC XXXX  |
-| 0x0004 | AES\_GCM\_256\_SHA512          | RFC XXXX  |
+| Value  | Name                           | Nk | Nn | Reference |
+|:-------|:-------------------------------|:---|:---|:----------|
+| 0x0001 | AES\_CM\_128\_HMAC\_SHA256\_8  | 16 | 12 | RFC XXXX  |
+| 0x0002 | AES\_CM\_128\_HMAC\_SHA256\_4  | 16 | 12 | RFC XXXX  |
+| 0x0003 | AES\_GCM\_128\_SHA256          | 16 | 12 | RFC XXXX  |
+| 0x0004 | AES\_GCM\_256\_SHA512          | 32 | 12 | RFC XXXX  |
 
 <!-- RFC EDITOR: Please replace XXXX above with the RFC number assigned to this
 document -->
 
 In the "AES\_CM" suites, the length of the authentication tag is indicated by
-the last value: "\_80" indicates a ten-byte tag and "\_32" indicates a four-byte
-tag.
+the last value: "\_8" indicates an eight-byte tag and "\_4" indicates a
+four-byte tag.
 
 In a session that uses multiple media streams, different ciphersuites might be
 configured for different media streams.  For example, in order to conserve
 bandwidth, a session might use a ciphersuite with 80-bit tags for video frames
 and another ciphersuite with 32-bit tags for audio frames.
+
+### AES-CM with SHA2
+
+In order to allow very short tag sizes, we define a synthetic AEAD function
+using the authenticated counter mode of AES together with HMAC for
+authentication.  We use an encrypt-then-MAC approach as in SRTP {{?RFC3711}}.
+
+Before encryption or decryption, encryption and authentication subkeys are
+derived from the single AEAD key using HKDF.  The subkeys are derived as
+follows, where `Nk` represents the key size for the AES block cipher in use and
+`Nh` represents the output size of the hash function:
+
+~~~~~
+def derive_subkeys(key):
+  aead_secret = HKDF-Extract(K, 'SFrame10 AES CM AEAD')
+  enc_key = HKDF-Expand(aead_secret, 'enc', Nk)
+  auth_key = HKDF-Expand(aead_secret, 'auth', Nh)
+~~~~~
+
+The AEAD encryption and decryption functions are then composed of individual
+calls to the CM encrypt function and HMAC.  The resulting MAC value is truncated
+to a number of bytes `tag_len` fixed by the ciphersuite.
+
+~~~~~
+def compute_tag(aad, ct):
+  aad_len = encode_big_endian(len(aad), 8)
+  auth_data = aad_len + aad + ct
+  tag = HMAC(auth_key, auth_data)
+  return truncate(tag, tag_len)
+
+def AEAD.Encrypt(key, nonce, aad, pt):
+  ct = AES-CM.Encrypt(key, nonce, pt)
+  tag = compute_tag(aad, ct)
+  return ct + tag
+
+def AEAD.Decrypt(key, nonce, aad, ct):
+  inner_ct, tag = split_ct(ct, tag_len)
+
+  candidate_tag = compute_tag(aad, inner_ct)
+  if !constant_time_equal(tag, candidate_tag):
+    raise Exception("Authentication Failure")
+
+  return AES-CM.Decrypt(key, nonce, inner_ct)
+~~~~
+
+<!-- OPEN ISSUE: Is there a pre-defined CTR+SHA construct we could borrow
+instead of inventing our own?  Alternatively, we might be able to use AES CCM
+mode, as it appears to allow tag truncation without issue. -->
 
 # Key Management
 SFrame must be integrated with an E2EE key management framework to exchange and rotate the encryption keys. This framework will maintain a group of participant endpoints who are in the call. At call setup time, each endpoint will create a fresh key material and optionally signing key pair for that call and encrypt the key material and the public signing key to every other endpoints. They encrypted keys are delivered by the messaging delivery server using a reliable channel.

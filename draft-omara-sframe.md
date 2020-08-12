@@ -47,8 +47,8 @@ The proposed mechanism differs from other approaches through its use of media fr
 Modern multi-party video call systems use Selective Forwarding Unit (SFU) servers to efficiently route RTP streams to call endpoints based on factors such as available bandwidth, desired video size, codec support, and other factors. In order for the SFU to work properly though, it needs to be able to access RTP metadata and RTCP feedback messages, which is not possible if all RTP/RTCP traffic is end-to-end encrypted.
 
 As such, two layers of encryptions and authentication are required:
-	1- Hop-by-hop (HBH) encryption of media, metadata, and feedback messages between the the endpoints and SFU
-	2- End-to-end (E2E) encryption of media between the endpoints
+  1- Hop-by-hop (HBH) encryption of media, metadata, and feedback messages between the the endpoints and SFU
+  2- End-to-end (E2E) encryption of media between the endpoints
 
 While DTLS-SRTP can be used as an efficient HBH mechanism, it is inherently point-to-point and therefore not suitable for a SFU context. In addition, given the various scenarios in which video calling occurs, minimizing the bandwidth overhead of end-to-end encryption is also an important goal.
 
@@ -511,16 +511,12 @@ Using three different audio frame durations
 100ms (10 packets/s)
 Up to 3 bytes frame counter (3.8 days of data for 20ms frame duration) and 4 bytes fixed MAC length.
 
-~~~~~
-+------------+-----------+-----------+----------+-----------+
 | Counter len| Packets   | Overhead  | Overhead | Overhead  |
 |            |           | bps@20ms  | bps@40ms | bps@100ms |
-+------------+-----------+-----------+----------+-----------+
+|:----------:|:---------:|:---------:|:--------:|:---------:|
 |          1 | 0-255     |      2400 |     1200 |       480 |
 |          2 | 255 - 65K |      2800 |     1400 |       560 |
 |          3 | 65K - 16M |      3200 |     1600 |       640 |
-+------------+--------- -+-----------+----------+-----------+
-~~~~~
 
 ## Video
 The per-stream overhead bits per second as calculated for the following video encodings:
@@ -530,17 +526,13 @@ The per-stream overhead bits per second as calculated for the following video en
 7.5fps@30Kbps (1 packet per frame)
 Overhead bps = (Counter length + 1 + 4 ) * 8 * fps
 
-~~~~~
-+------------+-----------+------------+------------+------------+
 | Counter len| Frames    | Overhead   | Overhead   | Overhead   |
 |            |           | bps@30fps  | bps@15fps  | bps@7.5fps |
-+------------+-----------+------------+------------+------------+
+|:----------:|:---------:|:----------:|:----------:|:----------:|
 |          1 | 0-255     |       1440 |       1440 |        720 |
 |          2 | 256 - 65K |       1680 |       1680 |        840 |
 |          3 | 56K - 16M |       1920 |       1920 |        960 |
 |          4 | 16M - 4B  |       2160 |       2160 |       1080 |
-+------------+-----------+------------+------------+------------+
-~~~~~
 
 ## SFrame vs PERC-lite
 {{?RFC8723}} has significant overhead over SFrame because the overhead is per packet, not per frame, and OHB (Original Header Block) which duplicates any RTP header/extension field modified by the SFU.
@@ -553,23 +545,17 @@ Overhead bps = PacketPerSecond * OverHeadPerPacket * 8
 Similar to SFrame, we will assume the HBH authentication tag length will always be 4 bytes for audio and video even though it is not the case in this {{?I-D.murillo-perc-lite}} implementation
 
 ### Audio
-~~~~~
-+-------------------+--------------------+--------------------+
+
 | Overhead bps@20ms | Overhead  bps@40ms | Overhead bps@100ms |
-+-------------------+--------------------+--------------------+
+|:-----------------:|:------------------:|:------------------:|
 |              6000 |               3000 |               1200 |
-+-------------------+--------------------+--------------------+
-~~~~~
 
 ### Video
-~~~~~
-+---------------------+----------------------+-----------------------+
+
 | Overhead  bps@30fps |  Overhead  bps@15fps |  Overhead  bps@7.5fps |
 |(4 packets per frame)| (2 packets per frame)| (1 packet per frame)  |
-+---------------------+----------------------+-----------------------+
+|:-------------------:|:--------------------:|:---------------------:|
 |               14400 |                 7200 |                  3600 |
-+---------------------+----------------------+-----------------------+
-~~~~~
 
 For a conference with a single incoming audio stream (@ 50 pps) and 4 incoming video streams (@200 Kbps), the savings in overhead is 34800 - 9600 = ~25 Kbps, or ~3%.
 

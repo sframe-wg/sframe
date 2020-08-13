@@ -570,19 +570,118 @@ instead of inventing our own?  Alternatively, we might be able to use AES CCM
 mode, as it appears to allow tag truncation without issue. -->
 
 # Key Management
-SFrame must be integrated with an E2EE key management framework to exchange and rotate the encryption keys. This framework will maintain a group of participant endpoints who are in the call. At call setup time, each endpoint will create a fresh key material and optionally signing key pair for that call and encrypt the key material and the public signing key to every other endpoints. They encrypted keys are delivered by the messaging delivery server using a reliable channel.
 
-The KMS will monitor the group changes, and exchange new keys when necessary. It is up to the application to define this group, for example one application could have ephemeral group for every call and keep rotating key when end points joins or leave the call, while another application could have a persisted group that can be used for multiple calls and exchange keys with all group endpoints for every call.
+SFrame must be integrated with an E2E key management framework to exchange and
+rotate the keys used for SFrame encryption and/or signing.  The key management
+framework provides the following functions:
 
+* Provisioning KID/`base\_key` mappings to participating clients
+* (optional) Provisioning clients with a list of trusted signing keys
+* Updating the above data as clients join or leave
 
-When a new key material is created during the call, we recommend not to start using it immediately in SFrame to give time for the new keys to be delivered. If the application supports delivery receipts, it can be used to track if the key is delivered to all other endpoints on the call before using it.
+It is up to the application to define a rotation schedule for keys.  For example,
+one application might have an ephemeral group for every call and keep rotating key
+when end points joins or leave the call, while another application could have a
+persistent group that can be used for multiple calls and simply derives
+ephemeral symmetric keys for a specific call.
 
-Keys must have a sequential id starting from 0 and incremented eery time a new key is generated for this endpoint. The key id will be added in the SFrame header during encryption, so the recipient know which key to use for the decryption.
+## Sender Keys
 
+If the participants in a call have a pre-existing E2E-secure channel, they can
+use it to distribute SFrame keys.  Each client participating in a call generates
+a fresh encryption key and optionally a signing key pair.  The client then uses
+the E2E-secure channel to send their encryption key and signing public key to
+the other participants.
 
-## MLS-SFrame
-While any other E2EE KMS can be used with SFrame, there is a big advantage if it is used with {{?I-D.ietf-mls-architecture}} which natively supports very large groups efficiently. When {{?I-D.ietf-mls-protocol}} is used, the endpoints keys (AKA Application secret) can be used directly for SFrame without the need to exchange separate key material. The application secret is rotated automatically by {{?I-D.ietf-mls-protocol}} when group membership changes.
+In this scheme, it is assumed that receivers have a signal outside of SFrame for
+which client has sent a given frame, for example the RTP SSRC.  SFrame KID
+values are then used to distinguish generations of the sender's key.  At the
+beginning of a call, each sender encrypts with KID=0.  Thereafter, the sender
+can ratchet their key forward for forward secrecy:
 
+~~~~~
+sender_key[i+1] = HKDF-Expand(
+                    HKDF-Extract(sender_key[i], 'SFrame10 ratchet'), 
+                      '', AEAD.Nk)
+~~~~~
+
+The sender signals such an update by incrementing their KID value.  A receiver
+who receives from a sender with a new KID computes the new key as above.  The
+old key may be kept for some time to allow for out-of-order delivery, but should
+be deleted promptly.
+
+If a new participant joins mid-call, they will need to receive from each sender
+(a) the current sender key for that sender, (b) the signing key for the sender,
+if used, and (c) the current KID value for the sender.  Evicting a participant
+requires each sender to send a fresh sender key to all receivers.
+
+## MLS
+
+The Messaging Layer Security (MLS) protocol provides group authenticated key
+exchange {{?I-D.ietf-mls-architecture}} {{?I-D.ietf-mls-protocol}}.  In
+principle, it could be used to instantiate the sender key scheme above, but it
+can also be used more efficiently directly.
+
+MLS creates a linear sequence of keys, each of which is shared among the members
+of a group at a given point in time.  When a member joins or leaves the group, a
+new key is produced that is known only to the augmented or reduced group.  Each
+step in the lifetime of the group is know as an "epoch", and each member of the
+group is assigned an "index" that is constant for the time they are in the
+group.
+
+In SFrame, we derive per-sender `base\_key` values from the group secret for an
+epoch, and use the KID field to signal the epoch and sender index.  First, we
+use the MLS exporter to compute a shared SFrame secret for the epoch.
+
+~~~~~
+sframe_epoch_secret = MLS-Exporter("SFrame 10 MLS", "", AEAD.Nk)
+
+sender_base_key[index] = HKDF-Expand(sframe_epoch_secret, 
+                           encode_big_endian(index, 4), AEAD.Nk)
+~~~~~
+
+For compactness, do not send the whole epoch number.  Instead, we send only its
+low-order E bits.  Note that E effectively defines a re-ordering window, since
+no more than 2^E epoch can be active at a given time.  Receivers MUST be
+prepared for the epoch counter to roll over, removing an old epoch when a new
+epoch with the same E lower bits is introduced.  (Sender indices cannot be
+similarly compressed.)
+
+~~~~~
+KID = (sender_index << E) + (epoch % (1 << E))
+~~~~~
+
+Once an SFrame stack has been provisioned with the `sframe_epoch_secret` for an
+epoch, it can compute the required KIDs and `sender_base_key` values on demand,
+as it needs to encrypt/decrypt for a given member.
+
+~~~~~
+        ...
+         |
+Epoch 17 +--+-- index=33 -> KID = 0x211 
+         |  |
+         |  +-- index=51 -> KID = 0x331
+         |
+         |
+Epoch 16 +--+-- index=2 --> KID = 0x20 
+         |
+         |
+Epoch 15 +--+-- index=3 --> KID = 0x3f 
+         |  |
+         |  +-- index=5 --> KID = 0x5f
+         |
+         |
+Epoch 14 +--+-- index=3 --> KID = 0x3e 
+         |  |
+         |  +-- index=7 --> KID = 0x7e
+         |  |
+         |  +-- index=20 -> KID = 0x14e
+         |
+        ...
+~~~~~
+
+MLS also provides an authenticated signing key pair for each participant.  When
+SFrame uses signatures, these are the keys used to generate SFrame signatures.
 
 # Media Considerations
 

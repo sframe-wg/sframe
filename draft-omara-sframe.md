@@ -563,7 +563,7 @@ def AEAD.Decrypt(key, nonce, aad, ct):
     raise Exception("Authentication Failure")
 
   return AES-CM.Decrypt(key, nonce, inner_ct)
-~~~~
+~~~~~
 
 <!-- OPEN ISSUE: Is there a pre-defined CTR+SHA construct we could borrow
 instead of inventing our own?  Alternatively, we might be able to use AES CCM

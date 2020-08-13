@@ -75,7 +75,7 @@ This document proposes a new end-to-end encryption mechanism known as SFrame, sp
 | :                       authentication tag                      : |
 | +---------------------------------------------------------------+ |
 |                                                                   |
-++ Encrypted Portion*                      Authenticated Portion +--+
+++ Encrypted Portion                       Authenticated Portion +--+
 ~~~~~
 {: title="SRTP packet format"}
 
@@ -279,29 +279,61 @@ aspects of the AEAD algorithm below:
 
 * `AEAD.Nn` - The size of a nonce for the encryption algorithm, in bytes
 
+### Key Selection
+
+Each SFrame encryption or decryption operation is premised on a single secret
+`base\_key`, which is labeled with an integer KID value signaled in the SFrame
+header.
+
+The sender and receivers need to agree on which key should be used for a given
+KID.  The process for provisioning keys and their KID values is beyond the scope
+of this specification, but its security properties will bound the assurances
+that SFrame provides.  For example, if SFrame is used to provide E2E security
+against intermediary media nodes, then SFrame keys MUST be negotiated in a way
+that does not make them accessible to these intermediaries.
+
+For each known KID value, the client stores the corresponding symmetric key
+`base\_key`.  For keys that can be used for encryption, the client also stores
+the next counter value CTR to be used when encrypting (initially 0).
+
+When encrypting a frame, the application specifies which KID is to be used, and
+the counter is incremented after successful encryption.  When decrypting, the
+`base\_key` for decryption is selected from the available keys using the KID
+value in the SFrame Header.
+
+A given key MUST NOT be used for encryption by multiple senders.  Such reuse
+would result in multiple encrypted frames being generated with the same (key,
+nonce) pair, which harms the protections provided by many AEAD algorithms.
+Implementations SHOULD mark each key as usable for encryption or decryption,
+never both.
+
+Note that the set of available keys might change over the lifetime of a
+real-time session.  In such cases, the client will need to manage key usage to
+avoid media loss due to a key being used to encrypt before all receivers are
+able to use it to decrypt.  For example, an application may make decryption-only
+keys available immediately, but delay the use of encryption-only keys until (a)
+all receivers have acknowledged receipt of the new key or (b) a timeout expires.
+
 ### Key Derivation
 
-Each client creates a secret key `base\_key` and shares it with the other
-participants via an E2E secure channel.  From `base\_key`, we derive the
-following values using HKDF {{!RFC5869}}:
-
-1. A Salt key used to calculate the IV
-2. An encryption key to encrypt the media frame
-3. An authentication key to authenticate the encrypted frame and the media metadata
+SFrame encrytion and decryption use a key and salt derived from the `base\_key`
+associated to a KID.  Given a `base\_key` value, the key and salt are derived
+using HKDF {{!RFC5869}} as follows:
 
 ~~~~~
 sframe_secret = HKDF-Extract(K, 'SFrame10')
 sframe_key = HKDF-Expand(sframe_secret, 'key', AEAD.Nk)
-sframe_salt = HKDF-Expand(sframe_secret, 'nonce', AEAD.Nn)
+sframe_salt = HKDF-Expand(sframe_secret, 'salt', AEAD.Nn)
 ~~~~~
 
-Each SFrame KID value identifies a `base\_key`, and thus both the
-`sframe\_secret` and `sframe\_salt` values to be used for encryption and
-decryption.
+The hash function used for HKDF is determined by the ciphersuite in use.
 
 ### Encryption
 
-After encoding the frame and before packetizing it, the necessary media metadata will be moved out of the encoded frame buffer, to be used later in the RTP generic frame header extension. The encoded frame, the metadata buffer and the frame counter are passed to SFrame encryptor.
+After encoding the frame and before packetizing it, the necessary media metadata
+will be moved out of the encoded frame buffer, to be used later in the RTP
+generic frame header extension. The encoded frame, the metadata buffer and the
+frame counter are passed to SFrame encryptor.
 
 SFrame encryption uses the AEAD encryption algorithm for the ciphersuite in use.
 The key for the encryption is the `sframe\_key` and the nonce is formed by XORing
@@ -377,12 +409,8 @@ header ----+------------------>| AAD
 {: title="Encryption flow" }
 
 ### Decryption
-The receiving clients buffer all packets that belongs to the same frame using the frame beginning and ending marks in the generic RTP frame header extension, and once all packets are available, it passes it to SFrame for decryption. SFrame maintains multiple decryptor objects, one for each client in the call. Initially the client might not have the mapping between the incoming streams the user's keys, in this case SFrame tries all unmapped keys until it finds one that passes the authentication verification and use it to decrypt the frame. If the client has the mapping ready, it can push it down to SFrame later.
 
-<!-- OPEN ISSUE: It is not safe to rely on successful decryption as a sign that
-you have the right key.  We should signal the key explicitly. -->
-
-The KeyId field in the SFrame header is used to find the right key for that user, which is incremented by the sender when they switch to a new key.
+The receiving clients buffer all packets that belongs to the same frame using the frame beginning and ending marks in the generic RTP frame header extension, and once all packets are available, it passes it to SFrame for decryption.  The KID field in the SFrame header is used to find the right key for the encrypted frame.
 
 ~~~~~
 def decrypt(frame_metadata, sframe):
@@ -398,25 +426,10 @@ def decrypt(frame_metadata, sframe):
   return AEAD.Decrypt(sframe_key, frame_nonce, frame_aad, encrypted_frame)
 ~~~~~
 
-For frames that are failed to decrypt because there is not key available yet, SFrame will buffer them and retries to decrypt them once a key is received.
+For frames that are failed to decrypt because there is key available for the KID in the SFrame header, the client MAY buffer the frame and retry decryption once a key with that KID is received.
 
 ### Duplicate Frames
 Unlike messaging application, in video calls, receiving a duplicate frame doesn't necessary mean the client is under a replay attack, there are other reasons that might cause this, for example the sender might just be sending them in case of packet loss. SFrame decryptors use the highest received frame counter to protect against this. It allows only older frame pithing a short interval to support out of order delivery.
-
-
-### Key Rotation
-Because the E2EE keys could be rotated during the call when people join and leave, these new keys are exchanged using the same E2EE secure channel used in the initial key negotiation. Sending new fresh keys is an expensive operation, so the key management component might chose to send new keys only when other clients leave the call and use hash ratcheting for the join case, so no need to send a new key to the clients who are already on the call. SFrame supports both modes
-
-#### Key Ratcheting
-When SFrame decryptor fails to decrypt one of the frames, it automatically ratchets the key forward and retries again until one ratchet succeed or it reaches the maximum allowed ratcheting window. If a new ratchet passed the decryption, all previous ratchets are deleted.
-
-~~~~~
-K(i) = HKDF(K(i-1), 'SFrameRatchetKey', 32)
-~~~~~
-
-#### New Key
-SFrame will set the key immediately on the decrypts when it is received and destroys the old key material, so if the key manager sends a new key during the call, it is recommended not to start using it immediately and wait for a short time to make sure it is delivered to all other clients before using it to decrease the number of decryption failure. It is up to the application and the key manager to define how long this period is.
-
 
 ## Authentication
 Every client in the call knows the secret key for all other clients so it can decrypt their traffic, it also means a malicious client can impersonate any other client in the call by using the victim key to encrypt their traffic. This might not be a problem for consumer application where the number of clients in the call is small and users know each others, however for enterprise use case where large conference calls are common, an authentication mechanism is needed to protect against malicious users. This authentication will come with extra cost.

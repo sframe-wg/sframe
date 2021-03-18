@@ -544,30 +544,27 @@ calls to the CM encrypt function and HMAC.  The resulting MAC value is truncated
 to a number of bytes `tag_len` fixed by the ciphersuite.
 
 ~~~~~
-def compute_tag(aad, ct):
+def compute_tag(nonce, aad, ct):
   aad_len = encode_big_endian(len(aad), 8)
-  auth_data = aad_len + aad + ct
+  ct_len = encode_big_endian(len(ct), 8)
+  auth_data = aad_len + ct_len + nonce + aad + ct
   tag = HMAC(auth_key, auth_data)
   return truncate(tag, tag_len)
 
 def AEAD.Encrypt(key, nonce, aad, pt):
   ct = AES-CM.Encrypt(key, nonce, pt)
-  tag = compute_tag(aad, ct)
+  tag = compute_tag(nonce, aad, ct)
   return ct + tag
 
 def AEAD.Decrypt(key, nonce, aad, ct):
   inner_ct, tag = split_ct(ct, tag_len)
 
-  candidate_tag = compute_tag(aad, inner_ct)
+  candidate_tag = compute_tag(nonce, aad, inner_ct)
   if !constant_time_equal(tag, candidate_tag):
     raise Exception("Authentication Failure")
 
   return AES-CM.Decrypt(key, nonce, inner_ct)
 ~~~~~
-
-<!-- OPEN ISSUE: Is there a pre-defined CTR+SHA construct we could borrow
-instead of inventing our own?  Alternatively, we might be able to use AES CCM
-mode, as it appears to allow tag truncation without issue. -->
 
 # Key Management
 

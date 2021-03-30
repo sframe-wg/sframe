@@ -220,13 +220,13 @@ Both the frame counter and the key id are encoded in a variable length format to
 ~~~~~
  0 1 2 3 4 5 6 7
 +-+-+-+-+-+-+-+-+
-|S|LEN  |X|  K  |
+|R|LEN  |X|  K  |
 +-+-+-+-+-+-+-+-+
 SFrame header metadata
 ~~~~~
 
-Signature flag (S): 1 bit
-    This field indicates the payload contains a signature if set.
+Reserved (R): 1 bit
+    This field MUST be set to zero on sending, and MUST be ignored by receivers.
 Counter Length (LEN): 3 bits
     This field indicates the length of the CTR fields in bytes.
 Extended Key Id Flag (X): 1 bit
@@ -239,7 +239,7 @@ If X flag is 0 then the KID is in the range of 0-7 and the frame counter (CTR) i
 ~~~~~
  0 1 2 3 4 5 6 7
 +-+-+-+-+-+-+-+-+---------------------------------+
-|S|LEN  |0| KID |    CTR... (length=LEN)          |
+|R|LEN  |0| KID |    CTR... (length=LEN)          |
 +-+-+-+-+-+-+-+-+---------------------------------+
 ~~~~~
 
@@ -253,7 +253,7 @@ if X flag is 1 then KLEN is the length of the key (KID), that is found after the
 ~~~~~
  0 1 2 3 4 5 6 7
 +-+-+-+-+-+-+-+-+---------------------------+---------------------------+
-|S|LEN  |1|KLEN |   KID... (length=KLEN)    |    CTR... (length=LEN)    |
+|R|LEN  |1|KLEN |   KID... (length=KLEN)    |    CTR... (length=LEN)    |
 +-+-+-+-+-+-+-+-+---------------------------+---------------------------+
 ~~~~~
 
@@ -430,64 +430,6 @@ For frames that are failed to decrypt because there is key available for the KID
 
 ### Duplicate Frames
 Unlike messaging application, in video calls, receiving a duplicate frame doesn't necessary mean the client is under a replay attack, there are other reasons that might cause this, for example the sender might just be sending them in case of packet loss. SFrame decryptors use the highest received frame counter to protect against this. It allows only older frame pithing a short interval to support out of order delivery.
-
-## Authentication
-Every client in the call knows the secret key for all other clients so it can decrypt their traffic, it also means a malicious client can impersonate any other client in the call by using the victim key to encrypt their traffic. This might not be a problem for consumer application where the number of clients in the call is small and users know each others, however for enterprise use case where large conference calls are common, an authentication mechanism is needed to protect against malicious users. This authentication will come with extra cost.
-
-Adding a digital signature to each encrypted frame will be an overkill, instead we propose adding signature over multiple frames.
-
-The signature is calculated by concatenating the authentication tags of the frames that the sender wants to authenticate (in reverse sent order) and signing it with the signature key. Signature keys are exchanged out of band along the encryption keys.
-
-~~~~~
-Signature = Sign(Key, AuthTag(Frame N) || AuthTag(Frame N-1) || ...|| AuthTag(Frame N-M))
-~~~~~
-
-The authentication tags for the previous frames covered by the signature and the signature itself will be appended at end of the frame, after the current frame authentication tag, in the same order that the signature was calculated, and the SFrame header metadata signature bit (S) will be set to 1.
-
-~~~~~
-
-
-    +^ +------------------+
-    |  | SFrame header S=1|
-    |  +------------------+
-    |  |  Encrypted       |
-    |  |  payload         |
-    |  |                  |
-    |^ +------------------+ ^+
-    |  |  Auth Tag N      |  |
-    |  +------------------+  |
-    |  |  Auth Tag N-1    |  |
-    |  +------------------+  |
-    |  |    ........      |  |
-    |  +------------------+  |
-    |  |  Auth Tag N-M    |  |
-    |  +------------------+ ^|
-    |  | NUM | Signature  :  |
-    |  +-----+            +  |
-    |  :                  |  |
-    |  +------------------+  |
-    |                        |
-    +-> Authenticated with   +-> Signed with
-        Auth Tag N               Signature
-~~~~~
-{: title="Encrypted Frame with Signature" }
-
-Note that the authentication tag for the current frame will only authenticate the SFrame header and the encrypted payload, ant not the signature nor the previous frames's authentication tags (N-1 to N-M) used to calculate the signature.
-
-The last byte (NUM) after the authentication tag list and before the signature indicates the number of the authentication tags from previous frames present in the current frame. All the authentications tags MUST have the same size, which MUST be equal to the authentication tag size of the current frame. The signature is fixed size depending on the signature algorithm used (for example, 64 bytes for Ed25519).
-
-The receiver has to keep track of all the frames received but yet not verified, by storing the authentication tags of each received frame. When a signature is received, the receiver will verify it with the signature key associated to the key id of the frame the signature was sent in. If the verification is successful, the received will mark the frames as authenticated and remove them from the list of the not verified frames. It is up to the application to decide what to do when signature verification fails.
-
-When using SVC, the hash will be calculated over all the frames of the different spatial layers within the same superframe/picture. However the SFU will be able to drop frames within the same stream (either spatial or temporal) to match target bitrate.
-
-If the signature is sent on a frame which layer that is dropped by the SFU, the receiver will not receive it and will not be able to perform the signature of the other received layers.
-
-An easy way of solving the issue would be to perform signature only on the base layer or take into consideration the frame dependency graph and send multiple signatures in parallel (each for a branch of the dependency graph).
-
-In case of simulcast or K-SVC, each spatial layer should be authenticated with different signatures to prevent the SFU to discard frames with the signature info.
-
-In any case, it is possible that the frame with the signature is lost or the SFU drops it, so the receiver MUST be prepared to not receive a signature for a frame and remove it from the pending to be verified list after a timeout.
-
 
 ## Ciphersuites
 
@@ -778,6 +720,10 @@ For a conference with a single incoming audio stream (@ 50 pps) and 4 incoming v
 
 
 # Security Considerations
+
+## No Per-Sender Authentication
+
+SFrame does not provide per-sender authentication of media data.  Any sender in a session can send media that will be associated with any other sender.  This is because SFrame uses symmetric encryption to protect media data, so that any receiver also has the keys required to encrypt packets for the sender.
 
 ## Key Management
 Key exchange mechanism is out of scope of this document, however every client MUST change their keys when new clients joins or leaves the call for "Forward Secrecy" and "Post Compromise Security".

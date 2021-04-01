@@ -35,6 +35,13 @@ author:
     organization: CoSMo Software
     email: sergio.garcia.murillo@cosmosoftware.io
 
+informative:
+  TestVectors:
+    title: "SFrame Test Vectors"
+    target: https://github.com/eomara/sframe/blob/master/test-vectors.json
+    date: 2021
+
+
 --- abstract
 
 This document describes the Secure Frame (SFrame) end-to-end encryption and authentication mechanism for media frames in a multiparty conference call, in which central media servers (SFUs) can access the media metadata needed to make forwarding decisions without having access to the actual media.
@@ -730,3 +737,30 @@ The cipher suites defined in this draft use short authentication tags for encryp
 
 # IANA Considerations
 This document makes no requests of IANA.
+
+# Test Vectors
+
+This section provides a set of test vectors that implementations can use to
+verify that they correctly implement SFrame encryption and decryption.  For each
+ciphersuite, we provide:
+
+* [in] The `base_key` value (hex encoded)
+* [out] The `secret`, `key`, and `salt` values derived from the `base_key` (hex encoded)
+* A plaintext value that is encrypted in the following encryption cases
+* A sequence of encryption cases, including:
+  * [in] The `KID` and `CTR` values to be included in the header
+  * [out] The resulting encoded header (hex encoded)
+  * [out] The nonce computed from the `salt` and `CTR` values
+  * The ciphertext resulting from encrypting the plaintext with these parameters
+    (hex encoded)
+
+An implementation should reproduce the output values given the input values.
+Encryption with the input values and the plaintext should produce the
+ciphertext.  Decryption with the input values and the ciphertext should produce
+the plaintext.
+
+Line breaks and whitespace within values are inserted to conform to the width
+requirements of the RFC format.  They should be removed before use.
+These test vectors are also available in JSON format at {{TestVectors}}.
+
+{::include test-vectors.md}

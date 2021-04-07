@@ -760,10 +760,9 @@ ciphersuite, we provide:
   * The ciphertext resulting from encrypting the plaintext with these parameters
     (hex encoded)
 
-An implementation should reproduce the output values given the input values.
-Encryption with the input values and the plaintext should produce the
-ciphertext.  Decryption with the input values and the ciphertext should produce
-the plaintext.
+An implementation should reproduce the output values given the input values:
+* An implementation should be able to encrypt with the input values and the plaintext to produce the ciphertext.
+* An implementation must be able to decrypt with the input values and the ciphertext to generate the plaintext.
 
 Line breaks and whitespace within values are inserted to conform to the width
 requirements of the RFC format.  They should be removed before use.

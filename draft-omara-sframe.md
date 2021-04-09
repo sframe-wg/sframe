@@ -222,7 +222,9 @@ Since each endpoint can send multiple media layers, each frame will have a uniqu
 
 As each sender will use their own key for encryption, so the SFrame header will include the key id to allow the receiver to identify the key that needs to be used for decrypting.
 
-Both the frame counter and the key id are encoded in a variable length format to decrease the overhead, so the first byte in the Sframe header is fixed and contains the header metadata with the following format:
+Both the frame counter and the key id are encoded in a variable length format to decrease the overhead.
+The length is up to 8 bytes and is represented in 3 bits in the SFrame header: 000 represents a length of 1, 001 a length of 2...
+The first byte in the SFrame header is fixed and contains the header metadata with the following format:
 
 ~~~~~
  0 1 2 3 4 5 6 7
@@ -235,7 +237,7 @@ SFrame header metadata
 Reserved (R): 1 bit
     This field MUST be set to zero on sending, and MUST be ignored by receivers.
 Counter Length (LEN): 3 bits
-    This field indicates the length of the CTR fields in bytes.
+    This field indicates the length of the CTR fields in bytes (1-8).
 Extended Key Id Flag (X): 1 bit
      Indicates if the key field contains the key id or the key length.
 Key or Key Length: 3 bits
@@ -250,6 +252,8 @@ If X flag is 0 then the KID is in the range of 0-7 and the frame counter (CTR) i
 +-+-+-+-+-+-+-+-+---------------------------------+
 ~~~~~
 
+Frame counter byte length (LEN): 3bits
+     The frame counter length in bytes (1-8).
 Key id (KID): 3 bits
      The key id (0-7).
 Frame counter (CTR): (Variable length)
@@ -264,8 +268,10 @@ if X flag is 1 then KLEN is the length of the key (KID), that is found after the
 +-+-+-+-+-+-+-+-+---------------------------+---------------------------+
 ~~~~~
 
+Frame counter byte length (LEN): 3bits
+     The frame counter length in bytes (1-8).
 Key length (KLEN): 3 bits
-     The key length in bytes.
+     The key length in bytes (1-8).
 Key id (KID): (Variable length)
      The key id value up to 8 bytes long.
 Frame counter (CTR): (Variable length)
@@ -754,10 +760,9 @@ ciphersuite, we provide:
   * The ciphertext resulting from encrypting the plaintext with these parameters
     (hex encoded)
 
-An implementation should reproduce the output values given the input values.
-Encryption with the input values and the plaintext should produce the
-ciphertext.  Decryption with the input values and the ciphertext should produce
-the plaintext.
+An implementation should reproduce the output values given the input values:
+* An implementation should be able to encrypt with the input values and the plaintext to produce the ciphertext.
+* An implementation must be able to decrypt with the input values and the ciphertext to generate the plaintext.
 
 Line breaks and whitespace within values are inserted to conform to the width
 requirements of the RFC format.  They should be removed before use.

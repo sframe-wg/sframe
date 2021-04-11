@@ -457,12 +457,13 @@ o [Optional] A signature algorithm
 
 This document defines the following ciphersuites:
 
-| Value  | Name                           | Nk | Nn | Reference |
-|:-------|:-------------------------------|:---|:---|:----------|
-| 0x0001 | AES\_CM\_128\_HMAC\_SHA256\_8  | 16 | 12 | RFC XXXX  |
-| 0x0002 | AES\_CM\_128\_HMAC\_SHA256\_4  | 16 | 12 | RFC XXXX  |
-| 0x0003 | AES\_GCM\_128\_SHA256          | 16 | 12 | RFC XXXX  |
-| 0x0004 | AES\_GCM\_256\_SHA512          | 32 | 12 | RFC XXXX  |
+
+| Value  | Name                           | Nh | Nk | Nn | Reference |
+|:-------|:-------------------------------|:---|:---|:---|:----------|
+| 0x0001 | AES\_CM\_128\_HMAC\_SHA256\_8  | 32 | 16 | 12 | RFC XXXX  |
+| 0x0002 | AES\_CM\_128\_HMAC\_SHA256\_4  | 32 | 16 | 12 | RFC XXXX  |
+| 0x0003 | AES\_GCM\_128\_SHA256          | 32 | 16 | 12 | RFC XXXX  |
+| 0x0004 | AES\_GCM\_256\_SHA512          | 64 | 32 | 12 | RFC XXXX  |
 
 <!-- RFC EDITOR: Please replace XXXX above with the RFC number assigned to this
 document -->

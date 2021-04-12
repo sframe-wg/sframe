@@ -489,10 +489,11 @@ follows, where `Nk` represents the key size for the AES block cipher in use and
 `Nh` represents the output size of the hash function:
 
 ~~~~~
-def derive_subkeys(key):
-  aead_secret = HKDF-Extract(K, 'SFrame10 AES CM AEAD')
+def derive_subkeys(sframe_key):
+  aead_secret = HKDF-Extract(sframe_key, 'SFrame10 AES CM AEAD')
   enc_key = HKDF-Expand(aead_secret, 'enc', Nk)
   auth_key = HKDF-Expand(aead_secret, 'auth', Nh)
+  return enc_key, auth_key
 ~~~~~
 
 The AEAD encryption and decryption functions are then composed of individual
@@ -500,7 +501,7 @@ calls to the CM encrypt function and HMAC.  The resulting MAC value is truncated
 to a number of bytes `tag_len` fixed by the ciphersuite.
 
 ~~~~~
-def compute_tag(nonce, aad, ct):
+def compute_tag(auth_key, nonce, aad, ct):
   aad_len = encode_big_endian(len(aad), 8)
   ct_len = encode_big_endian(len(ct), 8)
   auth_data = aad_len + ct_len + nonce + aad + ct
@@ -508,18 +509,20 @@ def compute_tag(nonce, aad, ct):
   return truncate(tag, tag_len)
 
 def AEAD.Encrypt(key, nonce, aad, pt):
-  ct = AES-CM.Encrypt(key, nonce, pt)
-  tag = compute_tag(nonce, aad, ct)
+  enc_key, auth_key = derive_subkeys(key)
+  ct = AES-CM.Encrypt(enc_key, nonce, pt)
+  tag = compute_tag(auth_key, nonce, aad, ct)
   return ct + tag
 
 def AEAD.Decrypt(key, nonce, aad, ct):
   inner_ct, tag = split_ct(ct, tag_len)
 
-  candidate_tag = compute_tag(nonce, aad, inner_ct)
+  enc_key, auth_key = derive_subkeys(key)
+  candidate_tag = compute_tag(auth_key, nonce, aad, inner_ct)
   if !constant_time_equal(tag, candidate_tag):
     raise Exception("Authentication Failure")
 
-  return AES-CM.Decrypt(key, nonce, inner_ct)
+  return AES-CM.Decrypt(enc_key, nonce, inner_ct)
 ~~~~~
 
 # Key Management

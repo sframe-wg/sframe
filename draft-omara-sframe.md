@@ -458,23 +458,19 @@ o [Optional] A signature algorithm
 This document defines the following ciphersuites:
 
 
-| Value  | Name                           | Nh | Nk | Nn | Reference |
-|:-------|:-------------------------------|:---|:---|:---|:----------|
-| 0x0001 | AES\_CM\_128\_HMAC\_SHA256\_8  | 32 | 16 | 12 | RFC XXXX  |
-| 0x0002 | AES\_CM\_128\_HMAC\_SHA256\_4  | 32 | 16 | 12 | RFC XXXX  |
-| 0x0003 | AES\_GCM\_128\_SHA256          | 32 | 16 | 12 | RFC XXXX  |
-| 0x0004 | AES\_GCM\_256\_SHA512          | 64 | 32 | 12 | RFC XXXX  |
+| Value  | Name                           | Nh | Nk | Nn |Auth Tag Len | Reference |
+|:-------|:-------------------------------|:---|:---|:---|:------------|:----------|
+| 0x0001 | AES\_CM\_128\_HMAC\_SHA256\_64 | 32 | 16 | 12 |          64 | RFC XXXX  |
+| 0x0002 | AES\_CM\_128\_HMAC\_SHA256\_32 | 32 | 16 | 12 |          32 | RFC XXXX  |
+| 0x0003 | AES\_GCM\_128\_SHA256          | 32 | 16 | 12 |         128 | RFC XXXX  |
+| 0x0004 | AES\_GCM\_256\_SHA512          | 64 | 32 | 12 |         256 | RFC XXXX  |
 
 <!-- RFC EDITOR: Please replace XXXX above with the RFC number assigned to this
 document -->
 
-In the "AES\_CM" suites, the length of the authentication tag is indicated by
-the last value: "\_8" indicates an eight-byte tag and "\_4" indicates a
-four-byte tag.
-
 In a session that uses multiple media streams, different ciphersuites might be
 configured for different media streams.  For example, in order to conserve
-bandwidth, a session might use a ciphersuite with 80-bit tags for video frames
+bandwidth, a session might use a ciphersuite with 64-bit tags for video frames
 and another ciphersuite with 32-bit tags for audio frames.
 
 ### AES-CM with SHA2
@@ -498,7 +494,7 @@ def derive_subkeys(sframe_key):
 
 The AEAD encryption and decryption functions are then composed of individual
 calls to the CM encrypt function and HMAC.  The resulting MAC value is truncated
-to a number of bytes `tag_len` fixed by the ciphersuite.
+to a number of bytes authentication tag length `tag_len` fixed by the ciphersuite.
 
 ~~~~~
 def compute_tag(auth_key, nonce, aad, ct):

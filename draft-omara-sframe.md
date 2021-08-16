@@ -1,7 +1,7 @@
 ---
 title: Secure Frame (SFrame)
 abbrev: SFrame
-docname: draft-omara-sframe-00
+docname: draft-omara-sframe-01
 category: info
 
 ipr: trust200902
@@ -15,8 +15,8 @@ author:
  -
     ins: E. Omara
     name: Emad Omara
-    organization: Google
-    email: emadomara@google.com
+    organization: Apple
+    email: eomara@apple.com
  -
     ins: J. Uberti
     name: Justin Uberti

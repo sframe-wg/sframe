@@ -22,13 +22,6 @@ author:
     name: Justin Uberti
     organization: Google
     email: juberti@google.com
-
- -
-    ins: A. GOUAILLARD
-    name: Alexandre GOUAILLARD
-    organization: CoSMo Software
-    email: Alex.GOUAILLARD@cosmosoftware.io
-
  -
     ins: S. Murillo
     name: Sergio Garcia Murillo
@@ -747,6 +740,10 @@ The cipher suites defined in this draft use short authentication tags for encryp
 
 # IANA Considerations
 This document makes no requests of IANA.
+
+# Acknowledgements
+
+   The authors wish to specially thank Dr. Alex Gouaillard as on of the early contributors to the document, without his passion and energy SFrame could have never be done. 
 
 # Test Vectors
 

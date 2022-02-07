@@ -743,7 +743,7 @@ This document makes no requests of IANA.
 
 # Acknowledgements
 
-   The authors wish to specially thank Dr. Alex Gouaillard as on of the early contributors to the document, without his passion and energy SFrame could have never be done. 
+   The authors wish to specially thank Dr. Alex Gouaillard as one of the early contributors to the document. His passion and energy were key to the design and development of SFrame. 
 
 # Test Vectors
 

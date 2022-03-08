@@ -44,26 +44,29 @@ informative:
 
 --- abstract
 
-This document describes the Secure Frame (SFrame) end-to-end encryption and authentication mechanism for media frames in a multiparty conference call, in which central media servers (SFUs) can access the media metadata needed to make forwarding decisions without having access to the actual media.
-The proposed mechanism differs from other approaches through its use of media frames as the encryptable unit, instead of individual RTP packets, which makes it more bandwidth efficient and also allows use with non-RTP transports.
+This document describes the Secure Frame (SFrame) end-to-end encryption and authentication mechanism for media frames in a multiparty conference call, in which central media servers (selective forwarding units or SFUs) can access the media metadata needed to make forwarding decisions without having access to the actual media.
+
+The proposed mechanism differs from the Secure Real-Time Protocol (SRTP) in that
+it is independent of RTP (thus compatible with non-RTP media transport) and can
+be applied to whole media frames in order to be more bandwidth efficient.
 
 --- middle
 
 
 # Introduction
-Modern multi-party video call systems use Selective Forwarding Unit (SFU) servers to efficiently route RTP streams to call endpoints based on factors such as available bandwidth, desired video size, codec support, and other factors. In order for the SFU to work properly though, it needs to be able to access RTP metadata and RTCP feedback messages, which is not possible if all RTP/RTCP traffic is end-to-end encrypted.
+Modern multi-party video call systems use Selective Forwarding Unit (SFU) servers to efficiently route RTP streams to call endpoints based on factors such as available bandwidth, desired video size, codec support, and other factors. An SFU typically does not need access to the media content of the conference, allowing for the media to be "end-to-end" encrypted so that it cannot be decrypted by the SFU. In order for the SFU to work properly, though, it usually needs to be able to access RTP metadata and RTCP feedback messages, which is not possible if all RTP/RTCP traffic is end-to-end encrypted.
 
 As such, two layers of encryptions and authentication are required:
 
   1. Hop-by-hop (HBH) encryption of media, metadata, and feedback messages between the the endpoints and SFU
   2. End-to-end (E2E) encryption of media between the endpoints
 
-While DTLS-SRTP can be used as an efficient HBH mechanism, it is inherently point-to-point and therefore not suitable for a SFU context. In addition, given the various scenarios in which video calling occurs, minimizing the bandwidth overhead of end-to-end encryption is also an important goal.
+The Secure Real-Time Protocol (SRTP) is already widely used for HBH encryption {{?RFC3711}}.  The SRTP "double encryption" scheme defines a way to do E2E encryption in SRTP {{?RFC8723}}. Unfortunately, this scheme has poor efficiency and high complexity, and its entanglement with RTP makes it unworkable in several realistic SFU scenarios.  
 
-This document proposes a new end-to-end encryption mechanism known as SFrame, specifically designed to work in group conference calls with SFUs.
+This document proposes a new end-to-end encryption mechanism known as SFrame, specifically designed to work in group conference calls with SFUs.  SFrame is a general encryption framing that can be used to protect payloads sent over SRTP
 
 ~~~~~
-  +-------------------------------+-------------------------------+^+
+  +-------------------------------+-------------------------------+<+
   |V=2|P|X|  CC   |M|     PT      |       sequence number         | |
   +-------------------------------+-------------------------------+ |
   |                           timestamp                           | |
@@ -74,17 +77,19 @@ This document proposes a new end-to-end encryption mechanism known as SFrame, sp
   |                               ....                            | |
   +---------------------------------------------------------------+ |
   |                   RTP extension(s) (OPTIONAL)                 | |
-+^---------------------+------------------------------------------+ |
-| |   payload header   |                                          | |
-| +--------------------+     payload  ...                         | |
++>---------------------+------------------------------------------+ |
+| |   SFrame header    |                                          | |
+| +--------------------+                                          | |
 | |                                                               | |
-+^+---------------------------------------------------------------+^+
+| |            SFrame Encrypted and Authenticated Data            | |
+| |                                                               | |
++>+---------------------------------------------------------------+<+
 | :                       authentication tag                      : |
 | +---------------------------------------------------------------+ |
 |                                                                   |
-++ Encrypted Portion                       Authenticated Portion +--+
+++ SRTP Encrypted Portion             SRTP Authenticated Portion +--+
 ~~~~~
-{: title="SRTP packet format"}
+{: title="SRTP packet with SFrame-encrypted payload"}
 
 # Terminology
 

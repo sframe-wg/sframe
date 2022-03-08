@@ -109,10 +109,8 @@ E2EE:
 HBH:
 : Hop By Hop
 
-KMS:
-: Key Management System
-
 # Goals
+
 SFrame is designed to be a suitable E2EE protection scheme for conference call
 media in a broad range of scenarios, as outlined by the following goals:
 
@@ -120,7 +118,7 @@ media in a broad range of scenarios, as outlined by the following goals:
    that can be used with arbitrary SFU servers.
 
 2. Decouple media encryption from key management to allow SFrame to be used
-   with an arbitrary KMS.
+   with an arbitrary key management system.
 
 3. Minimize packet expansion to allow successful conferencing in as many
    network conditions as possible.
@@ -139,60 +137,72 @@ media in a broad range of scenarios, as outlined by the following goals:
    scenarios.
 
 
-#SFrame
-We propose a frame level encryption mechanism that provides effective end-to-end encryption, is simple to implement, has no dependencies on RTP, and minimizes encryption bandwidth overhead. Because SFrame encrypts the full frame, rather than individual packets, bandwidth overhead is reduced by having a single IV and authentication tag for each media frame.
+# SFrame
 
-Also, because media is encrypted prior to packetization, the encrypted frame is packetized using a generic RTP packetizer instead of codec-dependent packetization mechanisms. With this move to a generic packetizer, media metadata is moved from codec-specific mechanisms to a generic frame RTP header extension which, while visible to the SFU, is authenticated end-to-end. This extension includes metadata needed for SFU routing such as resolution, frame beginning and end markers, etc.
+We propose an encryption mechanism that provides effective end-to-end encryption, is simple to implement, has no dependencies on RTP, and minimizes encryption bandwidth overhead. Because SFrame can encrypt a full frame, rather than individual packets, bandwidth overhead can reduced by adding encryption overhead only once per media frame, instead of once per packet.
 
-The generic packetizer splits the E2E encrypted media frame into one or more RTP packets and adds the SFrame header to the beginning of the first packet and an auth tag to the end of the last packet.
+## Application Context
+
+SFrame is a general encryption framing that can be applied before or after
+packetization within a media stack.  That is, SFrame can be applied per-frame or
+per-packet.  Applying SFrame per-frame offers higher efficiency, at the cost of a
+more complex integration with the media stack.  Applying SFrame per-packet makes
+it simple to integrate SFrame into a media stack, at the cost of higher
+bandwidth consumption.
+
+When media content is encrypted per-frame, the encrypted frame needs to be packetized using a generic RTP packetizer instead of codec-dependent packetization mechanisms.
+The generic packetizer splits the E2E encrypted media frame into one or more RTP packets and adds the SFrame header to the beginning of the first packet and an auth tag to the end of the last packet.  Because a frame is encrypted as a unit, if any packet in the frame is lost, the whole frame is lost.
+
+When media content is encrypted per-packet, no changes to packetization are
+necessary.  The normal packetization process is followed, then the payload of
+the packet is encrypted with SFrame before being transmitted, in the same way as
+with SRTP.  Unlike per-frame encryption, this adds the overhead of an SFrame
+header and authentication tag to each packet instead of each frame, resulting in
+higher bandwidth usage to transmit the same media content.  Empirically, a
+typical conference consumes about 8% more bandwidth using SFrame per-packet vs.
+per-frame.
+
+[[ TODO: Update the analysis in {{overhead}} to illustrate this difference ]]
 
 ~~~~~
       +-------------------------------------------------------+
       |                                                       |
       |  +----------+      +------------+      +-----------+  |
-      |  |          |      |   SFrame   |      |Packetizer |  |       DTLS+SRTP
-      |  | Encoder  +----->+    Enc     +----->+           +-------------------------+
- ,+.  |  |          |      |            |      |           |  |   +--+  +--+  +--+   |
- `|'  |  +----------+      +-----+------+      +-----------+  |   |  |  |  |  |  |   |
- /|\  |                          ^                            |   |  |  |  |  |  |   |
-  +   |                          |                            |   |  |  |  |  |  |   |
- / \  |                          |                            |   +--+  +--+  +--+   |
-Alice |                    +-----+------+                     |   Encrypted Packets  |
-      |                    |Key Manager |                     |                      |
-      |                    +------------+                     |                      |
-      |                         ||                            |                      |
-      |                         ||                            |                      |
-      |                         ||                            |                      |
-      +-------------------------------------------------------+                      |
-                                ||                                                   |
-                                ||                                                   v
-                           +------------+                                      +-----+------+
-            E2EE channel   |  Messaging |                                      |   Media    |
-              via the      |  Server    |                                      |   Server   |
-          Messaging Server |            |                                      |            |
-                           +------------+                                      +-----+------+
-                                ||                                                   |
-                                ||                                                   |
-      +-------------------------------------------------------+                      |
-      |                         ||                            |                      |
-      |                         ||                            |                      |
-      |                         ||                            |                      |
-      |                    +------------+                     |                      |
-      |                    |Key Manager |                     |                      |
- ,+.  |                    +-----+------+                     |   Encrypted Packets  |
- `|'  |                          |                            |   +--+  +--+  +--+   |
- /|\  |                          |                            |   |  |  |  |  |  |   |
-  +   |                          v                            |   |  |  |  |  |  |   |
- / \  |  +----------+      +-----+------+      +-----------+  |   |  |  |  |  |  |   |
- Bob  |  |          |      |   SFrame   |      |   De+     |  |   +--+  +--+  +--+   |
-      |  | Decoder  +<-----+    Dec     +<-----+Packetizer +<------------------------+
-      |  |          |      |            |      |           |  |        DTLS+SRTP
+      |  |          |      |   SFrame   |      |   SRTP    |  |   
+      |  |  Encode  |----->|  Encrypt   |----->|  Encrypt  |-----------+
+ ,+.  |  |          |  ^   |            |  ^   |           |  |        |
+ `|'  |  +----------+  |   +-----+------+  |   +-----------+  |        |
+ /|\  |                |         ^         |         ^        |        |
+  +   |            Packetize     |     Packetize     |        |        |
+ / \  |           (per-packet)   |    (per-packet)   |        |        |
+Alice |                          |                   |        |        |
+      +--------------------------|-------------------|--------+        |
+                                 |                   |                 v
+                                 |                   |           +-----+------+
+                       E2E Key   |         HBH Key   |           |   Media    |
+                      Management |        Management |           |   Server   |
+                                 |                   |           +-----+------+
+                                 |                   |                 |
+      +--------------------------|-------------------|--------+        |
+ ,+.  |                          |                   |        |        |
+ `|'  |            Depacketize   |     Depacketize   |        |        |
+ /|\  |            (per-packet)  |     (per-frame)   |        |        |
+  +   |                 |        V          |        V        |        |
+ / \  |  +----------+   |  +-----+------+   |  +-----------+  |        |
+ Bob  |  |          |   V  |   SFrame   |   V  |   SRTP    |  |        |
+      |  |  Decode  |<-----|  Decrypt   |<-----|  Decrypt  |<----------+
+      |  |          |      |            |      |           |  |
       |  +----------+      +------------+      +-----------+  |
       |                                                       |
       +-------------------------------------------------------+
 ~~~~~
 
-The E2EE keys used to encrypt the frame are exchanged out of band using a secure E2EE channel.
+Much like SRTP, SFrame does not define how the keys used for SFrame are
+exchanged by the parties in the conference.  Keys for SFrame might be
+distributed over an existing E2E-secure channel, or derived from an E2E-secure
+shared secret (as in {{?I-D.barnes-sframe-mls}}).  The key management system
+MUST ensure that each key used for encrypting media is used by exactly one media
+sender, in order to avoid reuse of IVs.
 
 ## SFrame Format
 

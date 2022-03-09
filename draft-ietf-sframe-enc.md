@@ -79,12 +79,12 @@ This document proposes a new end-to-end encryption mechanism known as SFrame, sp
   |                           timestamp                           | |
   +---------------------------------------------------------------+ |
   |           synchronization source (SSRC) identifier            | |
-   ===============================================================  |
+  +===============================================================+ |
   |            contributing source (CSRC) identifiers             | |
   |                               ....                            | |
   +---------------------------------------------------------------+ |
   |                   RTP extension(s) (OPTIONAL)                 | |
-+^---------------------+------------------------------------------+ |
++^+--------------------+------------------------------------------+ |
 | |   payload header   |                                          | |
 | +--------------------+     payload  ...                         | |
 | |                                                               | |
@@ -92,7 +92,7 @@ This document proposes a new end-to-end encryption mechanism known as SFrame, sp
 | :                       authentication tag                      : |
 | +---------------------------------------------------------------+ |
 |                                                                   |
-++ Encrypted Portion                       Authenticated Portion +--+
++-- Encrypted Portion                       Authenticated Portion --+
 ~~~~~
 {: title="SRTP packet format"}
 

@@ -194,56 +194,79 @@ Alice |                    +-----+------+                     |   Encrypted Pack
 
 The E2EE keys used to encrypt the frame are exchanged out of band using a secure E2EE channel.
 
-## SFrame Format
+## SFrame Ciphertext
+
+An SFrame ciphertext comprises an SFrame header followed by the output of an
+AEAD encryption of the plaintext {{!RFC5116}}, with the header provided as additional
+authenticated data (AAD).
+
+The SFrame header is a variable-length structure described in detail in
+{{sframe-header}}.  The structure of the encrypted data and authentication tag
+are determined by the AEAD algorithm in use.
 
 ~~~~~
-  +------------+------------------------------------------+^+
-  |S|LEN|X|KID |         Frame Counter                    | |
-+^+------------+------------------------------------------+ |
+  +-+---+-+----+--------+--------+------------------------+<+
+  |R|LEN|X|KLEN| KID... | CTR... |                        | |
++>+-+---+-+----+--------+--------+                        | |
 | |                                                       | |
 | |                                                       | |
 | |                                                       | |
 | |                                                       | |
-| |                  Encrypted Frame                      | |
+| |                   Encrypted Data                      | |
 | |                                                       | |
 | |                                                       | |
 | |                                                       | |
 | |                                                       | |
-+^+-------------------------------------------------------+^+
++>+-------------------------------------------------------+<+
 | |                 Authentication Tag                    | |
 | +-------------------------------------------------------+ |
 |                                                           |
 |                                                           |
-+----+Encrypted Portion            Authenticated Portion+---+
++---- Encrypted Portion            Authenticated Portion ---+
 ~~~~~
 
+When SFrame is applied per-packet, the payload of each packet will be an SFrame
+ciphertext.  When SFrame is applied per-frame, the SFrame ciphertext
+representing an encrypted frame will span several packets, with the header
+appearing in the first packet and the authentication tag in the last packet.
+
 ## SFrame Header
-Since each endpoint can send multiple media layers, each frame will have a unique frame counter that will be used to derive the encryption IV. The frame counter must be unique and monotonically increasing to avoid IV reuse.
 
-As each sender will use their own key for encryption, so the SFrame header will include the key id to allow the receiver to identify the key that needs to be used for decrypting.
+The SFrame header specifies two values from which encryption parameters are
+derived:
 
-Both the frame counter and the key id are encoded in a variable length format to decrease the overhead.
-The length is up to 8 bytes and is represented in 3 bits in the SFrame header: 000 represents a length of 1, 001 a length of 2...
-The first byte in the SFrame header is fixed and contains the header metadata with the following format:
+* A Key ID (KID) that determines which encryption key should be used
+* A counter (CTR) that is used to construct the IV for the encryption
+
+Applications MUST ensure that each (KID, CTR) combination is used for exactly
+one encryption operation.  Typically this is done by assigning each sender a KID
+or set of KIDs, then having each sender use the CTR field to uniquely identify
+each encryption operation.
+
+Both the counter and the key id are encoded as integers in network (big-endian) byte order, in a variable length format to decrease the overhead.
+The length of each field is up to 8 bytes and is represented in 3 bits in the SFrame header: 000 represents a length of 1, 001 a length of 2, etc.
+
+The first byte in the SFrame header has a fixed format and contains the header metadata:
 
 ~~~~~
  0 1 2 3 4 5 6 7
 +-+-+-+-+-+-+-+-+
-|R|LEN  |X|  K  |
+|R| LEN |X|  K  |
 +-+-+-+-+-+-+-+-+
-SFrame header metadata
 ~~~~~
+{: title="SFrame header metadata"}
 
 Reserved (R): 1 bit
     This field MUST be set to zero on sending, and MUST be ignored by receivers.
 Counter Length (LEN): 3 bits
-    This field indicates the length of the CTR fields in bytes (1-8).
+    This field indicates the length of the CTR field in bytes, minus one (the
+    range of possible values is thus 1-8).
 Extended Key Id Flag (X): 1 bit
      Indicates if the key field contains the key id or the key length.
 Key or Key Length: 3 bits
      This field contains the key id (KID) if the X flag is set to 0, or the key length (KLEN) if set to 1.
 
-If X flag is 0 then the KID is in the range of 0-7 and the frame counter (CTR) is found in the next LEN bytes:
+If X flag is 0 then the KID is in the range of 0-7 and the counter (CTR) is found in the next LEN bytes:
 
 ~~~~~
  0 1 2 3 4 5 6 7
@@ -251,15 +274,9 @@ If X flag is 0 then the KID is in the range of 0-7 and the frame counter (CTR) i
 |R|LEN  |0| KID |    CTR... (length=LEN)          |
 +-+-+-+-+-+-+-+-+---------------------------------+
 ~~~~~
+{: title="SFrame header with short KID" }
 
-Frame counter byte length (LEN): 3bits
-     The frame counter length in bytes (1-8).
-Key id (KID): 3 bits
-     The key id (0-7).
-Frame counter (CTR): (Variable length)
-     Frame counter value up to 8 bytes long.
-
-if X flag is 1 then KLEN is the length of the key (KID), that is found after the SFrame header metadata byte. After the key id (KID), the frame counter (CTR) will be found in the next LEN bytes:
+if X flag is 1 then KLEN is the length of the key (KID).  The KID is encoded in the KLEN bytes following the metadata byte, and the counter (CTR) is encoded in the next LEN bytes:
 
 ~~~~~
  0 1 2 3 4 5 6 7
@@ -267,15 +284,6 @@ if X flag is 1 then KLEN is the length of the key (KID), that is found after the
 |R|LEN  |1|KLEN |   KID... (length=KLEN)    |    CTR... (length=LEN)    |
 +-+-+-+-+-+-+-+-+---------------------------+---------------------------+
 ~~~~~
-
-Frame counter byte length (LEN): 3bits
-     The frame counter length in bytes (1-8).
-Key length (KLEN): 3 bits
-     The key length in bytes (1-8).
-Key id (KID): (Variable length)
-     The key id value up to 8 bytes long.
-Frame counter (CTR): (Variable length)
-     Frame counter value up to 8 bytes long.
 
 ## Encryption Schema
 

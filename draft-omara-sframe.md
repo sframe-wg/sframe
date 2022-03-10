@@ -295,7 +295,7 @@ aspects of the AEAD algorithm below:
 ### Key Selection
 
 Each SFrame encryption or decryption operation is premised on a single secret
-`base\_key`, which is labeled with an integer KID value signaled in the SFrame
+`base_key`, which is labeled with an integer KID value signaled in the SFrame
 header.
 
 The sender and receivers need to agree on which key should be used for a given
@@ -306,12 +306,12 @@ against intermediary media nodes, then SFrame keys MUST be negotiated in a way
 that does not make them accessible to these intermediaries.
 
 For each known KID value, the client stores the corresponding symmetric key
-`base\_key`.  For keys that can be used for encryption, the client also stores
+`base_key`.  For keys that can be used for encryption, the client also stores
 the next counter value CTR to be used when encrypting (initially 0).
 
 When encrypting a frame, the application specifies which KID is to be used, and
 the counter is incremented after successful encryption.  When decrypting, the
-`base\_key` for decryption is selected from the available keys using the KID
+`base_key` for decryption is selected from the available keys using the KID
 value in the SFrame Header.
 
 A given key MUST NOT be used for encryption by multiple senders.  Such reuse
@@ -329,8 +329,8 @@ all receivers have acknowledged receipt of the new key or (b) a timeout expires.
 
 ### Key Derivation
 
-SFrame encrytion and decryption use a key and salt derived from the `base\_key`
-associated to a KID.  Given a `base\_key` value, the key and salt are derived
+SFrame encrytion and decryption use a key and salt derived from the `base_key`
+associated to a KID.  Given a `base_key` value, the key and salt are derived
 using HKDF {{!RFC5869}} as follows:
 
 ~~~~~
@@ -349,8 +349,8 @@ generic frame header extension. The encoded frame, the metadata buffer and the
 frame counter are passed to SFrame encryptor.
 
 SFrame encryption uses the AEAD encryption algorithm for the ciphersuite in use.
-The key for the encryption is the `sframe\_key` and the nonce is formed by XORing
-the `sframe\_salt` with the current counter, encoded as a big-endian integer of
+The key for the encryption is the `sframe_key` and the nonce is formed by XORing
+the `sframe_salt` with the current counter, encoded as a big-endian integer of
 length `AEAD.Nn`.
 
 The encryptor forms an SFrame header using the S, CTR, and KID values provided.
@@ -468,8 +468,8 @@ This document defines the following ciphersuites:
 <!-- RFC EDITOR: Please replace XXXX above with the RFC number assigned to this
 document -->
 
-In the "AES\_CM" suites, the length of the authentication tag is indicated by
-the last value: "\_8" indicates an eight-byte tag and "\_4" indicates a
+In the `AES_CM` suites, the length of the authentication tag is indicated by
+the last value: `_8` indicates an eight-byte tag and `_4` indicates a
 four-byte tag.
 
 In a session that uses multiple media streams, different ciphersuites might be
@@ -531,7 +531,7 @@ SFrame must be integrated with an E2E key management framework to exchange and
 rotate the keys used for SFrame encryption and/or signing.  The key management
 framework provides the following functions:
 
-* Provisioning KID/`base\_key` mappings to participating clients
+* Provisioning KID/`base_key` mappings to participating clients
 * (optional) Provisioning clients with a list of trusted signing keys
 * Updating the above data as clients join or leave
 
@@ -585,7 +585,7 @@ step in the lifetime of the group is know as an "epoch", and each member of the
 group is assigned an "index" that is constant for the time they are in the
 group.
 
-In SFrame, we derive per-sender `base\_key` values from the group secret for an
+In SFrame, we derive per-sender `base_key` values from the group secret for an
 epoch, and use the KID field to signal the epoch and sender index.  First, we
 use the MLS exporter to compute a shared SFrame secret for the epoch.
 

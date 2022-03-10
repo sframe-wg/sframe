@@ -302,14 +302,14 @@ The sender and receivers need to agree on which key should be used for a given
 KID.  The process for provisioning keys and their KID values is beyond the scope
 of this specification, but its security properties will bound the assurances
 that SFrame provides.  For example, if SFrame is used to provide E2E security
-against intermediary media nodes, then SFrame keys MUST be negotiated in a way
-that does not make them accessible to these intermediaries.
+against intermediary media nodes, then SFrame keys need to be negotiated in a
+way that does not make them accessible to these intermediaries.
 
 For each known KID value, the client stores the corresponding symmetric key
 `base_key`.  For keys that can be used for encryption, the client also stores
 the next counter value CTR to be used when encrypting (initially 0).
 
-When encrypting a frame, the application specifies which KID is to be used, and
+When encrypting a plaintext, the application specifies which KID is to be used, and
 the counter is incremented after successful encryption.  When decrypting, the
 `base_key` for decryption is selected from the available keys using the KID
 value in the SFrame Header.
@@ -324,7 +324,7 @@ Note that the set of available keys might change over the lifetime of a
 real-time session.  In such cases, the client will need to manage key usage to
 avoid media loss due to a key being used to encrypt before all receivers are
 able to use it to decrypt.  For example, an application may make decryption-only
-keys available immediately, but delay the use of encryption-only keys until (a)
+keys available immediately, but delay the use of keys for encryption until (a)
 all receivers have acknowledged receipt of the new key or (b) a timeout expires.
 
 ### Key Derivation
@@ -334,7 +334,7 @@ associated to a KID.  Given a `base_key` value, the key and salt are derived
 using HKDF {{!RFC5869}} as follows:
 
 ~~~~~
-sframe_secret = HKDF-Extract(K, 'SFrame10')
+sframe_secret = HKDF-Extract(base_key, 'SFrame10')
 sframe_key = HKDF-Expand(sframe_secret, 'key', AEAD.Nk)
 sframe_salt = HKDF-Expand(sframe_secret, 'salt', AEAD.Nn)
 ~~~~~
@@ -343,33 +343,33 @@ The hash function used for HKDF is determined by the ciphersuite in use.
 
 ### Encryption
 
-After encoding the frame and before packetizing it, the necessary media metadata
-will be moved out of the encoded frame buffer, to be used later in the RTP
-generic frame header extension. The encoded frame, the metadata buffer and the
-frame counter are passed to SFrame encryptor.
-
 SFrame encryption uses the AEAD encryption algorithm for the ciphersuite in use.
 The key for the encryption is the `sframe_key` and the nonce is formed by XORing
 the `sframe_salt` with the current counter, encoded as a big-endian integer of
 length `AEAD.Nn`.
 
-The encryptor forms an SFrame header using the S, CTR, and KID values provided.
-The encoded header is provided as AAD to the AEAD encryption operation, with any
-frame metadata appended.
+The encryptor forms an SFrame header using the CTR, and KID values provided.
+The encoded header is provided as AAD to the AEAD encryption operation, together
+with application-provided metadata about the encrypted media.
 
 ~~~~~
-def encrypt(S, CTR, KID, frame_metadata, frame):
+def encrypt(S, CTR, KID, metadata, plaintext):
   sframe_key, sframe_salt = key_store[KID]
 
-  frame_ctr = encode_big_endian(CTR, AEAD.Nn)
-  frame_nonce = xor(sframe_salt, frame_ctr)
+  ctr = encode_big_endian(CTR, AEAD.Nn)
+  nonce = xor(sframe_salt, CTR)
 
-  header = encode_sframe_header(S, CTR, KID)
-  frame_aad = header + frame_metadata
+  header = encode_sframe_header(CTR, KID)
+  aad = header + metadata
 
-  encrypted_frame = AEAD.Encrypt(sframe_key, frame_nonce, frame_aad, frame)
-  return header + encrypted_frame
+  ciphertext = AEAD.Encrypt(sframe_key, nonce, aad, plaintext)
+  return header + ciphertext
 ~~~~~
+
+The metadata input to encryption allows for frame metadata to be authenticated
+when SFrame is applied per-frame.
+After encoding the frame and before packetizing it, the necessary media metadata
+will be moved out of the encoded frame buffer, to be sent in some channel visibile to the SFU (e.g., an RTP header extension).
 
 The encrypted payload is then passed to a generic RTP packetized to construct the RTP packets and encrypt it using SRTP keys for the HBH encryption to the media server.
 
@@ -419,29 +419,33 @@ header ----+------------------>| AAD
 |               |      |               |     |               |
 +---------------+      +---------------+     +---------------+
 ~~~~~
-{: title="Encryption flow" }
+{: title="Encryption flow with per-frame encryption" }
 
 ### Decryption
 
-The receiving clients buffer all packets that belongs to the same frame using the frame beginning and ending marks in the generic RTP frame header extension, and once all packets are available, it passes it to SFrame for decryption.  The KID field in the SFrame header is used to find the right key for the encrypted frame.
+Before decrypting, a client needs to assemble a full SFrame ciphertext.  When
+SFrame is applied per-packet, this is done by extracting the payload of a
+decrypted SRTP packet.  When SFrame is applied per-frame, the receiving client buffers all packets that belongs to the same frame using the frame beginning and ending marks in the generic RTP frame header extension. Once all packets are available and in order, the receiver forms an SFrame ciphertext by concatenating their payloads, then passes the ciphertext to SFrame for decryption.  
+
+The KID field in the SFrame header is used to find the right key and salt for the encrypted frame, and the CTR field is used to construct the nonce.
 
 ~~~~~
-def decrypt(frame_metadata, sframe):
-  header, encrypted_frame = split_header(sframe)
-  S, CTR, KID = parse_header(header)
+def decrypt(metadata, sframe):
+  CTR, KID, ciphertext = parse_ciphertext(sframe)
 
   sframe_key, sframe_salt = key_store[KID]
 
-  frame_ctr = encode_big_endian(CTR, AEAD.Nn)
-  frame_nonce = xor(sframe_salt, frame_ctr)
-  frame_aad = header + frame_metadata
+  ctr = encode_big_endian(CTR, AEAD.Nn)
+  nonce = xor(sframe_salt, ctr)
+  aad = header + metadata
 
-  return AEAD.Decrypt(sframe_key, frame_nonce, frame_aad, encrypted_frame)
+  return AEAD.Decrypt(sframe_key, nonce, aad, ciphertext)
 ~~~~~
 
-For frames that are failed to decrypt because there is key available for the KID in the SFrame header, the client MAY buffer the frame and retry decryption once a key with that KID is received.
+If a ciphertext fails to decrypt because there is no key available for the KID in the SFrame header, the client MAY buffer the ciphertext and retry decryption once a key with that KID is received.
 
 ### Duplicate Frames
+
 Unlike messaging application, in video calls, receiving a duplicate frame doesn't necessary mean the client is under a replay attack, there are other reasons that might cause this, for example the sender might just be sending them in case of packet loss. SFrame decryptors use the highest received frame counter to protect against this. It allows only older frame pithing a short interval to support out of order delivery.
 
 ## Ciphersuites

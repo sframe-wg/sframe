@@ -377,10 +377,10 @@ The encrypted payload is then passed to a generic RTP packetized to construct th
    +----------------+  +---------------+
    | frame metadata |  |               |
    +-------+--------+  |               |
-           |           |     frame     |         
-           |           |               |        
-           |           |               |         
-           |           +-------+-------+        
+           |           |     frame     |
+           |           |               |
+           |           |               |
+           |           +-------+-------+
            |                   |
 header ----+------------------>| AAD
 +-----+                        |
@@ -405,11 +405,11 @@ header ----+------------------>| AAD
    |                   |               |
    |                   |               |
    |                   +-------+-------+
-   |                           |        
+   |                           |
    |                  generic RTP packetize
-   |                           |           
-   |                           v           
-   V                                       
+   |                           |
+   |                           v
+   V
 +---------------+      +---------------+     +---------------+
 | SFrame header |      |               |     |               |
 +---------------+      |               |     |               |
@@ -556,7 +556,7 @@ can ratchet their key forward for forward secrecy:
 
 ~~~~~
 sender_key[i+1] = HKDF-Expand(
-                    HKDF-Extract(sender_key[i], 'SFrame10 ratchet'), 
+                    HKDF-Extract(sender_key[i], 'SFrame10 ratchet'),
                       '', AEAD.Nk)
 ~~~~~
 
@@ -591,7 +591,7 @@ use the MLS exporter to compute a shared SFrame secret for the epoch.
 ~~~~~
 sframe_epoch_secret = MLS-Exporter("SFrame 10 MLS", "", AEAD.Nk)
 
-sender_base_key[index] = HKDF-Expand(sframe_epoch_secret, 
+sender_base_key[index] = HKDF-Expand(sframe_epoch_secret,
                            encode_big_endian(index, 4), AEAD.Nk)
 ~~~~~
 
@@ -613,20 +613,20 @@ as it needs to encrypt/decrypt for a given member.
 ~~~~~
         ...
          |
-Epoch 17 +--+-- index=33 -> KID = 0x211 
+Epoch 17 +--+-- index=33 -> KID = 0x211
          |  |
          |  +-- index=51 -> KID = 0x331
          |
          |
-Epoch 16 +--+-- index=2 --> KID = 0x20 
+Epoch 16 +--+-- index=2 --> KID = 0x20
          |
          |
-Epoch 15 +--+-- index=3 --> KID = 0x3f 
+Epoch 15 +--+-- index=3 --> KID = 0x3f
          |  |
          |  +-- index=5 --> KID = 0x5f
          |
          |
-Epoch 14 +--+-- index=3 --> KID = 0x3e 
+Epoch 14 +--+-- index=3 --> KID = 0x3e
          |  |
          |  +-- index=7 --> KID = 0x7e
          |  |
@@ -749,7 +749,7 @@ This document makes no requests of IANA.
 
 # Acknowledgements
 
-   The authors wish to specially thank Dr. Alex Gouaillard as one of the early contributors to the document. His passion and energy were key to the design and development of SFrame. 
+   The authors wish to specially thank Dr. Alex Gouaillard as one of the early contributors to the document. His passion and energy were key to the design and development of SFrame.
 
 # Test Vectors
 

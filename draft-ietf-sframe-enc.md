@@ -8,8 +8,14 @@ ipr: trust200902
 stream: IETF
 area: "Applications and Real-Time"
 keyword: Internet-Draft
-
 v: 3
+venue:
+  group: "Secure Media Frames"
+  type: "Working Group"
+  mail: "sframe@ietf.org"
+  arch: "https://mailarchive.ietf.org/arch/browse/sframe/"
+  github: "sframe-wg/sframe"
+  latest: "https://sframe-wg.github.io/sframe/draft-ietf-sframe-enc.html"
 
 author:
  -

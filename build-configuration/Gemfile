@@ -1,4 +1,5 @@
 source 'http://rubygems.org'
 
-gem "kramdown-rfc2629"
+gem "kramdown-rfc"
 gem "certified"
+gem "net-http-persistent"

@@ -1,11 +1,12 @@
 ---
 title: Secure Frame (SFrame)
 abbrev: SFrame
-docname: draft-omara-sframe-latest
+docname: draft-ietf-sframe-enc-latest
 category: std
 
 ipr: trust200902
-area: ART
+stream: IETF
+area: "Applications and Real-Time"
 keyword: Internet-Draft
 
 v: 3

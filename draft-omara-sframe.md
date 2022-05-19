@@ -1,15 +1,14 @@
 ---
 title: Secure Frame (SFrame)
 abbrev: SFrame
-docname: draft-omara-sframe-01
-category: info
+docname: draft-omara-sframe-latest
+category: std
 
 ipr: trust200902
-area: Security
+area: ART
 keyword: Internet-Draft
 
-stand_alone: yes
-pi: [toc, sortrefs, symrefs]
+v: 3
 
 author:
  -

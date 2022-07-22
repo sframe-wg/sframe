@@ -1,18 +1,30 @@
 GEM
-  remote: http://rubygems.org/
+  remote: https://rubygems.org/
   specs:
     certified (1.0.0)
-    kramdown (1.16.2)
-    kramdown-rfc2629 (1.2.9)
+    connection_pool (2.2.5)
+    json_pure (2.6.2)
+    kramdown (2.4.0)
+      rexml
+    kramdown-parser-gfm (1.1.0)
+      kramdown (~> 2.0)
+    kramdown-rfc (1.6.10)
+      kramdown-rfc2629 (= 1.6.10)
+    kramdown-rfc2629 (1.6.10)
       certified (~> 1.0)
-      kramdown (~> 1.16.0)
+      json_pure (~> 2.0)
+      kramdown (~> 2.4.0)
+      kramdown-parser-gfm (~> 1.1)
+    net-http-persistent (4.0.1)
+      connection_pool (~> 2.2)
+    rexml (3.2.5)
 
 PLATFORMS
   ruby
 
 DEPENDENCIES
-  certified
-  kramdown-rfc2629
+  kramdown-rfc (~> 1.6)
+  net-http-persistent
 
 BUNDLED WITH
-   1.16.3
+   2.2.16

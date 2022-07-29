@@ -33,6 +33,16 @@ author:
     name: Sergio Garcia Murillo
     organization: CoSMo Software
     email: sergio.garcia.murillo@cosmosoftware.io
+ -
+    ins: R.L. Barnes 
+    name: Richard L. Barnes
+    organization: Cisco
+    email: rlb@ipv.sx
+ -
+    ins: Y. Fablet 
+    name: Youenn Fablet
+    organization: Apple
+    email: youenn@apple.com
 
 informative:
   TestVectors:

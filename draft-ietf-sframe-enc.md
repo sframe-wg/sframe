@@ -34,12 +34,13 @@ author:
     organization: CoSMo Software
     email: sergio.garcia.murillo@cosmosoftware.io
  -
-    ins: R.L. Barnes 
+    ins: R.L. Barnes
     name: Richard L. Barnes
     organization: Cisco
     email: rlb@ipv.sx
+    role: editor
  -
-    ins: Y. Fablet 
+    ins: Y. Fablet
     name: Youenn Fablet
     organization: Apple
     email: youenn@apple.com

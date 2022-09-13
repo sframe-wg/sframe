@@ -473,7 +473,7 @@ This document defines the following ciphersuites:
 | 0x0002 | AES\_CM\_128\_HMAC\_SHA256\_8  | 32 | 16 | 12 | RFC XXXX  |
 | 0x0003 | AES\_CM\_128\_HMAC\_SHA256\_4  | 32 | 16 | 12 | RFC XXXX  |
 | 0x0004 | AES\_GCM\_128\_SHA256\_16      | 32 | 16 | 12 | RFC XXXX  |
-| 0x0005 | AES\_GCM\_256\_SHA512\16       | 64 | 32 | 12 | RFC XXXX  |
+| 0x0005 | AES\_GCM\_256\_SHA512\_16      | 64 | 32 | 12 | RFC XXXX  |
 
 <!-- RFC EDITOR: Please replace XXXX above with the RFC number assigned to this
 document -->

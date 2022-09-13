@@ -469,18 +469,19 @@ This document defines the following ciphersuites:
 
 | Value  | Name                           | Nh | Nk | Nn | Reference |
 |:-------|:-------------------------------|:---|----|:---|:----------|
-| 0x0001 | AES\_CM\_128\_HMAC\_SHA256\_10 | 32 | 16 | 12 | RFC XXXX  |
-| 0x0002 | AES\_CM\_128\_HMAC\_SHA256\_8  | 32 | 16 | 12 | RFC XXXX  |
-| 0x0003 | AES\_CM\_128\_HMAC\_SHA256\_4  | 32 | 16 | 12 | RFC XXXX  |
-| 0x0004 | AES\_GCM\_128\_SHA256\_16      | 32 | 16 | 12 | RFC XXXX  |
-| 0x0005 | AES\_GCM\_256\_SHA512\_16      | 64 | 32 | 12 | RFC XXXX  |
+| 0x0001 | AES\_CM\_128\_HMAC\_SHA256\_80 | 32 | 16 | 12 | RFC XXXX  |
+| 0x0002 | AES\_CM\_128\_HMAC\_SHA256\_64 | 32 | 16 | 12 | RFC XXXX  |
+| 0x0003 | AES\_CM\_128\_HMAC\_SHA256\_32 | 32 | 16 | 12 | RFC XXXX  |
+| 0x0004 | AES\_GCM\_128\_SHA256\_128     | 32 | 16 | 12 | RFC XXXX  |
+| 0x0005 | AES\_GCM\_256\_SHA512\_128     | 64 | 32 | 12 | RFC XXXX  |
 
 <!-- RFC EDITOR: Please replace XXXX above with the RFC number assigned to this
 document -->
 
-In the "AES\_CM" suites, the length of the authentication tag is indicated by
-the last value: "\_16" indicates a sixteen-byte tag, "\_10" indicates a ten-byte tag,
-"\_8" indicates an eight-byte tag and "\_4" indicates a four-byte tag.
+In the "AES" suites, the length of the authentication tag is indicated by
+the last value: "\_128" indicates a hundreed-twenty-eight-bit tag, "\_80" indicates
+a eighty-bit tag, "\_8" indicates a sixty-four-bit tag and "\_4" indicates a
+thirty-two-bit tag.
 
 In a session that uses multiple media streams, different ciphersuites might be
 configured for different media streams.  For example, in order to conserve

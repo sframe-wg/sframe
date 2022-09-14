@@ -479,14 +479,14 @@ This document defines the following ciphersuites:
 document -->
 
 In the "AES" suites, the length of the authentication tag is indicated by
-the last value: "\_128" indicates a hundreed-twenty-eight-bit tag, "\_80" indicates
-a eighty-bit tag, "\_8" indicates a sixty-four-bit tag and "\_4" indicates a
+the last value: "\_128" indicates a hundred-twenty-eight-bit tag, "\_80" indicates
+a eighty-bit tag, "\_64" indicates a sixty-four-bit tag and "\_32" indicates a
 thirty-two-bit tag.
 
 In a session that uses multiple media streams, different ciphersuites might be
 configured for different media streams.  For example, in order to conserve
-bandwidth, a session might use a ciphersuite with ten-byte tags for video frames
-and another ciphersuite with four-byte tags for audio frames.
+bandwidth, a session might use a ciphersuite with eighty-bit tags for video frames
+and another ciphersuite with thirty-two-bit tags for audio frames.
 
 ### AES-CM with SHA2
 

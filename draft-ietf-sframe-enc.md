@@ -502,7 +502,7 @@ follows, where `Nk` represents the key size for the AES block cipher in use and
 
 ~~~~~
 def derive_subkeys(sframe_key):
-  aead_secret = HKDF-Extract(sframe_key, 'SFrame10 AES CM AEAD')
+  aead_secret = HKDF-Extract(sframe_key, 'SFrame10 AES CTR AEAD')
   enc_key = HKDF-Expand(aead_secret, 'enc', Nk)
   auth_key = HKDF-Expand(aead_secret, 'auth', Nh)
   return enc_key, auth_key

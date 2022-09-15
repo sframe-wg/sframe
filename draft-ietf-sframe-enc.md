@@ -467,13 +467,14 @@ o [Optional] A signature algorithm
 
 This document defines the following ciphersuites:
 
-| Value  | Name                           | Nh | Nk | Nn | Reference |
-|:-------|:-------------------------------|:---|----|:---|:----------|
-| 0x0001 | AES\_CM\_128\_HMAC\_SHA256\_80 | 32 | 16 | 12 | RFC XXXX  |
-| 0x0002 | AES\_CM\_128\_HMAC\_SHA256\_64 | 32 | 16 | 12 | RFC XXXX  |
-| 0x0003 | AES\_CM\_128\_HMAC\_SHA256\_32 | 32 | 16 | 12 | RFC XXXX  |
-| 0x0004 | AES\_GCM\_128\_SHA256\_128     | 32 | 16 | 12 | RFC XXXX  |
-| 0x0005 | AES\_GCM\_256\_SHA512\_128     | 64 | 32 | 12 | RFC XXXX  |
+| Value  | Name                            | Nh | Nk | Nn | Reference |
+|:-------|:--------------------------------|:---|----|:---|:----------|
+| 0x0001 | AES\_CTR\_128\_HMAC\_SHA256\_80 | 32 | 16 | 12 | RFC XXXX  |
+| 0x0002 | AES\_CTR\_128\_HMAC\_SHA256\_64 | 32 | 16 | 12 | RFC XXXX  |
+| 0x0003 | AES\_CTR\_128\_HMAC\_SHA256\_32 | 32 | 16 | 12 | RFC XXXX  |
+| 0x0004 | AES\_GCM\_128\_SHA256\_128      | 32 | 16 | 12 | RFC XXXX  |
+| 0x0005 | AES\_GCM\_256\_SHA512\_128      | 64 | 32 | 12 | RFC XXXX  |
+
 
 <!-- RFC EDITOR: Please replace XXXX above with the RFC number assigned to this
 document -->
@@ -488,7 +489,7 @@ configured for different media streams.  For example, in order to conserve
 bandwidth, a session might use a ciphersuite with eighty-bit tags for video frames
 and another ciphersuite with thirty-two-bit tags for audio frames.
 
-### AES-CM with SHA2
+### AES-CTR with SHA2
 
 In order to allow very short tag sizes, we define a synthetic AEAD function
 using the authenticated counter mode of AES together with HMAC for
@@ -508,7 +509,7 @@ def derive_subkeys(sframe_key):
 ~~~~~
 
 The AEAD encryption and decryption functions are then composed of individual
-calls to the CM encrypt function and HMAC.  The resulting MAC value is truncated
+calls to the CTR encrypt function and HMAC.  The resulting MAC value is truncated
 to a number of bytes `tag_len` fixed by the ciphersuite.
 
 ~~~~~
@@ -521,7 +522,7 @@ def compute_tag(auth_key, nonce, aad, ct):
 
 def AEAD.Encrypt(key, nonce, aad, pt):
   enc_key, auth_key = derive_subkeys(key)
-  ct = AES-CM.Encrypt(enc_key, nonce, pt)
+  ct = AES-CTR.Encrypt(enc_key, nonce, pt)
   tag = compute_tag(auth_key, nonce, aad, ct)
   return ct + tag
 
@@ -533,7 +534,7 @@ def AEAD.Decrypt(key, nonce, aad, ct):
   if !constant_time_equal(tag, candidate_tag):
     raise Exception("Authentication Failure")
 
-  return AES-CM.Decrypt(enc_key, nonce, inner_ct)
+  return AES-CTR.Decrypt(enc_key, nonce, inner_ct)
 ~~~~~
 
 # Key Management

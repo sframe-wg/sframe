@@ -1,15 +1,21 @@
 ---
 title: Secure Frame (SFrame)
 abbrev: SFrame
-docname: draft-omara-sframe-01
-category: info
+docname: draft-ietf-sframe-enc-latest
+category: std
 
 ipr: trust200902
-area: Security
+stream: IETF
+area: "Applications and Real-Time"
 keyword: Internet-Draft
-
-stand_alone: yes
-pi: [toc, sortrefs, symrefs]
+v: 3
+venue:
+  group: "Secure Media Frames"
+  type: "Working Group"
+  mail: "sframe@ietf.org"
+  arch: "https://mailarchive.ietf.org/arch/browse/sframe/"
+  github: "sframe-wg/sframe"
+  latest: "https://sframe-wg.github.io/sframe/draft-ietf-sframe-enc.html"
 
 author:
  -
@@ -22,18 +28,22 @@ author:
     name: Justin Uberti
     organization: Google
     email: juberti@google.com
-
- -
-    ins: A. GOUAILLARD
-    name: Alexandre GOUAILLARD
-    organization: CoSMo Software
-    email: Alex.GOUAILLARD@cosmosoftware.io
-
  -
     ins: S. Murillo
     name: Sergio Garcia Murillo
     organization: CoSMo Software
     email: sergio.garcia.murillo@cosmosoftware.io
+ -
+    ins: R.L. Barnes
+    name: Richard L. Barnes
+    organization: Cisco
+    email: rlb@ipv.sx
+    role: editor
+ -
+    ins: Y. Fablet
+    name: Youenn Fablet
+    organization: Apple
+    email: youenn@apple.com
 
 informative:
   TestVectors:
@@ -388,10 +398,10 @@ The encrypted payload is then passed to a generic RTP packetized to construct th
    +----------------+  +---------------+
    | frame metadata |  |               |
    +-------+--------+  |               |
-           |           |     frame     |         
-           |           |               |        
-           |           |               |         
-           |           +-------+-------+        
+           |           |     frame     |
+           |           |               |
+           |           |               |
+           |           +-------+-------+
            |                   |
 header ----+------------------>| AAD
 +-----+                        |
@@ -416,11 +426,11 @@ header ----+------------------>| AAD
    |                   |               |
    |                   |               |
    |                   +-------+-------+
-   |                           |        
+   |                           |
    |                  generic RTP packetize
-   |                           |           
-   |                           v           
-   V                                       
+   |                           |
+   |                           v
+   V
 +---------------+      +---------------+     +---------------+
 | SFrame header |      |               |     |               |
 +---------------+      |               |     |               |
@@ -467,25 +477,26 @@ o [Optional] A signature algorithm
 
 This document defines the following ciphersuites:
 
-
 | Value  | Name                           | Nh | Nk | Nn | Reference |
-|:-------|:-------------------------------|:---|:---|:---|:----------|
-| 0x0001 | AES\_CM\_128\_HMAC\_SHA256\_8  | 32 | 16 | 12 | RFC XXXX  |
-| 0x0002 | AES\_CM\_128\_HMAC\_SHA256\_4  | 32 | 16 | 12 | RFC XXXX  |
-| 0x0003 | AES\_GCM\_128\_SHA256          | 32 | 16 | 12 | RFC XXXX  |
-| 0x0004 | AES\_GCM\_256\_SHA512          | 64 | 32 | 12 | RFC XXXX  |
+|:-------|:-------------------------------|:---|----|:---|:----------|
+| 0x0001 | AES\_CM\_128\_HMAC\_SHA256\_80 | 32 | 16 | 12 | RFC XXXX  |
+| 0x0002 | AES\_CM\_128\_HMAC\_SHA256\_64 | 32 | 16 | 12 | RFC XXXX  |
+| 0x0003 | AES\_CM\_128\_HMAC\_SHA256\_32 | 32 | 16 | 12 | RFC XXXX  |
+| 0x0004 | AES\_GCM\_128\_SHA256\_128     | 32 | 16 | 12 | RFC XXXX  |
+| 0x0005 | AES\_GCM\_256\_SHA512\_128     | 64 | 32 | 12 | RFC XXXX  |
 
 <!-- RFC EDITOR: Please replace XXXX above with the RFC number assigned to this
 document -->
 
-In the "AES\_CM" suites, the length of the authentication tag is indicated by
-the last value: "\_8" indicates an eight-byte tag and "\_4" indicates a
-four-byte tag.
+In the "AES" suites, the length of the authentication tag is indicated by
+the last value: "\_128" indicates a hundred-twenty-eight-bit tag, "\_80" indicates
+a eighty-bit tag, "\_64" indicates a sixty-four-bit tag and "\_32" indicates a
+thirty-two-bit tag.
 
 In a session that uses multiple media streams, different ciphersuites might be
 configured for different media streams.  For example, in order to conserve
-bandwidth, a session might use a ciphersuite with 80-bit tags for video frames
-and another ciphersuite with 32-bit tags for audio frames.
+bandwidth, a session might use a ciphersuite with eighty-bit tags for video frames
+and another ciphersuite with thirty-two-bit tags for audio frames.
 
 ### AES-CM with SHA2
 
@@ -567,7 +578,7 @@ can ratchet their key forward for forward secrecy:
 
 ~~~~~
 sender_key[i+1] = HKDF-Expand(
-                    HKDF-Extract(sender_key[i], 'SFrame10 ratchet'), 
+                    HKDF-Extract(sender_key[i], 'SFrame10 ratchet'),
                       '', AEAD.Nk)
 ~~~~~
 
@@ -602,7 +613,7 @@ use the MLS exporter to compute a shared SFrame secret for the epoch.
 ~~~~~
 sframe_epoch_secret = MLS-Exporter("SFrame 10 MLS", "", AEAD.Nk)
 
-sender_base_key[index] = HKDF-Expand(sframe_epoch_secret, 
+sender_base_key[index] = HKDF-Expand(sframe_epoch_secret,
                            encode_big_endian(index, 4), AEAD.Nk)
 ~~~~~
 
@@ -624,20 +635,20 @@ as it needs to encrypt/decrypt for a given member.
 ~~~~~
         ...
          |
-Epoch 17 +--+-- index=33 -> KID = 0x211 
+Epoch 17 +--+-- index=33 -> KID = 0x211
          |  |
          |  +-- index=51 -> KID = 0x331
          |
          |
-Epoch 16 +--+-- index=2 --> KID = 0x20 
+Epoch 16 +--+-- index=2 --> KID = 0x20
          |
          |
-Epoch 15 +--+-- index=3 --> KID = 0x3f 
+Epoch 15 +--+-- index=3 --> KID = 0x3f
          |  |
          |  +-- index=5 --> KID = 0x5f
          |
          |
-Epoch 14 +--+-- index=3 --> KID = 0x3e 
+Epoch 14 +--+-- index=3 --> KID = 0x3e
          |  |
          |  +-- index=7 --> KID = 0x7e
          |  |
@@ -757,6 +768,10 @@ The cipher suites defined in this draft use short authentication tags for encryp
 
 # IANA Considerations
 This document makes no requests of IANA.
+
+# Acknowledgements
+
+   The authors wish to specially thank Dr. Alex Gouaillard as one of the early contributors to the document. His passion and energy were key to the design and development of SFrame.
 
 # Test Vectors
 

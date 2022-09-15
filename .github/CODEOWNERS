@@ -1,0 +1,3 @@
+# Automatically generated CODEOWNERS
+# Regenerate with `make update-codeowners`
+draft-ietf-sframe-enc.md eomara@apple.com juberti@google.com sergio.garcia.murillo@cosmosoftware.io

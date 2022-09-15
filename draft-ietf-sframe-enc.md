@@ -435,7 +435,7 @@ header ----+------------------>| AAD
 
 Before decrypting, a client needs to assemble a full SFrame ciphertext.  When
 SFrame is applied per-packet, this is done by extracting the payload of a
-decrypted SRTP packet.  When SFrame is applied per-frame, the receiving client buffers all packets that belongs to the same frame using the frame beginning and ending marks in the generic RTP frame header extension. Once all packets are available and in order, the receiver forms an SFrame ciphertext by concatenating their payloads, then passes the ciphertext to SFrame for decryption.  
+decrypted SRTP packet.  When SFrame is applied per-frame, the receiving client buffers all packets that belongs to the same frame using the frame beginning and ending marks in the generic RTP frame header extension. Once all packets are available and in order, the receiver forms an SFrame ciphertext by concatenating their payloads, then passes the ciphertext to SFrame for decryption.
 
 The KID field in the SFrame header is used to find the right key and salt for the encrypted frame, and the CTR field is used to construct the nonce.
 

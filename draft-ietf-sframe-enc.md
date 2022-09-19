@@ -537,7 +537,7 @@ def AEAD.Decrypt(key, nonce, aad, ct):
 # Key Management
 
 SFrame must be integrated with an E2E key management framework to exchange and
-rotate the keys used for SFrame encryption.  The key management
+rotate the keys used for SFrame encryption. The key management
 framework provides the following functions:
 
 * Provisioning KID/`base\_key` mappings to participating clients
@@ -553,7 +553,7 @@ ephemeral symmetric keys for a specific call.
 
 If the participants in a call have a pre-existing E2E-secure channel, they can
 use it to distribute SFrame keys.  Each client participating in a call generates
-a fresh encryption key.  The client then uses
+a fresh encryption key. The client then uses
 the E2E-secure channel to send their encryption key to
 the other participants.
 
@@ -576,7 +576,7 @@ be deleted promptly.
 
 If a new participant joins mid-call, they will need to receive from each sender
 (a) the current sender key for that sender and (b) the current KID value for the
-sender.  Evicting a participant requires each sender to send a fresh sender key
+sender. Evicting a participant requires each sender to send a fresh sender key
 to all receivers.
 
 ## MLS

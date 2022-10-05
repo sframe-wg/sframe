@@ -54,7 +54,7 @@ type AESCTRHMAC struct {
 }
 
 func newAESCTRHMAC(key []byte, hash crypto.Hash, encSize, tagSize int) AESCTRHMAC {
-	secret := hkdf.Extract(hash.New, key, []byte("SFrame10 AES CM AEAD"))
+	secret := hkdf.Extract(hash.New, key, []byte("SFrame10 AES CTR AEAD"))
 
 	encKey := make([]byte, encSize)
 	hkdf.Expand(hash.New, secret, []byte("enc")).Read(encKey)
@@ -121,17 +121,17 @@ func makeAESCTRHMAC(hash crypto.Hash, encSize, tagSize int) func(key []byte) cip
 }
 
 var (
-	AES_CM_128_HMAC_SHA256_4 = CipherSuite{
+	AES_CTR_128_HMAC_SHA256_4 = CipherSuite{
 		ID:      0x0001,
-		Name:    "AES_CM_128_HMAC_SHA256_4",
+		Name:    "AES_CTR_128_HMAC_SHA256_4",
 		Nk:      16,
 		Nn:      12,
 		Hash:    crypto.SHA256,
 		NewAEAD: makeAESCTRHMAC(crypto.SHA256, 16, 4),
 	}
-	AES_CM_128_HMAC_SHA256_8 = CipherSuite{
+	AES_CTR_128_HMAC_SHA256_8 = CipherSuite{
 		ID:      0x0002,
-		Name:    "AES_CM_128_HMAC_SHA256_8",
+		Name:    "AES_CTR_128_HMAC_SHA256_8",
 		Nk:      16,
 		Nn:      12,
 		Hash:    crypto.SHA256,
@@ -386,13 +386,13 @@ func main() {
 
 	testCases := []TestCase{
 		TestCase{
-			CipherSuite: AES_CM_128_HMAC_SHA256_4,
+			CipherSuite: AES_CTR_128_HMAC_SHA256_4,
 			BaseKey:     fromHex("101112131415161718191a1b1c1d1e1f"),
 			Plaintext:   plaintext,
 			HeaderCases: headerCases,
 		},
 		TestCase{
-			CipherSuite: AES_CM_128_HMAC_SHA256_8,
+			CipherSuite: AES_CTR_128_HMAC_SHA256_8,
 			BaseKey:     fromHex("202122232425262728292a2b2c2d2e2f"),
 			Plaintext:   plaintext,
 			HeaderCases: headerCases,

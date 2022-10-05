@@ -315,23 +315,23 @@ aspects of the AEAD algorithm below:
 ### Key Selection
 
 Each SFrame encryption or decryption operation is premised on a single secret
-`base\_key`, which is labeled with an integer KID value signaled in the SFrame
+`base_key`, which is labeled with an integer KID value signaled in the SFrame
 header.
 
 The sender and receivers need to agree on which key should be used for a given
 KID.  The process for provisioning keys and their KID values is beyond the scope
 of this specification, but its security properties will bound the assurances
 that SFrame provides.  For example, if SFrame is used to provide E2E security
-against intermediary media nodes, then SFrame keys MUST be negotiated in a way
-that does not make them accessible to these intermediaries.
+against intermediary media nodes, then SFrame keys need to be negotiated in a
+way that does not make them accessible to these intermediaries.
 
 For each known KID value, the client stores the corresponding symmetric key
-`base\_key`.  For keys that can be used for encryption, the client also stores
+`base_key`.  For keys that can be used for encryption, the client also stores
 the next counter value CTR to be used when encrypting (initially 0).
 
-When encrypting a frame, the application specifies which KID is to be used, and
+When encrypting a plaintext, the application specifies which KID is to be used, and
 the counter is incremented after successful encryption.  When decrypting, the
-`base\_key` for decryption is selected from the available keys using the KID
+`base_key` for decryption is selected from the available keys using the KID
 value in the SFrame Header.
 
 A given key MUST NOT be used for encryption by multiple senders.  Such reuse
@@ -344,17 +344,17 @@ Note that the set of available keys might change over the lifetime of a
 real-time session.  In such cases, the client will need to manage key usage to
 avoid media loss due to a key being used to encrypt before all receivers are
 able to use it to decrypt.  For example, an application may make decryption-only
-keys available immediately, but delay the use of encryption-only keys until (a)
+keys available immediately, but delay the use of keys for encryption until (a)
 all receivers have acknowledged receipt of the new key or (b) a timeout expires.
 
 ### Key Derivation
 
-SFrame encrytion and decryption use a key and salt derived from the `base\_key`
-associated to a KID.  Given a `base\_key` value, the key and salt are derived
+SFrame encrytion and decryption use a key and salt derived from the `base_key`
+associated to a KID.  Given a `base_key` value, the key and salt are derived
 using HKDF {{!RFC5869}} as follows:
 
 ~~~~~
-sframe_secret = HKDF-Extract(K, 'SFrame10')
+sframe_secret = HKDF-Extract(base_key, 'SFrame10')
 sframe_key = HKDF-Expand(sframe_secret, 'key', AEAD.Nk)
 sframe_salt = HKDF-Expand(sframe_secret, 'salt', AEAD.Nn)
 ~~~~~
@@ -363,33 +363,33 @@ The hash function used for HKDF is determined by the ciphersuite in use.
 
 ### Encryption
 
-After encoding the frame and before packetizing it, the necessary media metadata
-will be moved out of the encoded frame buffer, to be used later in the RTP
-generic frame header extension. The encoded frame, the metadata buffer and the
-frame counter are passed to SFrame encryptor.
-
 SFrame encryption uses the AEAD encryption algorithm for the ciphersuite in use.
-The key for the encryption is the `sframe\_key` and the nonce is formed by XORing
-the `sframe\_salt` with the current counter, encoded as a big-endian integer of
+The key for the encryption is the `sframe_key` and the nonce is formed by XORing
+the `sframe_salt` with the current counter, encoded as a big-endian integer of
 length `AEAD.Nn`.
 
-The encryptor forms an SFrame header using the S, CTR, and KID values provided.
-The encoded header is provided as AAD to the AEAD encryption operation, with any
-frame metadata appended.
+The encryptor forms an SFrame header using the CTR, and KID values provided.
+The encoded header is provided as AAD to the AEAD encryption operation, together
+with application-provided metadata about the encrypted media.
 
 ~~~~~
-def encrypt(S, CTR, KID, frame_metadata, frame):
+def encrypt(S, CTR, KID, metadata, plaintext):
   sframe_key, sframe_salt = key_store[KID]
 
-  frame_ctr = encode_big_endian(CTR, AEAD.Nn)
-  frame_nonce = xor(sframe_salt, frame_ctr)
+  ctr = encode_big_endian(CTR, AEAD.Nn)
+  nonce = xor(sframe_salt, CTR)
 
-  header = encode_sframe_header(S, CTR, KID)
-  frame_aad = header + frame_metadata
+  header = encode_sframe_header(CTR, KID)
+  aad = header + metadata
 
-  encrypted_frame = AEAD.Encrypt(sframe_key, frame_nonce, frame_aad, frame)
-  return header + encrypted_frame
+  ciphertext = AEAD.Encrypt(sframe_key, nonce, aad, plaintext)
+  return header + ciphertext
 ~~~~~
+
+The metadata input to encryption allows for frame metadata to be authenticated
+when SFrame is applied per-frame.
+After encoding the frame and before packetizing it, the necessary media metadata
+will be moved out of the encoded frame buffer, to be sent in some channel visibile to the SFU (e.g., an RTP header extension).
 
 The encrypted payload is then passed to a generic RTP packetized to construct the RTP packets and encrypt it using SRTP keys for the HBH encryption to the media server.
 
@@ -439,41 +439,43 @@ header ----+------------------>| AAD
 |               |      |               |     |               |
 +---------------+      +---------------+     +---------------+
 ~~~~~
-{: title="Encryption flow" }
+{: title="Encryption flow with per-frame encryption" }
 
 ### Decryption
 
-The receiving clients buffer all packets that belongs to the same frame using the frame beginning and ending marks in the generic RTP frame header extension, and once all packets are available, it passes it to SFrame for decryption.  The KID field in the SFrame header is used to find the right key for the encrypted frame.
+Before decrypting, a client needs to assemble a full SFrame ciphertext.  When
+SFrame is applied per-packet, this is done by extracting the payload of a
+decrypted SRTP packet.  When SFrame is applied per-frame, the receiving client buffers all packets that belongs to the same frame using the frame beginning and ending marks in the generic RTP frame header extension. Once all packets are available and in order, the receiver forms an SFrame ciphertext by concatenating their payloads, then passes the ciphertext to SFrame for decryption.
+
+The KID field in the SFrame header is used to find the right key and salt for the encrypted frame, and the CTR field is used to construct the nonce.
 
 ~~~~~
-def decrypt(frame_metadata, sframe):
-  header, encrypted_frame = split_header(sframe)
-  S, CTR, KID = parse_header(header)
+def decrypt(metadata, sframe):
+  CTR, KID, ciphertext = parse_ciphertext(sframe)
 
   sframe_key, sframe_salt = key_store[KID]
 
-  frame_ctr = encode_big_endian(CTR, AEAD.Nn)
-  frame_nonce = xor(sframe_salt, frame_ctr)
-  frame_aad = header + frame_metadata
+  ctr = encode_big_endian(CTR, AEAD.Nn)
+  nonce = xor(sframe_salt, ctr)
+  aad = header + metadata
 
-  return AEAD.Decrypt(sframe_key, frame_nonce, frame_aad, encrypted_frame)
+  return AEAD.Decrypt(sframe_key, nonce, aad, ciphertext)
 ~~~~~
 
-For frames that are failed to decrypt because there is key available for the KID in the SFrame header, the client MAY buffer the frame and retry decryption once a key with that KID is received.
+If a ciphertext fails to decrypt because there is no key available for the KID in the SFrame header, the client MAY buffer the ciphertext and retry decryption once a key with that KID is received.
 
 ### Duplicate Frames
+
 Unlike messaging application, in video calls, receiving a duplicate frame doesn't necessary mean the client is under a replay attack, there are other reasons that might cause this, for example the sender might just be sending them in case of packet loss. SFrame decryptors use the highest received frame counter to protect against this. It allows only older frame pithing a short interval to support out of order delivery.
 
 ## Ciphersuites
 
 Each SFrame session uses a single ciphersuite that specifies the following primitives:
 
-o A hash function used for key derivation and hashing signature inputs
+o A hash function used for key derivation
 
 o An AEAD encryption algorithm [RFC5116] used for frame encryption, optionally
   with a truncated authentication tag
-
-o [Optional] A signature algorithm
 
 This document defines the following ciphersuites:
 
@@ -549,11 +551,10 @@ def AEAD.Decrypt(key, nonce, aad, ct):
 # Key Management
 
 SFrame must be integrated with an E2E key management framework to exchange and
-rotate the keys used for SFrame encryption and/or signing.  The key management
+rotate the keys used for SFrame encryption. The key management
 framework provides the following functions:
 
-* Provisioning KID/`base\_key` mappings to participating clients
-* (optional) Provisioning clients with a list of trusted signing keys
+* Provisioning KID/`base_key` mappings to participating clients
 * Updating the above data as clients join or leave
 
 It is up to the application to define a rotation schedule for keys.  For example,
@@ -566,8 +567,8 @@ ephemeral symmetric keys for a specific call.
 
 If the participants in a call have a pre-existing E2E-secure channel, they can
 use it to distribute SFrame keys.  Each client participating in a call generates
-a fresh encryption key and optionally a signing key pair.  The client then uses
-the E2E-secure channel to send their encryption key and signing public key to
+a fresh encryption key. The client then uses
+the E2E-secure channel to send their encryption key to
 the other participants.
 
 In this scheme, it is assumed that receivers have a signal outside of SFrame for
@@ -588,9 +589,9 @@ old key may be kept for some time to allow for out-of-order delivery, but should
 be deleted promptly.
 
 If a new participant joins mid-call, they will need to receive from each sender
-(a) the current sender key for that sender, (b) the signing key for the sender,
-if used, and (c) the current KID value for the sender.  Evicting a participant
-requires each sender to send a fresh sender key to all receivers.
+(a) the current sender key for that sender and (b) the current KID value for the
+sender. Evicting a participant requires each sender to send a fresh sender key
+to all receivers.
 
 ## MLS
 
@@ -606,7 +607,7 @@ step in the lifetime of the group is know as an "epoch", and each member of the
 group is assigned an "index" that is constant for the time they are in the
 group.
 
-In SFrame, we derive per-sender `base\_key` values from the group secret for an
+In SFrame, we derive per-sender `base_key` values from the group secret for an
 epoch, and use the KID field to signal the epoch and sender index.  First, we
 use the MLS exporter to compute a shared SFrame secret for the epoch.
 
@@ -657,9 +658,6 @@ Epoch 14 +--+-- index=3 ---> KID = 0x3e
   ...
 ~~~~~
 
-MLS also provides an authenticated signing key pair for each participant.  When
-SFrame uses signatures, these are the keys used to generate SFrame signatures.
-
 # Media Considerations
 
 ## SFU
@@ -671,7 +669,8 @@ This section describes how this normal SFU modes of operation interacts with the
 ### LastN and RTP stream reuse
 The SFU may choose to send only a certain number of streams based on the voice activity of the participants. To reduce the number of SDP O/A required to establish a new RTP stream, the SFU may decide to reuse previously existing RTP sessions or even pre-allocate a predefined number of RTP streams and choose in each moment in time which participant media will be sending through it.
 This means that in the same RTP stream (defined by either SSRC or MID) may carry media from different streams of different participants. As different keys are used by each participant for encoding their media, the receiver will be able to verify which is the sender of the media coming within the RTP stream at any given point if time, preventing the SFU trying to impersonate any of the participants with another participant's media.
-Note that in order to prevent impersonation by a malicious participant (not the SFU) usage of the signature is required. In case of video, the a new signature should be started each time a key frame is sent to allow the receiver to identify the source faster after a switch.
+
+Note that in order to prevent impersonation by a malicious participant (not the SFU), a mechanism based on digital signature would be required. SFrame does not protect against such attacks.
 
 ### Simulcast
 When using simulcast, the same input image will produce N different encoded frames (one per simulcast layer) which would be processed independently by the frame encryptor and assigned an unique counter for each.

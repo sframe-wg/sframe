@@ -76,30 +76,30 @@ The Secure Real-Time Protocol (SRTP) is already widely used for HBH encryption {
 This document proposes a new end-to-end encryption mechanism known as SFrame, specifically designed to work in group conference calls with SFUs.  SFrame is a general encryption framing that can be used to protect payloads sent over SRTP
 
 ~~~ aasvg
-  +---+-+-+-------+-+-------------+-------------------------------+^+
-  |V=2|P|X|  CC   |M|     PT      |       sequence number         | |
-  +---+-+-+-------+-+-------------+-------------------------------+ |
-  |                           timestamp                           | |
-  +---------------------------------------------------------------+ |
-  |           synchronization source (SSRC) identifier            | |
-  +===============================================================+ |
-  |            contributing source (CSRC) identifiers             | |
-  |                               ....                            | |
-  +---------------------------------------------------------------+ |
-  |                   RTP extension(s) (OPTIONAL)                 | |
-+>---------------------+------------------------------------------+ |
-| |   SFrame header    |                                          | |
-| +--------------------+                                          | |
-| |                                                               | |
-| |            SFrame Encrypted and Authenticated Data            | |
-| |                                                               | |
-+>+---------------------------------------------------------------+<+
-| :                       authentication tag                      : |
-| +---------------------------------------------------------------+ |
-|                                                                   |
-+-- Encrypted Portion                       Authenticated Portion --+
+   +---+-+-+-------+-+-------------+-------------------------------+<-+
+   |V=2|P|X|  CC   |M|     PT      |       sequence number         |  |
+   +---+-+-+-------+-+-------------+-------------------------------+  |
+   |                           timestamp                           |  |
+   +---------------------------------------------------------------+  |
+   |           synchronization source (SSRC) identifier            |  |
+   +===============================================================+  |
+   |            contributing source (CSRC) identifiers             |  |
+   |                               ....                            |  |
+   +---------------------------------------------------------------+  |
+   |                   RTP extension(s) (OPTIONAL)                 |  |
++->+--------------------+------------------------------------------+  |
+|  |   SFrame header    |                                          |  |
+|  +--------------------+                                          |  |
+|  |                                                               |  |
+|  |          SFrame encrypted and authenticated payload           |  |
+|  |                                                               |  |
++->+---------------------------------------------------------------+<-+
+|  |                    SRTP authentication tag                    |  |
+|  +---------------------------------------------------------------+  |
+|                                                                     |
++--- SRTP Encrypted Portion             SRTP Authenticated Portion ---+
 ~~~~~
-{: title="SRTP packet with SFrame-encrypted payload"}
+{: title="SRTP packet with SFrame-protected payload"}
 
 # Terminology
 

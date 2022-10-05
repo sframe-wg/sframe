@@ -72,19 +72,19 @@ While DTLS-SRTP can be used as an efficient HBH mechanism, it is inherently poin
 
 This document proposes a new end-to-end encryption mechanism known as SFrame, specifically designed to work in group conference calls with SFUs.
 
-~~~~~
-  +-------------------------------+-------------------------------+^+
+~~~ aasvg
+  +---+-+-+-------+-+-------------+-------------------------------+^+
   |V=2|P|X|  CC   |M|     PT      |       sequence number         | |
-  +-------------------------------+-------------------------------+ |
+  +---+-+-+-------+-+-------------+-------------------------------+ |
   |                           timestamp                           | |
   +---------------------------------------------------------------+ |
   |           synchronization source (SSRC) identifier            | |
-  |=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=| |
+  +===============================================================+ |
   |            contributing source (CSRC) identifiers             | |
   |                               ....                            | |
   +---------------------------------------------------------------+ |
   |                   RTP extension(s) (OPTIONAL)                 | |
-+^---------------------+------------------------------------------+ |
++^+--------------------+------------------------------------------+ |
 | |   payload header   |                                          | |
 | +--------------------+     payload  ...                         | |
 | |                                                               | |
@@ -92,7 +92,7 @@ This document proposes a new end-to-end encryption mechanism known as SFrame, sp
 | :                       authentication tag                      : |
 | +---------------------------------------------------------------+ |
 |                                                                   |
-++ Encrypted Portion                       Authenticated Portion +--+
++-- Encrypted Portion                       Authenticated Portion --+
 ~~~~~
 {: title="SRTP packet format"}
 
@@ -156,7 +156,7 @@ Also, because media is encrypted prior to packetization, the encrypted frame is 
 
 The generic packetizer splits the E2E encrypted media frame into one or more RTP packets and adds the SFrame header to the beginning of the first packet and an auth tag to the end of the last packet.
 
-~~~~~
+~~~ aasvg
       +-------------------------------------------------------+
       |                                                       |
       |  +----------+      +------------+      +-----------+  |
@@ -169,25 +169,25 @@ The generic packetizer splits the E2E encrypted media frame into one or more RTP
  / \  |                          |                            |   +--+  +--+  +--+   |
 Alice |                    +-----+------+                     |   Encrypted Packets  |
       |                    |Key Manager |                     |                      |
-      |                    +------------+                     |                      |
-      |                         ||                            |                      |
-      |                         ||                            |                      |
-      |                         ||                            |                      |
-      +-------------------------------------------------------+                      |
-                                ||                                                   |
-                                ||                                                   v
-                           +------------+                                      +-----+------+
+      |                    +-----+------+                     |                      |
+      |                          ║                            |                      |
+      |                          ║                            |                      |
+      |                          ║                            |                      |
+      +--------------------------+----------------------------+                      |
+                                 ║                                                   |
+                                 ║                                                   v
+                           +-----+------+                                      +-----+------+
             E2EE channel   |  Messaging |                                      |   Media    |
               via the      |  Server    |                                      |   Server   |
           Messaging Server |            |                                      |            |
-                           +------------+                                      +-----+------+
-                                ||                                                   |
-                                ||                                                   |
-      +-------------------------------------------------------+                      |
-      |                         ||                            |                      |
-      |                         ||                            |                      |
-      |                         ||                            |                      |
-      |                    +------------+                     |                      |
+                           +-----+------+                                      +-----+------+
+                                 ║                                                   |
+                                 ║                                                   |
+      +--------------------------+----------------------------+                      |
+      |                          ║                            |                      |
+      |                          ║                            |                      |
+      |                          ║                            |                      |
+      |                    +-----+------+                     |                      |
       |                    |Key Manager |                     |                      |
  ,+.  |                    +-----+------+                     |   Encrypted Packets  |
  `|'  |                          |                            |   +--+  +--+  +--+   |
@@ -206,10 +206,10 @@ The E2EE keys used to encrypt the frame are exchanged out of band using a secure
 
 ## SFrame Format
 
-~~~~~
-  +------------+------------------------------------------+^+
+~~~ aasvg
+  +-+---+-+----+------------------------------------------+^+
   |S|LEN|X|KID |         Frame Counter                    | |
-+^+------------+------------------------------------------+ |
++^+-+---+-+----+------------------------------------------+ |
 | |                                                       | |
 | |                                                       | |
 | |                                                       | |
@@ -236,7 +236,7 @@ Both the frame counter and the key id are encoded in a variable length format to
 The length is up to 8 bytes and is represented in 3 bits in the SFrame header: 000 represents a length of 1, 001 a length of 2...
 The first byte in the SFrame header is fixed and contains the header metadata with the following format:
 
-~~~~~
+~~~ aasvg
  0 1 2 3 4 5 6 7
 +-+-+-+-+-+-+-+-+
 |R|LEN  |X|  K  |
@@ -255,11 +255,11 @@ Key or Key Length: 3 bits
 
 If X flag is 0 then the KID is in the range of 0-7 and the frame counter (CTR) is found in the next LEN bytes:
 
-~~~~~
+~~~ aasvg
  0 1 2 3 4 5 6 7
-+-+-+-+-+-+-+-+-+---------------------------------+
++-+-----+-+-----+---------------------------------+
 |R|LEN  |0| KID |    CTR... (length=LEN)          |
-+-+-+-+-+-+-+-+-+---------------------------------+
++-+-----+-+-----+---------------------------------+
 ~~~~~
 
 Frame counter byte length (LEN): 3bits
@@ -271,11 +271,11 @@ Frame counter (CTR): (Variable length)
 
 if X flag is 1 then KLEN is the length of the key (KID), that is found after the SFrame header metadata byte. After the key id (KID), the frame counter (CTR) will be found in the next LEN bytes:
 
-~~~~~
+~~~ aasvg
  0 1 2 3 4 5 6 7
-+-+-+-+-+-+-+-+-+---------------------------+---------------------------+
++-+-----+-+-----+---------------------------+---------------------------+
 |R|LEN  |1|KLEN |   KID... (length=KLEN)    |    CTR... (length=LEN)    |
-+-+-+-+-+-+-+-+-+---------------------------+---------------------------+
++-+-----+-+-----+---------------------------+---------------------------+
 ~~~~~
 
 Frame counter byte length (LEN): 3bits
@@ -383,7 +383,7 @@ will be moved out of the encoded frame buffer, to be sent in some channel visibi
 
 The encrypted payload is then passed to a generic RTP packetized to construct the RTP packets and encrypt it using SRTP keys for the HBH encryption to the media server.
 
-~~~~~
+~~~ aasvg
 
    +----------------+  +---------------+
    | frame metadata |  |               |
@@ -399,9 +399,9 @@ header ----+------------------>| AAD
 +-----+                        |
 | KID +--+--> sframe_key ----->| Key
 |     |  |                     |
-|     |  +--> sframe_salt -+   |
-+-----+                    |   |
-| CTR +--------------------+-->| Nonce
+|     |  +--> sframe_salt --+  |
++-----+                     |  |
+| CTR +---------------------+->| Nonce
 |     |                        |
 |     |                        |
 +-----+                        |
@@ -462,12 +462,10 @@ Unlike messaging application, in video calls, receiving a duplicate frame doesn'
 
 Each SFrame session uses a single ciphersuite that specifies the following primitives:
 
-o A hash function used for key derivation and hashing signature inputs
+o A hash function used for key derivation
 
 o An AEAD encryption algorithm [RFC5116] used for frame encryption, optionally
   with a truncated authentication tag
-
-o [Optional] A signature algorithm
 
 This document defines the following ciphersuites:
 
@@ -543,11 +541,10 @@ def AEAD.Decrypt(key, nonce, aad, ct):
 # Key Management
 
 SFrame must be integrated with an E2E key management framework to exchange and
-rotate the keys used for SFrame encryption and/or signing.  The key management
+rotate the keys used for SFrame encryption. The key management
 framework provides the following functions:
 
 * Provisioning KID/`base_key` mappings to participating clients
-* (optional) Provisioning clients with a list of trusted signing keys
 * Updating the above data as clients join or leave
 
 It is up to the application to define a rotation schedule for keys.  For example,
@@ -560,8 +557,8 @@ ephemeral symmetric keys for a specific call.
 
 If the participants in a call have a pre-existing E2E-secure channel, they can
 use it to distribute SFrame keys.  Each client participating in a call generates
-a fresh encryption key and optionally a signing key pair.  The client then uses
-the E2E-secure channel to send their encryption key and signing public key to
+a fresh encryption key. The client then uses
+the E2E-secure channel to send their encryption key to
 the other participants.
 
 In this scheme, it is assumed that receivers have a signal outside of SFrame for
@@ -582,9 +579,9 @@ old key may be kept for some time to allow for out-of-order delivery, but should
 be deleted promptly.
 
 If a new participant joins mid-call, they will need to receive from each sender
-(a) the current sender key for that sender, (b) the signing key for the sender,
-if used, and (c) the current KID value for the sender.  Evicting a participant
-requires each sender to send a fresh sender key to all receivers.
+(a) the current sender key for that sender and (b) the current KID value for the
+sender. Evicting a participant requires each sender to send a fresh sender key
+to all receivers.
 
 ## MLS
 
@@ -626,33 +623,30 @@ Once an SFrame stack has been provisioned with the `sframe_epoch_secret` for an
 epoch, it can compute the required KIDs and `sender_base_key` values on demand,
 as it needs to encrypt/decrypt for a given member.
 
+~~~ aasvg
+  ...
+         |
+Epoch 17 +--+-- index=33 --> KID = 0x211
+         |  |
+         |  +-- index=51 --> KID = 0x331
+         |
+         |
+Epoch 16 +--+-- index=2 ---> KID = 0x20
+         |
+         |
+Epoch 15 +--+-- index=3 ---> KID = 0x3f
+         |  |
+         |  +-- index=5 ---> KID = 0x5f
+         |
+         |
+Epoch 14 +--+-- index=3 ---> KID = 0x3e
+         |  |
+         |  +-- index=7 ---> KID = 0x7e
+         |  |
+         |  +-- index=20 --> KID = 0x14e
+         |
+  ...
 ~~~~~
-        ...
-         |
-Epoch 17 +--+-- index=33 -> KID = 0x211
-         |  |
-         |  +-- index=51 -> KID = 0x331
-         |
-         |
-Epoch 16 +--+-- index=2 --> KID = 0x20
-         |
-         |
-Epoch 15 +--+-- index=3 --> KID = 0x3f
-         |  |
-         |  +-- index=5 --> KID = 0x5f
-         |
-         |
-Epoch 14 +--+-- index=3 --> KID = 0x3e
-         |  |
-         |  +-- index=7 --> KID = 0x7e
-         |  |
-         |  +-- index=20 -> KID = 0x14e
-         |
-        ...
-~~~~~
-
-MLS also provides an authenticated signing key pair for each participant.  When
-SFrame uses signatures, these are the keys used to generate SFrame signatures.
 
 # Media Considerations
 
@@ -665,7 +659,8 @@ This section describes how this normal SFU modes of operation interacts with the
 ### LastN and RTP stream reuse
 The SFU may choose to send only a certain number of streams based on the voice activity of the participants. To reduce the number of SDP O/A required to establish a new RTP stream, the SFU may decide to reuse previously existing RTP sessions or even pre-allocate a predefined number of RTP streams and choose in each moment in time which participant media will be sending through it.
 This means that in the same RTP stream (defined by either SSRC or MID) may carry media from different streams of different participants. As different keys are used by each participant for encoding their media, the receiver will be able to verify which is the sender of the media coming within the RTP stream at any given point if time, preventing the SFU trying to impersonate any of the participants with another participant's media.
-Note that in order to prevent impersonation by a malicious participant (not the SFU) usage of the signature is required. In case of video, the a new signature should be started each time a key frame is sent to allow the receiver to identify the source faster after a switch.
+
+Note that in order to prevent impersonation by a malicious participant (not the SFU), a mechanism based on digital signature would be required. SFrame does not protect against such attacks.
 
 ### Simulcast
 When using simulcast, the same input image will produce N different encoded frames (one per simulcast layer) which would be processed independently by the frame encryptor and assigned an unique counter for each.

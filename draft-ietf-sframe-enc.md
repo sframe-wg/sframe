@@ -149,7 +149,11 @@ media in a broad range of scenarios, as outlined by the following goals:
 
 # SFrame
 
-This document defines an encryption mechanism that provides effective end-to-end encryption, is simple to implement, has no dependencies on RTP, and minimizes encryption bandwidth overhead. Because SFrame can encrypt a full frame, rather than individual packets, bandwidth overhead can reduced by adding encryption overhead only once per media frame, instead of once per packet.
+This document defines an encryption mechanism that provides effective end-to-end
+encryption, is simple to implement, has no dependencies on RTP, and minimizes
+encryption bandwidth overhead. Because SFrame can encrypt a full frame, rather
+than individual packets, bandwidth overhead can reduced by adding encryption
+overhead only once per media frame, instead of once per packet.
 
 ## Application Context
 
@@ -160,8 +164,13 @@ more complex integration with the media stack.  Applying SFrame per-packet makes
 it simple to integrate SFrame into a media stack, at the cost of higher
 bandwidth consumption.
 
-When media content is encrypted per-frame, the encrypted frame needs to be packetized using a generic RTP packetizer instead of codec-dependent packetization mechanisms.
-The generic packetizer splits the E2E encrypted media frame into one or more RTP packets and adds the SFrame header to the beginning of the first packet and an auth tag to the end of the last packet.  Because a frame is encrypted as a unit, if any packet in the frame is lost, the whole frame is lost.
+When media content is encrypted per-frame, the encrypted frame needs to be
+packetized using a generic RTP packetizer instead of codec-dependent
+packetization mechanisms.  The generic packetizer splits the E2E encrypted media
+frame into one or more RTP packets and adds the SFrame header to the beginning
+of the first packet and an auth tag to the end of the last packet.  Because a
+frame is encrypted as a unit, if any packet in the frame is lost, the whole
+frame is lost.
 
 When media content is encrypted per-packet, no changes to packetization are
 necessary.  The normal packetization process is followed, then the payload of
@@ -178,14 +187,14 @@ per-frame.
       +-------------------------------------------------------+
       |                                                       |
       |  +----------+      +------------+      +-----------+  |
-      |  |          |      |   SFrame   |      |   SRTP    |  |
-      |  |  Encode  |----->|  Encrypt   |----->|  Encrypt  |-----------+
- ,+.  |  |          |  ^   |            |  ^   |           |  |        |
- `|'  |  +----------+  |   +-----+------+  |   +-----------+  |        |
- /|\  |                |         ^         |         ^        |        |
-  +   |            Packetize     |     Packetize     |        |        |
- / \  |           (per-packet)   |    (per-packet)   |        |        |
-Alice |                          |                   |        |        |
+ .-.  |  |          |      |   SFrame   |      |   SRTP    |  |
+|   | |  |  Encode  |----->|  Encrypt   |----->|  Encrypt  |-----------+
+ '+'  |  |          |  ^   |            |  ^   |           |  |        |
+ /|\  |  +----------+  |   +-----+------+  |   +-----------+  |        |
+/ + \ |                |         ^         |         ^        |        |
+ / \  |            Packetize     |     Packetize     |        |        |
+/   \ |           (per-packet)   |    (per-packet)   |        |        |
+Alice Alice |                          |                   |        |        |
       +--------------------------|-------------------|--------+        |
                                  |                   |                 v
                                  |                   |           +-----+------+
@@ -194,14 +203,14 @@ Alice |                          |                   |        |        |
                                  |                   |           +-----+------+
                                  |                   |                 |
       +--------------------------|-------------------|--------+        |
- ,+.  |                          |                   |        |        |
- `|'  |            Depacketize   |     Depacketize   |        |        |
- /|\  |            (per-packet)  |     (per-frame)   |        |        |
-  +   |                 |        V          |        V        |        |
- / \  |  +----------+   |  +-----+------+   |  +-----------+  |        |
- Bob  |  |          |   V  |   SFrame   |   V  |   SRTP    |  |        |
-      |  |  Decode  |<-----|  Decrypt   |<-----|  Decrypt  |<----------+
-      |  |          |      |            |      |           |  |
+ .-.  |                          |                   |        |        |
+|   | |            Depacketize   |     Depacketize   |        |        |
+ '+'  |            (per-packet)  |     (per-frame)   |        |        |
+ /|\  |                 |        V          |        V        |        |
+/ + \ |  +----------+   |  +-----+------+   |  +-----------+  |        |
+ / \  |  |          |   V  |   SFrame   |   V  |   SRTP    |  |        |
+/   \ |  |  Decode  |<-----|  Decrypt   |<-----|  Decrypt  |<----------+
+ Bob  |  |          |      |            |      |           |  |
       |  +----------+      +------------+      +-----------+  |
       |                                                       |
       +-------------------------------------------------------+

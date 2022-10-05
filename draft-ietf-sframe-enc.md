@@ -458,12 +458,10 @@ Unlike messaging application, in video calls, receiving a duplicate frame doesn'
 
 Each SFrame session uses a single ciphersuite that specifies the following primitives:
 
-o A hash function used for key derivation and hashing signature inputs
+o A hash function used for key derivation
 
 o An AEAD encryption algorithm [RFC5116] used for frame encryption, optionally
   with a truncated authentication tag
-
-o [Optional] A signature algorithm
 
 This document defines the following ciphersuites:
 
@@ -539,11 +537,10 @@ def AEAD.Decrypt(key, nonce, aad, ct):
 # Key Management
 
 SFrame must be integrated with an E2E key management framework to exchange and
-rotate the keys used for SFrame encryption and/or signing.  The key management
+rotate the keys used for SFrame encryption. The key management
 framework provides the following functions:
 
 * Provisioning KID/`base\_key` mappings to participating clients
-* (optional) Provisioning clients with a list of trusted signing keys
 * Updating the above data as clients join or leave
 
 It is up to the application to define a rotation schedule for keys.  For example,
@@ -556,8 +553,8 @@ ephemeral symmetric keys for a specific call.
 
 If the participants in a call have a pre-existing E2E-secure channel, they can
 use it to distribute SFrame keys.  Each client participating in a call generates
-a fresh encryption key and optionally a signing key pair.  The client then uses
-the E2E-secure channel to send their encryption key and signing public key to
+a fresh encryption key. The client then uses
+the E2E-secure channel to send their encryption key to
 the other participants.
 
 In this scheme, it is assumed that receivers have a signal outside of SFrame for
@@ -578,9 +575,9 @@ old key may be kept for some time to allow for out-of-order delivery, but should
 be deleted promptly.
 
 If a new participant joins mid-call, they will need to receive from each sender
-(a) the current sender key for that sender, (b) the signing key for the sender,
-if used, and (c) the current KID value for the sender.  Evicting a participant
-requires each sender to send a fresh sender key to all receivers.
+(a) the current sender key for that sender and (b) the current KID value for the
+sender. Evicting a participant requires each sender to send a fresh sender key
+to all receivers.
 
 ## MLS
 
@@ -647,9 +644,6 @@ Epoch 14 +--+-- index=3 ---> KID = 0x3e
   ...
 ~~~~~
 
-MLS also provides an authenticated signing key pair for each participant.  When
-SFrame uses signatures, these are the keys used to generate SFrame signatures.
-
 # Media Considerations
 
 ## SFU
@@ -661,7 +655,8 @@ This section describes how this normal SFU modes of operation interacts with the
 ### LastN and RTP stream reuse
 The SFU may choose to send only a certain number of streams based on the voice activity of the participants. To reduce the number of SDP O/A required to establish a new RTP stream, the SFU may decide to reuse previously existing RTP sessions or even pre-allocate a predefined number of RTP streams and choose in each moment in time which participant media will be sending through it.
 This means that in the same RTP stream (defined by either SSRC or MID) may carry media from different streams of different participants. As different keys are used by each participant for encoding their media, the receiver will be able to verify which is the sender of the media coming within the RTP stream at any given point if time, preventing the SFU trying to impersonate any of the participants with another participant's media.
-Note that in order to prevent impersonation by a malicious participant (not the SFU) usage of the signature is required. In case of video, the a new signature should be started each time a key frame is sent to allow the receiver to identify the source faster after a switch.
+
+Note that in order to prevent impersonation by a malicious participant (not the SFU), a mechanism based on digital signature would be required. SFrame does not protect against such attacks.
 
 ### Simulcast
 When using simulcast, the same input image will produce N different encoded frames (one per simulcast layer) which would be processed independently by the frame encryptor and assigned an unique counter for each.

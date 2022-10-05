@@ -149,7 +149,7 @@ media in a broad range of scenarios, as outlined by the following goals:
 
 # SFrame
 
-We propose an encryption mechanism that provides effective end-to-end encryption, is simple to implement, has no dependencies on RTP, and minimizes encryption bandwidth overhead. Because SFrame can encrypt a full frame, rather than individual packets, bandwidth overhead can reduced by adding encryption overhead only once per media frame, instead of once per packet.
+This document defines an encryption mechanism that provides effective end-to-end encryption, is simple to implement, has no dependencies on RTP, and minimizes encryption bandwidth overhead. Because SFrame can encrypt a full frame, rather than individual packets, bandwidth overhead can reduced by adding encryption overhead only once per media frame, instead of once per packet.
 
 ## Application Context
 

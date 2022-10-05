@@ -250,11 +250,15 @@ derived:
 
 Applications MUST ensure that each (KID, CTR) combination is used for exactly
 one encryption operation.  Typically this is done by assigning each sender a KID
-or set of KIDs, then having each sender use the CTR field to uniquely identify
-each encryption operation.
+or set of KIDs, then having each sender use the CTR field as a monotonic
+counter, incrementing for each plaintext that is encrypted.  Note that in
+addition to its simplicity, this scheme minimizes overhead by keeping CTR values
+as small as possible.
 
-Both the counter and the key id are encoded as integers in network (big-endian) byte order, in a variable length format to decrease the overhead.
-The length of each field is up to 8 bytes and is represented in 3 bits in the SFrame header: 000 represents a length of 1, 001 a length of 2, etc.
+Both the counter and the key id are encoded as integers in network (big-endian)
+byte order, in a variable length format to decrease the overhead.  The length of
+each field is up to 8 bytes and is represented in 3 bits in the SFrame header:
+000 represents a length of 1, 001 a length of 2, etc.
 
 The first byte in the SFrame header has a fixed format and contains the header metadata:
 

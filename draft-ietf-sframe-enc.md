@@ -72,19 +72,19 @@ While DTLS-SRTP can be used as an efficient HBH mechanism, it is inherently poin
 
 This document proposes a new end-to-end encryption mechanism known as SFrame, specifically designed to work in group conference calls with SFUs.
 
-~~~~~
-  +-------------------------------+-------------------------------+^+
+~~~ aasvg
+  +---+-+-+-------+-+-------------+-------------------------------+^+
   |V=2|P|X|  CC   |M|     PT      |       sequence number         | |
-  +-------------------------------+-------------------------------+ |
+  +---+-+-+-------+-+-------------+-------------------------------+ |
   |                           timestamp                           | |
   +---------------------------------------------------------------+ |
   |           synchronization source (SSRC) identifier            | |
-  |=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=| |
+  +===============================================================+ |
   |            contributing source (CSRC) identifiers             | |
   |                               ....                            | |
   +---------------------------------------------------------------+ |
   |                   RTP extension(s) (OPTIONAL)                 | |
-+^---------------------+------------------------------------------+ |
++^+--------------------+------------------------------------------+ |
 | |   payload header   |                                          | |
 | +--------------------+     payload  ...                         | |
 | |                                                               | |
@@ -92,7 +92,7 @@ This document proposes a new end-to-end encryption mechanism known as SFrame, sp
 | :                       authentication tag                      : |
 | +---------------------------------------------------------------+ |
 |                                                                   |
-++ Encrypted Portion                       Authenticated Portion +--+
++-- Encrypted Portion                       Authenticated Portion --+
 ~~~~~
 {: title="SRTP packet format"}
 
@@ -174,7 +174,7 @@ per-frame.
 
 [[ TODO: Update the analysis in {{overhead}} to illustrate this difference ]]
 
-~~~~~
+~~~ aasvg
       +-------------------------------------------------------+
       |                                                       |
       |  +----------+      +------------+      +-----------+  |
@@ -216,10 +216,10 @@ sender, in order to avoid reuse of IVs.
 
 ## SFrame Format
 
-~~~~~
-  +------------+------------------------------------------+^+
+~~~ aasvg
+  +-+---+-+----+------------------------------------------+^+
   |S|LEN|X|KID |         Frame Counter                    | |
-+^+------------+------------------------------------------+ |
++^+-+---+-+----+------------------------------------------+ |
 | |                                                       | |
 | |                                                       | |
 | |                                                       | |
@@ -246,7 +246,7 @@ Both the frame counter and the key id are encoded in a variable length format to
 The length is up to 8 bytes and is represented in 3 bits in the SFrame header: 000 represents a length of 1, 001 a length of 2...
 The first byte in the SFrame header is fixed and contains the header metadata with the following format:
 
-~~~~~
+~~~ aasvg
  0 1 2 3 4 5 6 7
 +-+-+-+-+-+-+-+-+
 |R|LEN  |X|  K  |
@@ -265,11 +265,11 @@ Key or Key Length: 3 bits
 
 If X flag is 0 then the KID is in the range of 0-7 and the frame counter (CTR) is found in the next LEN bytes:
 
-~~~~~
+~~~ aasvg
  0 1 2 3 4 5 6 7
-+-+-+-+-+-+-+-+-+---------------------------------+
++-+-----+-+-----+---------------------------------+
 |R|LEN  |0| KID |    CTR... (length=LEN)          |
-+-+-+-+-+-+-+-+-+---------------------------------+
++-+-----+-+-----+---------------------------------+
 ~~~~~
 
 Frame counter byte length (LEN): 3bits
@@ -281,11 +281,11 @@ Frame counter (CTR): (Variable length)
 
 if X flag is 1 then KLEN is the length of the key (KID), that is found after the SFrame header metadata byte. After the key id (KID), the frame counter (CTR) will be found in the next LEN bytes:
 
-~~~~~
+~~~ aasvg
  0 1 2 3 4 5 6 7
-+-+-+-+-+-+-+-+-+---------------------------+---------------------------+
++-+-----+-+-----+---------------------------+---------------------------+
 |R|LEN  |1|KLEN |   KID... (length=KLEN)    |    CTR... (length=LEN)    |
-+-+-+-+-+-+-+-+-+---------------------------+---------------------------+
++-+-----+-+-----+---------------------------+---------------------------+
 ~~~~~
 
 Frame counter byte length (LEN): 3bits
@@ -393,7 +393,7 @@ def encrypt(S, CTR, KID, frame_metadata, frame):
 
 The encrypted payload is then passed to a generic RTP packetized to construct the RTP packets and encrypt it using SRTP keys for the HBH encryption to the media server.
 
-~~~~~
+~~~ aasvg
 
    +----------------+  +---------------+
    | frame metadata |  |               |
@@ -409,9 +409,9 @@ header ----+------------------>| AAD
 +-----+                        |
 | KID +--+--> sframe_key ----->| Key
 |     |  |                     |
-|     |  +--> sframe_salt -+   |
-+-----+                    |   |
-| CTR +--------------------+-->| Nonce
+|     |  +--> sframe_salt --+  |
++-----+                     |  |
+| CTR +---------------------+->| Nonce
 |     |                        |
 |     |                        |
 +-----+                        |
@@ -632,29 +632,29 @@ Once an SFrame stack has been provisioned with the `sframe_epoch_secret` for an
 epoch, it can compute the required KIDs and `sender_base_key` values on demand,
 as it needs to encrypt/decrypt for a given member.
 
-~~~~~
-        ...
+~~~ aasvg
+  ...
          |
-Epoch 17 +--+-- index=33 -> KID = 0x211
+Epoch 17 +--+-- index=33 --> KID = 0x211
          |  |
-         |  +-- index=51 -> KID = 0x331
+         |  +-- index=51 --> KID = 0x331
          |
          |
-Epoch 16 +--+-- index=2 --> KID = 0x20
+Epoch 16 +--+-- index=2 ---> KID = 0x20
          |
          |
-Epoch 15 +--+-- index=3 --> KID = 0x3f
+Epoch 15 +--+-- index=3 ---> KID = 0x3f
          |  |
-         |  +-- index=5 --> KID = 0x5f
+         |  +-- index=5 ---> KID = 0x5f
          |
          |
-Epoch 14 +--+-- index=3 --> KID = 0x3e
+Epoch 14 +--+-- index=3 ---> KID = 0x3e
          |  |
-         |  +-- index=7 --> KID = 0x7e
+         |  +-- index=7 ---> KID = 0x7e
          |  |
-         |  +-- index=20 -> KID = 0x14e
+         |  +-- index=20 --> KID = 0x14e
          |
-        ...
+  ...
 ~~~~~
 
 MLS also provides an authenticated signing key pair for each participant.  When

@@ -209,7 +209,15 @@ Alice |                    +-----+------+                     |   Encrypted Pack
 
 The E2EE keys used to encrypt the frame are exchanged out of band using a secure E2EE channel.
 
-## SFrame Format
+## SFrame Ciphertext
+
+An SFrame ciphertext comprises an SFrame header followed by the output of an
+AEAD encryption of the plaintext {{!RFC5116}}, with the header provided as additional
+authenticated data (AAD).
+
+The SFrame header is a variable-length structure described in detail in
+{{sframe-header}}.  The structure of the encrypted data and authentication tag
+are determined by the AEAD algorithm in use.
 
 ~~~ aasvg
   +-+---+-+----+------------------------------------------+^+
@@ -219,46 +227,65 @@ The E2EE keys used to encrypt the frame are exchanged out of band using a secure
 | |                                                       | |
 | |                                                       | |
 | |                                                       | |
-| |                  Encrypted Frame                      | |
+| |                   Encrypted Data                      | |
 | |                                                       | |
 | |                                                       | |
 | |                                                       | |
 | |                                                       | |
-+^+-------------------------------------------------------+^+
++>+-------------------------------------------------------+<+
 | |                 Authentication Tag                    | |
 | +-------------------------------------------------------+ |
 |                                                           |
 |                                                           |
-+----+Encrypted Portion            Authenticated Portion+---+
++---- Encrypted Portion            Authenticated Portion ---+
 ~~~~~
 
+When SFrame is applied per-packet, the payload of each packet will be an SFrame
+ciphertext.  When SFrame is applied per-frame, the SFrame ciphertext
+representing an encrypted frame will span several packets, with the header
+appearing in the first packet and the authentication tag in the last packet.
+
 ## SFrame Header
-Since each endpoint can send multiple media layers, each frame will have a unique frame counter that will be used to derive the encryption IV. The frame counter must be unique and monotonically increasing to avoid IV reuse.
 
-As each sender will use their own key for encryption, so the SFrame header will include the key id to allow the receiver to identify the key that needs to be used for decrypting.
+The SFrame header specifies two values from which encryption parameters are
+derived:
 
-Both the frame counter and the key id are encoded in a variable length format to decrease the overhead.
-The length is up to 8 bytes and is represented in 3 bits in the SFrame header: 000 represents a length of 1, 001 a length of 2...
-The first byte in the SFrame header is fixed and contains the header metadata with the following format:
+* A Key ID (KID) that determines which encryption key should be used
+* A counter (CTR) that is used to construct the IV for the encryption
+
+Applications MUST ensure that each (KID, CTR) combination is used for exactly
+one encryption operation.  Typically this is done by assigning each sender a KID
+or set of KIDs, then having each sender use the CTR field as a monotonic
+counter, incrementing for each plaintext that is encrypted.  Note that in
+addition to its simplicity, this scheme minimizes overhead by keeping CTR values
+as small as possible.
+
+Both the counter and the key id are encoded as integers in network (big-endian)
+byte order, in a variable length format to decrease the overhead.  The length of
+each field is up to 8 bytes and is represented in 3 bits in the SFrame header:
+000 represents a length of 1, 001 a length of 2, etc.
+
+The first byte in the SFrame header has a fixed format and contains the header metadata:
 
 ~~~ aasvg
  0 1 2 3 4 5 6 7
 +-+-+-+-+-+-+-+-+
-|R|LEN  |X|  K  |
+|R| LEN |X|  K  |
 +-+-+-+-+-+-+-+-+
-SFrame header metadata
 ~~~~~
+{: title="SFrame header metadata"}
 
 Reserved (R): 1 bit
     This field MUST be set to zero on sending, and MUST be ignored by receivers.
 Counter Length (LEN): 3 bits
-    This field indicates the length of the CTR fields in bytes (1-8).
+    This field indicates the length of the CTR field in bytes, minus one (the
+    range of possible values is thus 1-8).
 Extended Key Id Flag (X): 1 bit
      Indicates if the key field contains the key id or the key length.
 Key or Key Length: 3 bits
      This field contains the key id (KID) if the X flag is set to 0, or the key length (KLEN) if set to 1.
 
-If X flag is 0 then the KID is in the range of 0-7 and the frame counter (CTR) is found in the next LEN bytes:
+If X flag is 0 then the KID is in the range of 0-7 and the counter (CTR) is found in the next LEN bytes:
 
 ~~~ aasvg
  0 1 2 3 4 5 6 7
@@ -266,15 +293,9 @@ If X flag is 0 then the KID is in the range of 0-7 and the frame counter (CTR) i
 |R|LEN  |0| KID |    CTR... (length=LEN)          |
 +-+-----+-+-----+---------------------------------+
 ~~~~~
+{: title="SFrame header with short KID" }
 
-Frame counter byte length (LEN): 3bits
-     The frame counter length in bytes (1-8).
-Key id (KID): 3 bits
-     The key id (0-7).
-Frame counter (CTR): (Variable length)
-     Frame counter value up to 8 bytes long.
-
-if X flag is 1 then KLEN is the length of the key (KID), that is found after the SFrame header metadata byte. After the key id (KID), the frame counter (CTR) will be found in the next LEN bytes:
+if X flag is 1 then KLEN is the length of the key (KID).  The KID is encoded in the KLEN bytes following the metadata byte, and the counter (CTR) is encoded in the next LEN bytes:
 
 ~~~ aasvg
  0 1 2 3 4 5 6 7
@@ -282,15 +303,6 @@ if X flag is 1 then KLEN is the length of the key (KID), that is found after the
 |R|LEN  |1|KLEN |   KID... (length=KLEN)    |    CTR... (length=LEN)    |
 +-+-----+-+-----+---------------------------+---------------------------+
 ~~~~~
-
-Frame counter byte length (LEN): 3bits
-     The frame counter length in bytes (1-8).
-Key length (KLEN): 3 bits
-     The key length in bytes (1-8).
-Key id (KID): (Variable length)
-     The key id value up to 8 bytes long.
-Frame counter (CTR): (Variable length)
-     Frame counter value up to 8 bytes long.
 
 ## Encryption Schema
 
@@ -474,13 +486,14 @@ o An AEAD encryption algorithm [RFC5116] used for frame encryption, optionally
 
 This document defines the following ciphersuites:
 
-| Value  | Name                           | Nh | Nk | Nn | Reference |
-|:-------|:-------------------------------|:---|----|:---|:----------|
-| 0x0001 | AES\_CM\_128\_HMAC\_SHA256\_80 | 32 | 16 | 12 | RFC XXXX  |
-| 0x0002 | AES\_CM\_128\_HMAC\_SHA256\_64 | 32 | 16 | 12 | RFC XXXX  |
-| 0x0003 | AES\_CM\_128\_HMAC\_SHA256\_32 | 32 | 16 | 12 | RFC XXXX  |
-| 0x0004 | AES\_GCM\_128\_SHA256\_128     | 32 | 16 | 12 | RFC XXXX  |
-| 0x0005 | AES\_GCM\_256\_SHA512\_128     | 64 | 32 | 12 | RFC XXXX  |
+| Value  | Name                            | Nh | Nk | Nn | Reference |
+|:-------|:--------------------------------|:---|----|:---|:----------|
+| 0x0001 | AES\_CTR\_128\_HMAC\_SHA256\_80 | 32 | 16 | 12 | RFC XXXX  |
+| 0x0002 | AES\_CTR\_128\_HMAC\_SHA256\_64 | 32 | 16 | 12 | RFC XXXX  |
+| 0x0003 | AES\_CTR\_128\_HMAC\_SHA256\_32 | 32 | 16 | 12 | RFC XXXX  |
+| 0x0004 | AES\_GCM\_128\_SHA256\_128      | 32 | 16 | 12 | RFC XXXX  |
+| 0x0005 | AES\_GCM\_256\_SHA512\_128      | 64 | 32 | 12 | RFC XXXX  |
+
 
 <!-- RFC EDITOR: Please replace XXXX above with the RFC number assigned to this
 document -->
@@ -495,7 +508,7 @@ configured for different media streams.  For example, in order to conserve
 bandwidth, a session might use a ciphersuite with eighty-bit tags for video frames
 and another ciphersuite with thirty-two-bit tags for audio frames.
 
-### AES-CM with SHA2
+### AES-CTR with SHA2
 
 In order to allow very short tag sizes, we define a synthetic AEAD function
 using the authenticated counter mode of AES together with HMAC for
@@ -508,14 +521,14 @@ follows, where `Nk` represents the key size for the AES block cipher in use and
 
 ~~~~~
 def derive_subkeys(sframe_key):
-  aead_secret = HKDF-Extract(sframe_key, 'SFrame10 AES CM AEAD')
+  aead_secret = HKDF-Extract(sframe_key, 'SFrame10 AES CTR AEAD')
   enc_key = HKDF-Expand(aead_secret, 'enc', Nk)
   auth_key = HKDF-Expand(aead_secret, 'auth', Nh)
   return enc_key, auth_key
 ~~~~~
 
 The AEAD encryption and decryption functions are then composed of individual
-calls to the CM encrypt function and HMAC.  The resulting MAC value is truncated
+calls to the CTR encrypt function and HMAC.  The resulting MAC value is truncated
 to a number of bytes `tag_len` fixed by the ciphersuite.
 
 ~~~~~
@@ -528,7 +541,7 @@ def compute_tag(auth_key, nonce, aad, ct):
 
 def AEAD.Encrypt(key, nonce, aad, pt):
   enc_key, auth_key = derive_subkeys(key)
-  ct = AES-CM.Encrypt(enc_key, nonce, pt)
+  ct = AES-CTR.Encrypt(enc_key, nonce, pt)
   tag = compute_tag(auth_key, nonce, aad, ct)
   return ct + tag
 
@@ -540,7 +553,7 @@ def AEAD.Decrypt(key, nonce, aad, ct):
   if !constant_time_equal(tag, candidate_tag):
     raise Exception("Authentication Failure")
 
-  return AES-CM.Decrypt(enc_key, nonce, inner_ct)
+  return AES-CTR.Decrypt(enc_key, nonce, inner_ct)
 ~~~~~
 
 # Key Management

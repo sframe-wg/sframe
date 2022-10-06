@@ -1,4 +1,4 @@
-## AES_CM_128_HMAC_SHA256_4
+## AES_CTR_128_HMAC_SHA256_4
 
 ~~~
 CipherSuite:    0x01
@@ -16,10 +16,10 @@ KID:            0x7
 CTR:            0x0
 Header:         1700
 Nonce:          42d662fbad5cd81eb3aad79a
-Ciphertext:     170065c67c6fb784631a7db1b589ffb6
-                2d75b78e28b0899e632fbbee3b944747
-                a6382d75b6bd3788dc7b71b9295c7fb9
-                0b5098f7add14ef329
+Ciphertext:     1700c5095af9dbbbed6a952de114ea7b
+                42768509f1ffc9749abb1e95bf4514d8
+                d82a0eef4b5ecac16fa193977fa1aa1c
+                9fa5c7e73093ab2a43
 ~~~
 
 ~~~
@@ -27,10 +27,10 @@ KID:            0x7
 CTR:            0x1
 Header:         1701
 Nonce:          42d662fbad5cd81eb3aad79b
-Ciphertext:     1701ec742e98d667be810f153ff0d4da
-                d7969f69b310aa7c6b9cb911e83af09b
-                0f0a6d74772d8195c8c9dae3878fd1cb
-                10edb4176d12e2387a
+Ciphertext:     1701559e262525382885c6c93be8f61a
+                9064db2dd1e1e96ab1dbd829ca4af4f4
+                5f2b97a4889217a3f8a2159fb8201b7d
+                71db01702bd4bab5c7
 ~~~
 
 ~~~
@@ -38,10 +38,10 @@ KID:            0x7
 CTR:            0x2
 Header:         1702
 Nonce:          42d662fbad5cd81eb3aad798
-Ciphertext:     1702ac9b495d37a1e48c712ade5cba72
-                df0bf90f24aa022a454cfb92d8b87cd5
-                4335fb6b9eeded6a5aa4e2643d7a0994
-                6646001d0a41b09557
+Ciphertext:     17020a8f21e052eaa09e50da0a909d15
+                6cc55b9ef2f2abbcca765f7af3cfb1af
+                234e3eac1dbc376631c83cf1ff1f8ab3
+                39dbc41044cc930d87
 ~~~
 
 ~~~
@@ -49,10 +49,10 @@ KID:            0xf
 CTR:            0xaa
 Header:         190faa
 Nonce:          42d662fbad5cd81eb3aad730
-Ciphertext:     190faaeaa5adc70cae0d6ebd36805fa8
-                7d2351dd02c55c751cd351a7fdb7f092
-                7b474eae3e800033e08100a440002da1
-                7579678b36dc275789d5
+Ciphertext:     190faa9c65aa5b167873f25827f17bc3
+                4879a4aaa6b38dd9584472e1849d5da5
+                1555f288d08f03166a5f26af01794006
+                255c88b58986246287c9
 ~~~
 
 ~~~
@@ -60,10 +60,10 @@ KID:            0x1ff
 CTR:            0xaa
 Header:         1a01ffaa
 Nonce:          42d662fbad5cd81eb3aad730
-Ciphertext:     1a01ffaaeaa5adc70cae0d6ebd36805f
-                a87d2351dd02c55c751cd351a7fdb7f0
-                927b474eae3e800033e08100a440002d
-                a17579678b36dc9bbe558b
+Ciphertext:     1a01ffaa9c65aa5b167873f25827f17b
+                c34879a4aaa6b38dd9584472e1849d5d
+                a51555f288d08f03166a5f26af017940
+                06255c88b589863003872e
 ~~~
 
 ~~~
@@ -71,10 +71,10 @@ KID:            0x1ff
 CTR:            0xaaaa
 Header:         2a01ffaaaa
 Nonce:          42d662fbad5cd81eb3aa7d30
-Ciphertext:     2a01ffaaaa170500225053f1a044e51c
-                4e91a6b783f69b1714fb31531d95d5b8
-                dd7926c2d43405b4f32b9b49dd6e0aa5
-                aba2427a94ff97f81dcd2826
+Ciphertext:     2a01ffaaaa990cbeb4ae2e3a76be8bb9
+                54b62591e791d0fa53c0553bc1d1e021
+                d270b1a10688cd89195203b019789253
+                73b04f9c08c3a4e5fb0173ef
 ~~~
 
 ~~~
@@ -82,14 +82,14 @@ KID:            0xffffffffffffff
 CTR:            0xffffffffffffff
 Header:         7fffffffffffffffffffffffffffff
 Nonce:          42d662fbada327e14c552865
-Ciphertext:     7fffffffffffffffffffffffffffffdc
-                a3655d5117bc838d6f4382ca468a4f99
-                2ff77bfd1d2f4391be6b33e8fb638dc4
-                8aa82f57fd91430c714def0b2089c8bf
-                b2ac9da92415
+Ciphertext:     7fffffffffffffffffffffffffffff41
+                2c43c8077c286f7df3dd9988d1bd033f
+                1067493e09421e5bfc363e50a3c803b4
+                da9239514cb924dbcb5f33e33112083e
+                99103ef272e8
 ~~~
 
-## AES_CM_128_HMAC_SHA256_8
+## AES_CTR_128_HMAC_SHA256_8
 
 ~~~
 CipherSuite:    0x02
@@ -107,10 +107,10 @@ KID:            0x7
 CTR:            0x0
 Header:         1700
 Nonce:          77fbf5f1d82c73f6d2b353c9
-Ciphertext:     1700647513fce71aab7fed1e904fd924
-                0343d77092c831f0d58fde0985a0f3e5
-                ba4020e87a7b9c870b5f8f7f628d2769
-                0cc1e571e4d391da5fbf428433
+Ciphertext:     17009d89e5753e06edf3025f1ccd70b0
+                95ebaf10c250e11da740f50f57b6ce86
+                0d7321dfa49688a2cd6c6d9a71ae9d5c
+                14ad0978efe0216ae5f6788ffe
 ~~~
 
 ~~~
@@ -118,10 +118,10 @@ KID:            0x7
 CTR:            0x1
 Header:         1701
 Nonce:          77fbf5f1d82c73f6d2b353c8
-Ciphertext:     17019e1bdf713b0d4c02f3dbf50a72ea
-                773286e7da38f3872cc734f3e1b1448a
-                ab5009b424e05495214f96d02e4e8f8d
-                a975cc808f40f67cafead7cffd
+Ciphertext:     1701becd2e9d10e3eed586491b3e0ece
+                dba89407ae2151787c5117b55707d6b8
+                a0754f4dc937e30ebdf7cafbd3769d65
+                85d7991b1aa6f36e418fdec6fa
 ~~~
 
 ~~~
@@ -129,10 +129,10 @@ KID:            0x7
 CTR:            0x2
 Header:         1702
 Nonce:          77fbf5f1d82c73f6d2b353cb
-Ciphertext:     170220ad36fd9191453ace2d36a175ad
-                8a69c1f16b8613d14b4f7ef30c68bc56
-                09e349df38155cc1544d7dbfa079e3fa
-                ae3c7883b448e75047caafe05b
+Ciphertext:     170298508be6b16d034f15b504ced45a
+                86d1bb43ed7cd3a62bf25557d1b082b0
+                4e8e6ba6fe76160835dd8953e1be9640
+                c988627ea4f1bb846e87523f8b
 ~~~
 
 ~~~
@@ -140,10 +140,10 @@ KID:            0xf
 CTR:            0xaa
 Header:         190faa
 Nonce:          77fbf5f1d82c73f6d2b35363
-Ciphertext:     190faadab9b284a4b9e3aea36b9cdcae
-                4a58e141d3f0f52f240ef80a93dbb8d8
-                09ede01b05b2cace18a22fb39c032724
-                481c5baa181d6b793458355b0f30
+Ciphertext:     190faae7eec4b0556ddfb8068998351c
+                d670ce95f0ce9cd4c6dca2eeee73fb14
+                d20a0d0fd487337ed43fa7f98dad0995
+                b8b870325aa349ac0590c2745d5d
 ~~~
 
 ~~~
@@ -151,10 +151,10 @@ KID:            0x1ff
 CTR:            0xaa
 Header:         1a01ffaa
 Nonce:          77fbf5f1d82c73f6d2b35363
-Ciphertext:     1a01ffaadab9b284a4b9e3aea36b9cdc
-                ae4a58e141d3f0f52f240ef80a93dbb8
-                d809ede01b05b2cace18a22fb39c0327
-                24481c5baa181dad5ad0f89a1cfb58
+Ciphertext:     1a01ffaae7eec4b0556ddfb806899835
+                1cd670ce95f0ce9cd4c6dca2eeee73fb
+                14d20a0d0fd487337ed43fa7f98dad09
+                95b8b870325aa31d576e8a34093320
 ~~~
 
 ~~~
@@ -162,10 +162,10 @@ KID:            0x1ff
 CTR:            0xaaaa
 Header:         2a01ffaaaa
 Nonce:          77fbf5f1d82c73f6d2b3f963
-Ciphertext:     2a01ffaaaae0f2384e4dc472cb92238b
-                5b722159205c4481665484de66985f15
-                5071655ca4e9d1c998781f8c7d439f8d
-                1eb6f6071cd80fd22f7e8846ba91036a
+Ciphertext:     2a01ffaaaa8c1789aa0abcd6abc27006
+                aae4df5cba4ba07f8113080e9726baac
+                d16c18539974a6204a36b9dc3dcd36ed
+                9ab48e590d95d4ad1b05f8375508c55d
 ~~~
 
 ~~~
@@ -173,11 +173,11 @@ KID:            0xffffffffffffff
 CTR:            0xffffffffffffff
 Header:         7fffffffffffffffffffffffffffff
 Nonce:          77fbf5f1d8d38c092d4cac36
-Ciphertext:     7fffffffffffffffffffffffffffff4b
-                8c7429d7ee83eec5e53808b80555b1f8
-                0b1df9d97877575fa1c7fa35b6119c68
-                ed6543020075959dcc4ca6900a7f9cf1
-                d936b640bba41ca62f6c
+Ciphertext:     7fffffffffffffffffffffffffffffa9
+                bc6c7edde0fdfd13255a5b145c5ce84d
+                b8f8960858eb998b8ea8f3e770160150
+                813c5806441b64251bdd2be9e8cec138
+                6b6f5e73eaa6c19e6555
 ~~~
 
 ## AES_GCM_128_SHA256

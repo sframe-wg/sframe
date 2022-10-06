@@ -157,71 +157,69 @@ overhead only once per media frame, instead of once per packet.
 
 ## Application Context
 
-SFrame is a general encryption framing that can be applied before or after
-packetization within a media stack.  That is, SFrame can be applied per-frame or
-per-packet.  Applying SFrame per-frame offers higher efficiency, at the cost of a
-more complex integration with the media stack.  Applying SFrame per-packet makes
-it simple to integrate SFrame into a media stack, at the cost of higher
-bandwidth consumption.
+SFrame is a general encryption framing, which is typically applied in one of two
+ways: Either to encrypt whole media frames (per-frame) or individual media
+payloads (per-packet).  The scale at which SFrame encryption is applied to media
+determines the overall amount of overhead that SFrame adds to the media stream,
+as well as the engineering complexity involved in integrating SFrame into a
+particular environment.
 
-When media content is encrypted per-frame, the encrypted frame needs to be
-packetized using a generic RTP packetizer instead of codec-dependent
-packetization mechanisms.  The generic packetizer splits the E2E encrypted media
-frame into one or more RTP packets and adds the SFrame header to the beginning
-of the first packet and an auth tag to the end of the last packet.  Because a
-frame is encrypted as a unit, if any packet in the frame is lost, the whole
-frame is lost.
+For example, {{media-stack}} shows a typical media stack that takes media in
+from some source, encodes it into frames, divides those frames into media
+payloads, and then sends those payloads in SRTP packets.  Arrows indicate the
+points where SFrame protection would be integrated into this media stack, when
+applied per-frame or per-packet. 
 
-When media content is encrypted per-packet, no changes to packetization are
-necessary.  The normal packetization process is followed, then the payload of
-the packet is encrypted with SFrame before being transmitted, in the same way as
-with SRTP.  Unlike per-frame encryption, this adds the overhead of an SFrame
-header and authentication tag to each packet instead of each frame, resulting in
-higher bandwidth usage to transmit the same media content.  Empirically, a
-typical conference consumes about 8% more bandwidth using SFrame per-packet vs.
-per-frame.
+Applying SFrame per-frame in this system offers higher efficiency, but may
+require a more complex integration in environments where depacketization relies
+on the content of media packets. Applying SFrame per-packet avoids this
+complexity, at the cost of higher bandwidth consumption.  Some quantitative
+discussion of these trade-offs is provided in {{overhead}}.
 
-[[ TODO: Update the analysis in {{overhead}} to illustrate this difference ]]
+As noted above however, SFrame is a general media encapsulation, and can be
+applied in other scenarios.  The precise efficiency and complexity trade-offs
+will depend on the environment in which SFrame is being integrated.
 
 ~~~ aasvg
-      +-------------------------------------------------------+
-      |                                                       |
-      |  +----------+      +------------+      +-----------+  |
- .-.  |  |          |      |   SFrame   |      |   SRTP    |  |
-|   | |  |  Encode  |----->|  Encrypt   |----->|  Encrypt  |-----------+
- '+'  |  |          |  ^   |            |  ^   |           |  |        |
- /|\  |  +----------+  |   +-----+------+  |   +-----------+  |        |
-/ + \ |                |         ^         |         ^        |        |
- / \  |            Packetize     |     Packetize     |        |        |
-/   \ |           (per-packet)   |    (per-packet)   |        |        |
-Alice Alice |                          |                   |        |        |
-      +--------------------------|-------------------|--------+        |
-                                 |                   |                 v
-                                 |                   |           +-----+------+
-                       E2E Key   |         HBH Key   |           |   Media    |
-                      Management |        Management |           |   Server   |
-                                 |                   |           +-----+------+
-                                 |                   |                 |
-      +--------------------------|-------------------|--------+        |
- .-.  |                          |                   |        |        |
-|   | |            Depacketize   |     Depacketize   |        |        |
- '+'  |            (per-packet)  |     (per-frame)   |        |        |
- /|\  |                 |        V          |        V        |        |
-/ + \ |  +----------+   |  +-----+------+   |  +-----------+  |        |
- / \  |  |          |   V  |   SFrame   |   V  |   SRTP    |  |        |
-/   \ |  |  Decode  |<-----|  Decrypt   |<-----|  Decrypt  |<----------+
- Bob  |  |          |      |            |      |           |  |
-      |  +----------+      +------------+      +-----------+  |
-      |                                                       |
-      +-------------------------------------------------------+
+      +--------------------------------------------------------+
+      |                                                        |
+      |  +----------+      +-------------+      +-----------+  |
+ .-.  |  |          |      |             |      |   SRTP    |  |
+|   | |  |  Encode  |----->|  Packetize  |----->|  Encrypt  |-----------+
+ '+'  |  |          |  ^   |             |  ^   |           |  |        |
+ /|\  |  +----------+  |   +-----+-------+  |   +-----------+  |        |
+/ + \ |                |         ^          |         ^        |        |
+ / \  |              SFrame      |       SFrame       |        |        |
+/   \ |              Protect     |       Protect      |        |        |
+Alice |            (per-frame)   |     (per-packet)   |        |        |
+      +--------------------------|--------------------|--------+        |
+                                 |                    |                 v
+                                 |                    |           +-----+------+
+                       E2E Key   |          HBH Key   |           |   Media    |
+                      Management |         Management |           |   Server   |
+                                 |                    |           +-----+------+
+                                 |                    |                 |
+      +--------------------------|--------------------|--------+        |
+ .-.  |              SFrame      |        SFrame      |        |        |
+|   | |             Unprotect    |       Unprotect    |        |        |
+ '+'  |            (per-frame)   |      (per-packet)  |        |        |
+ /|\  |                 |        V           |        V        |        |
+/ + \ |  +----------+   |  +-----+-------+   |  +-----------+  |        |
+ / \  |  |          |   V  |             |   V  |   SRTP    |  |        |
+/   \ |  |  Decode  |<-----| Depacketize |<-----|  Decrypt  |<----------+
+ Bob  |  |          |      |             |      |           |  |
+      |  +----------+      +-------------+      +-----------+  |
+      |                                                        |
+      +--------------------------------------------------------+
 ~~~~~
+{: media-stack "Integration of SFrame in a typical media stack" }
 
-Much like SRTP, SFrame does not define how the keys used for SFrame are
-exchanged by the parties in the conference.  Keys for SFrame might be
-distributed over an existing E2E-secure channel, or derived from an E2E-secure
-shared secret (as in {{?I-D.barnes-sframe-mls}}).  The key management system
-MUST ensure that each key used for encrypting media is used by exactly one media
-sender, in order to avoid reuse of IVs.
+Like SRTP, SFrame does not define how the keys used for SFrame are exchanged by
+the parties in the conference.  Keys for SFrame might be distributed over an
+existing E2E-secure channel (see {{sender-keys}}), or derived from an E2E-secure
+shared secret (see {{mls}}).  The key management system MUST ensure that each
+key used for encrypting media is used by exactly one media sender, in order to
+avoid reuse of IVs.
 
 ## SFrame Ciphertext
 

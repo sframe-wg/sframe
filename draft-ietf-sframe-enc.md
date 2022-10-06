@@ -71,9 +71,9 @@ As such, two layers of encryptions and authentication are required:
   1. Hop-by-hop (HBH) encryption of media, metadata, and feedback messages between the the endpoints and SFU
   2. End-to-end (E2E) encryption of media between the endpoints
 
-The Secure Real-Time Protocol (SRTP) is already widely used for HBH encryption {{?RFC3711}}.  The SRTP "double encryption" scheme defines a way to do E2E encryption in SRTP {{?RFC8723}}. Unfortunately, this scheme has poor efficiency and high complexity, and its entanglement with RTP makes it unworkable in several realistic SFU scenarios.
+The Secure Real-Time Protocol (SRTP) is already widely used for HBH encryption {{?RFC3711}}. The SRTP "double encryption" scheme defines a way to do E2E encryption in SRTP {{?RFC8723}}. Unfortunately, this scheme has poor efficiency and high complexity, and its entanglement with RTP makes it unworkable in several realistic SFU scenarios.
 
-This document proposes a new end-to-end encryption mechanism known as SFrame, specifically designed to work in group conference calls with SFUs.  SFrame is a general encryption framing that can be used to protect payloads sent over SRTP
+This document proposes a new end-to-end encryption mechanism known as SFrame, specifically designed to work in group conference calls with SFUs. SFrame is a general encryption framing that can be used to protect payloads sent over SRTP
 
 ~~~ aasvg
    +---+-+-+-------+-+-------------+-------------------------------+<-+

@@ -458,7 +458,7 @@ o [Optional] A signature algorithm
 This document defines the following ciphersuites:
 
 
-| Value  | Name                           | Nh | Nk | Nn |Auth Tag Len | Reference |
+| Value  | Name                           | Nh | Nk | Nn |Auth Tag Len (bits) | Reference |
 |:-------|:-------------------------------|:---|:---|:---|:------------|:----------|
 | 0x0001 | AES\_CM\_128\_HMAC\_SHA256\_64 | 32 | 16 | 12 |          64 | RFC XXXX  |
 | 0x0002 | AES\_CM\_128\_HMAC\_SHA256\_32 | 32 | 16 | 12 |          32 | RFC XXXX  |

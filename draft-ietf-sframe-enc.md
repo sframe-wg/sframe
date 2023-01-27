@@ -176,7 +176,7 @@ on the content of media packets. Applying SFrame per-packet avoids this
 complexity, at the cost of higher bandwidth consumption.  Some quantitative
 discussion of these trade-offs is provided in {{overhead}}.
 
-As noted above however, SFrame is a general media encapsulation, and can be
+As noted above, however, SFrame is a general media encapsulation, and can be
 applied in other scenarios.  The precise efficiency and complexity trade-offs
 will depend on the environment in which SFrame is being integrated.
 

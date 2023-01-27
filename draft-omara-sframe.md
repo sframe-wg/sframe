@@ -463,7 +463,7 @@ This document defines the following ciphersuites:
 | 0x0001 | AES\_CM\_128\_HMAC\_SHA256\_64 | 32 | 16 | 12 |          64 | RFC XXXX  |
 | 0x0002 | AES\_CM\_128\_HMAC\_SHA256\_32 | 32 | 16 | 12 |          32 | RFC XXXX  |
 | 0x0003 | AES\_GCM\_128\_SHA256          | 32 | 16 | 12 |         128 | RFC XXXX  |
-| 0x0004 | AES\_GCM\_256\_SHA512          | 64 | 32 | 12 |         256 | RFC XXXX  |
+| 0x0004 | AES\_GCM\_256\_SHA512          | 64 | 32 | 12 |         128 | RFC XXXX  |
 
 <!-- RFC EDITOR: Please replace XXXX above with the RFC number assigned to this
 document -->

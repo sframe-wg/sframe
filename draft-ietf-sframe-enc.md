@@ -380,10 +380,14 @@ associated to a KID.  Given a `base_key` value, the key and salt are derived
 using HKDF {{!RFC5869}} as follows:
 
 ~~~~~
-sframe_secret = HKDF-Extract(base_key, 'SFrame10')
+sframe_secret = HKDF-Extract(base_key, 'SFrame 1.0 ' + KID)
 sframe_key = HKDF-Expand(sframe_secret, 'key', AEAD.Nk)
 sframe_salt = HKDF-Expand(sframe_secret, 'salt', AEAD.Nn)
 ~~~~~
+
+In the derivation of `sframe_secret`, the `+` operator represents concatenation
+of octet strings and the KID value is encoded as an 8-byte big-endian integer
+(not the compressed form used in the SFrame header).
 
 The hash function used for HKDF is determined by the ciphersuite in use.
 

@@ -638,20 +638,18 @@ step in the lifetime of the group is know as an "epoch", and each member of the
 group is assigned an "index" that is constant for the time they are in the
 group.
 
-In SFrame, we derive per-sender `base_key` values from the group secret for an
-epoch, and use the KID field to signal the epoch and sender index.  First, we
-use the MLS exporter to compute a shared SFrame secret for the epoch.
+To generate keys and nonces for SFrame, we use the MLS exporter function to
+generate a `base_key` value for each MLS epoch.  Each member of the group is
+assigned a unique KID value, so that each member has a unique `sframe_key` and
+`sframe_salt` that it uses to encrypt with. 
 
 ~~~~~
-sframe_epoch_secret = MLS-Exporter("SFrame 10 MLS", "", AEAD.Nk)
-
-sender_base_key[index] = HKDF-Expand(sframe_epoch_secret,
-                           encode_big_endian(index, 4), AEAD.Nk)
+base_key = MLS-Exporter("SFrame 1.0", "", AEAD.Nk)
 ~~~~~
 
-For compactness, do not send the whole epoch number.  Instead, we send only its
+For compactness, we do not send the whole epoch number.  Instead, we send only its
 low-order E bits.  Note that E effectively defines a re-ordering window, since
-no more than 2^E epoch can be active at a given time.  Receivers MUST be
+no more than 2^E epochs can be active at a given time.  Receivers MUST be
 prepared for the epoch counter to roll over, removing an old epoch when a new
 epoch with the same E lower bits is introduced.  (Sender indices cannot be
 similarly compressed.)

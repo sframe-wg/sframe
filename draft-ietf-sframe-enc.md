@@ -338,6 +338,9 @@ aspects of the AEAD algorithm below:
 
 * `AEAD.Nn` - The size of a nonce for the encryption algorithm, in bytes
 
+* `AEAD.Nt` - The overhead of the encryption algorithm, in bytes (typically the
+  size of a "tag" that is added to the plaintext)
+
 ### Key Selection
 
 Each SFrame encryption or decryption operation is premised on a single secret
@@ -505,19 +508,19 @@ o An AEAD encryption algorithm [RFC5116] used for frame encryption, optionally
 
 This document defines the following ciphersuites:
 
-| Value  | Name                            | Nh | Nk | Nn | Reference |
-|:-------|:--------------------------------|:---|----|:---|:----------|
-| 0x0001 | AES\_CTR\_128\_HMAC\_SHA256\_80 | 32 | 16 | 12 | RFC XXXX  |
-| 0x0002 | AES\_CTR\_128\_HMAC\_SHA256\_64 | 32 | 16 | 12 | RFC XXXX  |
-| 0x0003 | AES\_CTR\_128\_HMAC\_SHA256\_32 | 32 | 16 | 12 | RFC XXXX  |
-| 0x0004 | AES\_GCM\_128\_SHA256\_128      | 32 | 16 | 12 | RFC XXXX  |
-| 0x0005 | AES\_GCM\_256\_SHA512\_128      | 64 | 32 | 12 | RFC XXXX  |
+| Value  | Name                          | Nh | Nk | Nn | Nt | Reference |
+|:-------|:------------------------------|:---|----|:---|:---|:----------|
+| 0x0001 | `AES_CTR_128_HMAC_SHA256_80`  | 32 | 16 | 12 | 10 | RFC XXXX  |
+| 0x0002 | `AES_CTR_128_HMAC_SHA256_64`  | 32 | 16 | 12 |  8 | RFC XXXX  |
+| 0x0003 | `AES_CTR_128_HMAC_SHA256_32`  | 32 | 16 | 12 |  4 | RFC XXXX  |
+| 0x0004 | `AES_GCM_128_SHA256_128`      | 32 | 16 | 12 | 16 | RFC XXXX  |
+| 0x0005 | `AES_GCM_256_SHA512_128`      | 64 | 32 | 12 | 16 | RFC XXXX  |
 
 
 <!-- RFC EDITOR: Please replace XXXX above with the RFC number assigned to this
 document -->
 
-In the "AES" suites, the length of the authentication tag is indicated by
+In the suite names, the length of the authentication tag is indicated by
 the last value: "\_128" indicates a hundred-twenty-eight-bit tag, "\_80" indicates
 a eighty-bit tag, "\_64" indicates a sixty-four-bit tag and "\_32" indicates a
 thirty-two-bit tag.

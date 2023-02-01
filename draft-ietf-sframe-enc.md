@@ -236,7 +236,7 @@ Alice |            (per-frame)   |     (per-packet)   |        |        |
       |                                                        |
       +--------------------------------------------------------+
 ~~~~~
-{: media-stack "Integration of SFrame in a typical media stack" }
+{: #media-stack "Integration of SFrame in a typical media stack" }
 
 Like SRTP, SFrame does not define how the keys used for SFrame are exchanged by
 the parties in the conference.  Keys for SFrame might be distributed over an

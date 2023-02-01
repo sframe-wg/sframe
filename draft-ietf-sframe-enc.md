@@ -192,7 +192,7 @@ For example, {{media-stack}} shows a typical media stack that takes media in
 from some source, encodes it into frames, divides those frames into media
 payloads, and then sends those payloads in SRTP packets.  Arrows indicate the
 points where SFrame protection would be integrated into this media stack, when
-applied per-frame or per-packet. 
+applied per-frame or per-packet.
 
 Applying SFrame per-frame in this system offers higher efficiency, but may
 require a more complex integration in environments where depacketization relies

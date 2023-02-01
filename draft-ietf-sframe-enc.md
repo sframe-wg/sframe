@@ -735,13 +735,12 @@ Epoch 14 +--+-- index=3 ---> KID = 0x3e
 
 ## SFU
 
-Selective Forwarding Units (SFUs) as described in
-https://tools.ietf.org/html/rfc7667#section-3.7 receives the RTP streams from
-each participant and selects which ones should be forwarded to each of the other
-participants.  There are several approaches about how to do this stream
-selection but in general, in order to do so, the SFU needs to access metadata
-associated to each frame and modify the RTP information of the incoming packets
-when they are transmitted to the received participants.
+Selective Forwarding Units (SFUs) as described in {{Section 3.7 of ?RFC7667}}
+receives the RTP streams from each participant and selects which ones should be
+forwarded to each of the other participants.  There are several approaches about
+how to do this stream selection but in general, in order to do so, the SFU needs
+to access metadata associated to each frame and modify the RTP information of
+the incoming packets when they are transmitted to the received participants.
 
 This section describes how this normal SFU modes of operation interacts with the
 E2EE provided by SFrame

@@ -803,6 +803,39 @@ without waiting for the full frame to arrive, with SFrame this won't be possible
 because the decoder will not access the packets until the entire frame is
 arrived and decrypted.
 
+# Security Considerations
+
+## No Per-Sender Authentication
+
+SFrame does not provide per-sender authentication of media data.  Any sender in
+a session can send media that will be associated with any other sender.  This is
+because SFrame uses symmetric encryption to protect media data, so that any
+receiver also has the keys required to encrypt packets for the sender.
+
+## Key Management
+
+Key exchange mechanism is out of scope of this document, however every client
+MUST change their keys when new clients joins or leaves the call for "Forward
+Secrecy" and "Post Compromise Security".
+
+## Authentication tag length
+
+The cipher suites defined in this draft use short authentication tags for
+encryption, however it can easily support other ciphers with full authentication
+tag if the short ones are proved insecure.
+
+# IANA Considerations
+
+This document makes no requests of IANA.
+
+--- back
+
+# Acknowledgements
+
+The authors wish to specially thank Dr. Alex Gouaillard as one of the early
+contributors to the document. His passion and energy were key to the design and
+development of SFrame.
+
 # Overhead
 
 The encryption overhead will vary between audio and video streams, because in
@@ -896,36 +929,6 @@ For a conference with a single incoming audio stream (@ 50 pps) and 4 incoming
 video streams (@200 Kbps), the savings in overhead is 34800 - 9600 = ~25 Kbps,
 or ~3%.
 
-# Security Considerations
-
-## No Per-Sender Authentication
-
-SFrame does not provide per-sender authentication of media data.  Any sender in
-a session can send media that will be associated with any other sender.  This is
-because SFrame uses symmetric encryption to protect media data, so that any
-receiver also has the keys required to encrypt packets for the sender.
-
-## Key Management
-
-Key exchange mechanism is out of scope of this document, however every client
-MUST change their keys when new clients joins or leaves the call for "Forward
-Secrecy" and "Post Compromise Security".
-
-## Authentication tag length
-
-The cipher suites defined in this draft use short authentication tags for
-encryption, however it can easily support other ciphers with full authentication
-tag if the short ones are proved insecure.
-
-# IANA Considerations
-
-This document makes no requests of IANA.
-
-# Acknowledgements
-
-The authors wish to specially thank Dr. Alex Gouaillard as one of the early
-contributors to the document. His passion and energy were key to the design and
-development of SFrame.
 
 # Test Vectors
 

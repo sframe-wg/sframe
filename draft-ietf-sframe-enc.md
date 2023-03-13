@@ -337,7 +337,8 @@ found in the next LEN bytes:
 ~~~~~
 {: title="SFrame header with short KID" }
 
-If X flag is 1 then KLEN is the length of the key (KID).  The KID is encoded in
+If X flag is 1 then KLEN is the length of the key (KID) in bytes, minus one
+(the range of possible lengths is thus 1-8). The KID is encoded in
 the KLEN bytes following the metadata byte, and the counter (CTR) is encoded
 in the next LEN bytes:
 

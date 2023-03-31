@@ -229,18 +229,23 @@ func makeHeader(headerCase HeaderCase) []byte {
 	ctrData := minBigEndian(headerCase.CTR)
 
 	KLEN := byte(len(kidData))
+	if KLEN > 8 {
+		panic(fmt.Sprintf("KID too long"))
+	}
+
 	LEN := byte(len(ctrData))
-	if LEN > 7 {
+
+	if LEN > 8 {
 		panic(fmt.Sprintf("CTR too long"))
 	}
 
-	config := LEN << 4
+	config := (LEN - 1) << 4
 	if headerCase.KID <= 7 {
 		config |= byte(headerCase.KID)
 		kidData = nil
 		KLEN = 0
 	} else {
-		config |= 0x08 | KLEN
+		config |= 0x08 | (KLEN - 1)
 	}
 
 	header := make([]byte, 1+LEN+KLEN)

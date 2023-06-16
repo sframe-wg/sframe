@@ -92,33 +92,8 @@ several realistic SFU scenarios.
 
 This document proposes a new end-to-end encryption mechanism known as SFrame,
 specifically designed to work in group conference calls with SFUs. SFrame is a
-general encryption framing that can be used to protect payloads sent over SRTP
-
-~~~ aasvg
-   +---+-+-+-------+-+-------------+-------------------------------+<-+
-   |V=2|P|X|  CC   |M|     PT      |       sequence number         |  |
-   +---+-+-+-------+-+-------------+-------------------------------+  |
-   |                           timestamp                           |  |
-   +---------------------------------------------------------------+  |
-   |           synchronization source (SSRC) identifier            |  |
-   +===============================================================+  |
-   |            contributing source (CSRC) identifiers             |  |
-   |                               ....                            |  |
-   +---------------------------------------------------------------+  |
-   |                   RTP extension(s) (OPTIONAL)                 |  |
-+->+--------------------+------------------------------------------+  |
-|  |   SFrame header    |                                          |  |
-|  +--------------------+                                          |  |
-|  |                                                               |  |
-|  |          SFrame encrypted and authenticated payload           |  |
-|  |                                                               |  |
-+->+---------------------------------------------------------------+<-+
-|  |                    SRTP authentication tag                    |  |
-|  +---------------------------------------------------------------+  |
-|                                                                     |
-+--- SRTP Encrypted Portion             SRTP Authenticated Portion ---+
-~~~~~
-{: title="SRTP packet with SFrame-protected payload"}
+general encryption framing that can be used to protect payloads, agnostic of
+transport.
 
 # Terminology
 
@@ -174,7 +149,7 @@ media in a broad range of scenarios, as outlined by the following goals:
 # SFrame
 
 This document defines an encryption mechanism that provides effective end-to-end
-encryption, is simple to implement, has no dependencies on RTP, and minimizes
+encryption, is simple to implement, is agnostic of transport, and minimizes
 encryption bandwidth overhead. Because SFrame can encrypt a full frame, rather
 than individual packets, bandwidth overhead can be reduced by adding encryption
 overhead only once per media frame, instead of once per packet.
@@ -256,24 +231,24 @@ The SFrame header is a variable-length structure described in detail in
 are determined by the AEAD algorithm in use.
 
 ~~~ aasvg
-  +-+---+-+----+------------------------------------------+^+
-  |S|LEN|X|KID |         Frame Counter                    | |
-+^+-+---+-+----+------------------------------------------+ |
-| |                                                       | |
-| |                                                       | |
-| |                                                       | |
-| |                                                       | |
-| |                   Encrypted Data                      | |
-| |                                                       | |
-| |                                                       | |
-| |                                                       | |
-| |                                                       | |
-+>+-------------------------------------------------------+<+
-| |                 Authentication Tag                    | |
-| +-------------------------------------------------------+ |
-|                                                           |
-|                                                           |
-+---- Encrypted Portion            Authenticated Portion ---+
+   +-+---+-+----+------------------------------------------+<-+
+   |S|LEN|X|KID |         Frame Counter                    |  |
++->+-+---+-+----+------------------------------------------+  |
+|  |                                                       |  |
+|  |                                                       |  |
+|  |                                                       |  |
+|  |                                                       |  |
+|  |                   Encrypted Data                      |  |
+|  |                                                       |  |
+|  |                                                       |  |
+|  |                                                       |  |
+|  |                                                       |  |
++->+-------------------------------------------------------+<-+
+|  |                 Authentication Tag                    |  |
+|  +-------------------------------------------------------+  |
+|                                                             |
+|                                                             |
++---- Encrypted Portion            Authenticated Portion -----+
 ~~~~~
 
 When SFrame is applied per-packet, the payload of each packet will be an SFrame
@@ -448,19 +423,15 @@ def encrypt(S, CTR, KID, metadata, plaintext):
 The metadata input to encryption allows for frame metadata to be authenticated
 when SFrame is applied per-frame.  After encoding the frame and before
 packetizing it, the necessary media metadata will be moved out of the encoded
-frame buffer, to be sent in some channel visibile to the SFU (e.g., an RTP
+frame buffer, to be sent in some channel visible to the SFU (e.g., an RTP
 header extension).
-
-The encrypted payload is then passed to a generic RTP packetizer to construct
-the RTP packets and encrypt it using SRTP keys for the HBH encryption to the
-media server.
 
 ~~~ aasvg
 
    +----------------+  +---------------+
-   | frame metadata |  |               |
+   |    metadata    |  |               |
    +-------+--------+  |               |
-           |           |     frame     |
+           |           |   plaintext   |
            |           |               |
            |           |               |
            |           +-------+-------+
@@ -479,38 +450,24 @@ header ----+------------------>| AAD
 +-----+                        |
    |                       AEAD.Encrypt
    |                           |
-   |                           V
-   |                   +-------+-------+
-   |                   |               |
-   |                   |               |
-   |                   |   encrypted   |
-   |                   |     frame     |
-   |                   |               |
-   |                   |               |
-   |                   +-------+-------+
-   |                           |
-   |                  generic RTP packetize
-   |                           |
-   |                           |
-   |    +----------------------+--------.....--------+
-   |    |                      |                     |
-   V    V                      V                     V
-+---------------+      +---------------+     +---------------+
-| SFrame header |      |               |     |               |
-+---------------+      |               |     |               |
-|               |      |  payload 2/N  | ... |  payload N/N  |
-|  payload 1/N  |      |               |     |               |
-|               |      |               |     |               |
-+---------------+      +---------------+     +---------------+
+   |     +---------------+     |
+   +---->| SFrame Header |     |
+         +---------------+     |
+         |               |     |
+         |               |<----+
+         |   ciphertext  |
+         |               |
+         |               |
+         +---------------+
 ~~~~~
-{: title="Encryption flow with per-frame encryption" }
+{: title="Encryption flow" }
 
 ### Decryption
 
 Before decrypting, a client needs to assemble a full SFrame ciphertext.  When
 SFrame is applied per-packet, this is done by extracting the payload of a
 decrypted SRTP packet.  When SFrame is applied per-frame, the receiving client
-buffers all packets that belongs to the same frame using the frame beginning and
+buffers all packets that belong to the same frame using the frame beginning and
 ending marks in the generic RTP frame header extension. Once all packets are
 available and in order, the receiver forms an SFrame ciphertext by concatenating
 their payloads, then passes the ciphertext to SFrame for decryption.
@@ -650,7 +607,7 @@ the E2E-secure channel to send their encryption key to
 the other participants.
 
 In this scheme, it is assumed that receivers have a signal outside of SFrame for
-which client has sent a given frame, for example the RTP SSRC.  SFrame KID
+which client has sent a given frame (e.g., an RTP SSRC).  SFrame KID
 values are then used to distinguish generations of the sender's key.  At the
 beginning of a call, each sender encrypts with KID=0.  Thereafter, the sender
 can ratchet their key forward for forward secrecy:
@@ -991,3 +948,87 @@ requirements of the RFC format.  They should be removed before use.
 These test vectors are also available in JSON format at {{TestVectors}}.
 
 {::include test-vectors.md}
+
+# Examples
+
+## RTP
+
+The following figures show examples of an SRTP packet using an SFrame protected
+payload, as well as the suggested encryption flow with per-frame encryption for
+RTP.
+
+~~~ aasvg
+   +---+-+-+-------+-+-------------+-------------------------------+<-+
+   |V=2|P|X|  CC   |M|     PT      |       sequence number         |  |
+   +---+-+-+-------+-+-------------+-------------------------------+  |
+   |                           timestamp                           |  |
+   +---------------------------------------------------------------+  |
+   |           synchronization source (SSRC) identifier            |  |
+   +===============================================================+  |
+   |            contributing source (CSRC) identifiers             |  |
+   |                               ....                            |  |
+   +---------------------------------------------------------------+  |
+   |                   RTP extension(s) (OPTIONAL)                 |  |
++->+--------------------+------------------------------------------+  |
+|  |   SFrame header    |                                          |  |
+|  +--------------------+                                          |  |
+|  |                                                               |  |
+|  |          SFrame encrypted and authenticated payload           |  |
+|  |                                                               |  |
++->+---------------------------------------------------------------+<-+
+|  |                    SRTP authentication tag                    |  |
+|  +---------------------------------------------------------------+  |
+|                                                                     |
++--- SRTP Encrypted Portion             SRTP Authenticated Portion ---+
+~~~~~
+{: title="SRTP packet with SFrame-protected payload"}
+
+~~~ aasvg
+
+   +----------------+  +---------------+
+   | frame metadata |  |               |
+   +-------+--------+  |               |
+           |           |     frame     |
+           |           |               |
+           |           |               |
+           |           +-------+-------+
+           |                   |
+header ----+------------------>| AAD
++-----+                        |
+|  S  |                        |
++-----+                        |
+| KID +--+--> sframe_key ----->| Key
+|     |  |                     |
+|     |  +--> sframe_salt --+  |
++-----+                     |  |
+| CTR +---------------------+->| Nonce
+|     |                        |
+|     |                        |
++-----+                        |
+   |                       AEAD.Encrypt
+   |                           |
+   |                           V
+   |                   +-------+-------+
+   |                   |               |
+   |                   |               |
+   |                   |   encrypted   |
+   |                   |     frame     |
+   |                   |               |
+   |                   |               |
+   |                   +-------+-------+
+   |                           |
+   |                  generic RTP packetize
+   |                           |
+   |                           |
+   |    +----------------------+--------.....--------+
+   |    |                      |                     |
+   V    V                      V                     V
++---------------+      +---------------+     +---------------+
+| SFrame header |      |               |     |               |
++---------------+      |               |     |               |
+|               |      |  payload 2/N  | ... |  payload N/N  |
+|  payload 1/N  |      |               |     |               |
+|               |      |               |     |               |
++---------------+      +---------------+     +---------------+
+~~~~~
+{: title="Encryption flow with per-frame encryption for RTP" }

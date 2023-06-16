@@ -248,7 +248,7 @@ are determined by the AEAD algorithm in use.
 |  +-------------------------------------------------------+  |
 |                                                             |
 |                                                             |
-+---- Encrypted Portion            Authenticated Portion -----+
++--- Encrypted Portion               Authenticated Portion ---+
 ~~~~~
 
 When SFrame is applied per-packet, the payload of each packet will be an SFrame

@@ -176,7 +176,7 @@ media in a broad range of scenarios, as outlined by the following goals:
 This document defines an encryption mechanism that provides effective end-to-end
 encryption, is simple to implement, has no dependencies on RTP, and minimizes
 encryption bandwidth overhead. Because SFrame can encrypt a full frame, rather
-than individual packets, bandwidth overhead can reduced by adding encryption
+than individual packets, bandwidth overhead can be reduced by adding encryption
 overhead only once per media frame, instead of once per packet.
 
 ## Application Context
@@ -447,7 +447,7 @@ packetizing it, the necessary media metadata will be moved out of the encoded
 frame buffer, to be sent in some channel visibile to the SFU (e.g., an RTP
 header extension).
 
-The encrypted payload is then passed to a generic RTP packetized to construct
+The encrypted payload is then passed to a generic RTP packetizer to construct
 the RTP packets and encrypt it using SRTP keys for the HBH encryption to the
 media server.
 
@@ -534,7 +534,7 @@ once a key with that KID is received.
 ### Duplicate Frames
 
 Unlike messaging application, in video calls, receiving a duplicate frame
-doesn't necessary mean the client is under a replay attack, there are other
+doesn't necessarily mean the client is under a replay attack, there are other
 reasons that might cause this, for example the sender might just be sending them
 in case of packet loss. SFrame decryptors use the highest received frame counter
 to protect against this. It allows only older frame pithing a short interval to
@@ -737,7 +737,7 @@ Epoch 14 +--+-- index=3 ---> KID = 0x3e
 ## SFU
 
 Selective Forwarding Units (SFUs) as described in {{Section 3.7 of ?RFC7667}}
-receives the RTP streams from each participant and selects which ones should be
+receive the RTP streams from each participant and select which ones should be
 forwarded to each of the other participants.  There are several approaches about
 how to do this stream selection but in general, in order to do so, the SFU needs
 to access metadata associated to each frame and modify the RTP information of
@@ -758,7 +758,7 @@ This means that in the same RTP stream (defined by either SSRC or MID) may carry
 media from different streams of different participants. As different keys are
 used by each participant for encoding their media, the receiver will be able to
 verify which is the sender of the media coming within the RTP stream at any
-given point if time, preventing the SFU trying to impersonate any of the
+given point in time, preventing the SFU trying to impersonate any of the
 participants with another participant's media.
 
 Note that in order to prevent impersonation by a malicious participant (not the
@@ -784,14 +784,14 @@ one SFrame encrypted frame with an incrementing frame counter.
 Forward and Post-Compromise Security requires that the e2ee keys are updated
 anytime a participant joins/leave the call.
 
-The key exchange happens async and on a different path than the SFU signaling
+The key exchange happens asynchronously and on a different path than the SFU signaling
 and media. So it may happen that when a new participant joins the call and the
 SFU side requests a key frame, the sender generates the e2ee encrypted frame
 with a key not known by the receiver, so it will be discarded. When the sender
 updates his sending key with the new key, it will send it in a non-key frame, so
 the receiver will be able to decrypt it, but not decode it.
 
-Receiver will re-request an key frame then, but due to sender and sfu policies,
+Receiver will re-request an key frame then, but due to sender and SFU policies,
 that new key frame could take some time to be generated.
 
 If the sender sends a key frame when the new e2ee key is in use, the time
@@ -801,8 +801,8 @@ required for the new participant to display the video is minimized.
 
 Some codes support partial decoding, where it can decrypt individual packets
 without waiting for the full frame to arrive, with SFrame this won't be possible
-because the decoder will not access the packets until the entire frame is
-arrived and decrypted.
+because the decoder will not access the packets until the entire frame has
+arrived and was decrypted.
 
 # Security Considerations
 

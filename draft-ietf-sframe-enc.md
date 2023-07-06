@@ -198,7 +198,7 @@ Applying SFrame per-frame in this system offers higher efficiency, but may
 require a more complex integration in environments where depacketization relies
 on the content of media packets. Applying SFrame per-packet avoids this
 complexity, at the cost of higher bandwidth consumption.  Some quantitative
-discussion of these trade-offs is provided in {{overhead}}.
+discussion of these trade-offs is provided in {{overhead-analysis}}.
 
 As noted above, however, SFrame is a general media encapsulation, and can be
 applied in other scenarios.  The precise efficiency and complexity trade-offs
@@ -837,99 +837,127 @@ The authors wish to specially thank Dr. Alex Gouaillard as one of the early
 contributors to the document. His passion and energy were key to the design and
 development of SFrame.
 
-# Overhead
+# Overhead Analysis
 
-The encryption overhead will vary between audio and video streams, because in
-audio each packet is considered a separate frame, so it will always have extra
-MAC and IV, however a video frame usually consists of multiple RTP packets.
+Any use of SFrame will impose overhead in terms of the amount of bandwidth
+necessary to transmit a given media stream.  Exactly how much overhead will be added
+depends on several factors:
 
-The number of bytes overhead per frame is calculated as the following
+* How many senders are involved in a conference (length of KID)
+* How long the conference has been going on (length of CTR)
+* The ciphersuite in use (length of authentication tag)
+* Whether SFrame is used to encrypt packets, whole frames, or some other unit
 
-~~~
-1 + FrameCounter length + 4
-~~~
+Overall, the overhead rate in kilobits per second can be estimated as:
 
-The constant 1 is the SFrame header byte and 4 bytes for the HBH authentication tag for both audio and video packets.
+```
+OverheadKbps = (1 + |CTR| + |KID| + |TAG|) * 8 * CTPerSecond / 1024
+```
+
+Here the constant value `1` reflects the fixed SFrame header; `|CTR|` and
+`|KID|` reflect the lengths of those fields; `|TAG|` reflects the cipher
+overhead; and `CTPerSecond` reflects the number of SFrame ciphertexts
+sent per second (e.g., packets or frames per second).
+
+In the remainder of this secton, we compute overhead estimates for a collection
+of common scenarios.
+
+## Assumptions
+
+In the below calculations, we make conservative assumptions about SFrame
+overhead, so that the overhead amounts we compute here are likely to be an upper
+bound on those seen in practice.
+
+| Field           | Bytes | Explanataion                                      |
+|:----------------|------:|:--------------------------------------------------|
+| Fixed header    | 1     | Fixed                                             |
+| Key ID (KID)    | 2     | >255 senders; or MLS epoch (E=4) and >16 senders  |
+| Counter (CTR)   | 3     | More than 24 hours of media in common cases       |
+| Cipher overhead | 16    | Full GCM tag (longest defined here)               |
+
+In total, then, we assume that each SFrame encryption will add 22 bytes of
+overhead.
+
+We consider two scenarios, applying SFrame per-frame and per-packet.  In each
+scenario, we compute the SFrame overhead in absolute terms (Kbps) and as a
+percentage of the base bandwidth.
 
 ## Audio
 
-Using three different audio frame durations
+In audio streams, there is typically a one-to-one relationship between frames
+and packets, so the overhead is the same whether one uses SFrame at a per-packet
+or per-frame level.
 
-* 20ms (50 packets/s)
-* 40ms (25 packets/s)
-* 100ms (10 packets/s)
+The below table considers three scenarios, based on recommended configurations
+of the Opus codec {{?RFC6716}}:
 
-Up to 3 bytes frame counter (3.8 days of data for 20ms frame duration) and 4
-bytes fixed MAC length.
+* Narrow-band speech: 120ms packets, 8Kbps
+* Full-band speech: 20ms packets, 32Kbps
+* Full-band stereo music: 10ms packets, 128Kbps
 
-| Counter len| Packets   | Overhead  | Overhead | Overhead  |
-|            |           | bps@20ms  | bps@40ms | bps@100ms |
-|:----------:|:---------:|:---------:|:--------:|:---------:|
-|          1 | 0-255     |      2400 |     1200 |       480 |
-|          2 | 255 - 65K |      2800 |     1400 |       560 |
-|          3 | 65K - 16M |      3200 |     1600 |       640 |
+| Scenario                 | fps | Base Kbps | Overhead Kbps | Overhead % |
+|:-------------------------|:---:|:---------:|:-------------:|:----------:|
+| NB speech, 120ms packets | 8.3 |         8 |           1.4 |      17.9% |
+| FB speech, 20ms packets  |  50 |        32 |           8.6 |      26.9% |
+| FB stereo, 10ms packets  | 100 |       128 |          17.2 |      13.4% |
+{: #audio-overhead title="SFrame overhead for audio streams" }
 
 ## Video
 
-The per-stream overhead bits per second as calculated for the following video
-encodings:
+Video frames can be larger than an MTU and thus are commonly split across
+multiple frames.  {{video-overhead-per-frame}} and {{video-overhead-per-packet}}
+show the estimated overhead of encrypting a video stream, where SFrame is
+applied per-frame and per-packet, respectively.  The choices of resolution,
+frames per second, and bandwidth are chosen to roughly reflect the capabilities of
+modern video codecs across a range from very low to very high quality.
 
-* 30fps @ 1000Kbps (4 packets per frame)
-* 30fps @ 512Kbps (2 packets per frame)
-* 15fps @ 200Kbps (2 packets per frame)
-* 7.5fps @ 30Kbps (1 packet per frame)
+| Scenario    | fps | Base Kbps | Overhead Kbps | Overhead % |
+|:------------|:---:|:---------:|:-------------:|:----------:|
+| 426 x 240   | 7.5 |        45 |           1.3 |       2.9% |
+| 640 x 360   |  15 |       200 |           2.6 |       1.3% |
+| 640 x 360   |  30 |       400 |           5.2 |       1.3% |
+| 1280 x 720  |  30 |      1500 |           5.2 |       0.3% |
+| 1920 x 1080 |  60 |      7200 |          10.3 |       0.1% |
+{: #video-overhead-per-frame title="SFrame overhead for a video stream encrypted per-frame" }
 
-Overhead `bps = (Counter length + 1 + 4 ) * 8 * fps`
+| Scenario    | fps | pps | Base Kbps | Overhead Kbps | Overhead % |
+|:------------|:---:|:---:|:---------:|:-------------:|:----------:|
+| 426 x 240   | 7.5 | 7.5 |        45 |           1.3 |       2.9% |
+| 640 x 360   |  15 |  30 |       200 |           5.2 |       2.6% |
+| 640 x 360   |  30 |  60 |       400 |          10.3 |       2.6% |
+| 1280 x 720  |  30 | 180 |      1500 |          30.9 |       2.1% |
+| 1920 x 1080 |  60 | 780 |      7200 |         134.1 |       1.9% |
+{: #video-overhead-per-packet title="SFrame overhead for a video stream encrypted per-packet" }
 
-| Counter len| Frames    | Overhead   | Overhead   | Overhead   |
-|            |           | bps@30fps  | bps@15fps  | bps@7.5fps |
-|:----------:|:---------:|:----------:|:----------:|:----------:|
-|          1 | 0-255     |       1440 |       1440 |        720 |
-|          2 | 256 - 65K |       1680 |       1680 |        840 |
-|          3 | 56K - 16M |       1920 |       1920 |        960 |
-|          4 | 16M - 4B  |       2160 |       2160 |       1080 |
+In the per-frame case, the SFrame percentage overhead approaches zero as the
+quality of the video goes up, since bandwidth is driven more by picture size
+than frame rate.  In the per-packet case, the SFrame percentage overhead
+approaches the ratio between the SFrame overhead per packet and the MTU (here 22
+bytes of SFrame overhead divided by an assumed 1200-byte MTU, or about 1.8%).
 
-## SFrame vs PERC-lite
+## Conferences
 
-{{?RFC8723}} has significant overhead over SFrame because the overhead is per
-packet, not per frame, and OHB (Original Header Block) which duplicates any RTP
-header/extension field modified by the SFU.
+Real conferences usually involve several audio and video streams.  The overhead
+of SFrame in such a conference is the aggregate of the overhead over all the
+individual streams.  Thus, while SFrame incurs a large percentage overhead on an
+audio stream, if the conference also involves a video stream, then the audio
+overhead is likely negligible relative to the overall bandwidth of the
+conference.
 
-{{?I-D.murillo-perc-lite}}
-{{https://mailarchive.ietf.org/arch/msg/perc/SB0qMHWz6EsDtz3yIEX0HWp5IEY/}} is
-slightly better because it doesn’t use the OHB anymore, however it still does
-per packet encryption using SRTP.
+For example, {{conference-overhead}} shows the overhead estimates for a two
+person conference where one person is sending low-quality media and the other
+sending high-quality.  (And we assume that SFrame is applied per-frame.)  The
+video streams dominate the bandwidth at the SFU, so the total bandwidth overhead
+is only around 1%.
 
-Below the the overheard in {{?I-D.murillo-perc-lite}} implemented by Cosmos
-Software which uses extra 11 bytes per packet to preserve the `PT`, `SEQ_NUM`,
-`TIME_STAMP` and `SSRC` fields in addition to the extra MAC tag per packet.
-
-```
-OverheadPerPacket = 11 + MAC length
-Overhead bps = PacketPerSecond * OverHeadPerPacket * 8
-```
-
-Similar to SFrame, we will assume the HBH authentication tag length will always
-be 4 bytes for audio and video even though it is not the case in this
-{{?I-D.murillo-perc-lite}} implementation
-
-### Audio
-
-| Overhead bps@20ms | Overhead  bps@40ms | Overhead bps@100ms |
-|:-----------------:|:------------------:|:------------------:|
-|              6000 |               3000 |               1200 |
-
-### Video
-
-| Overhead  bps@30fps |  Overhead  bps@15fps |  Overhead  bps@7.5fps |
-|(4 packets per frame)| (2 packets per frame)| (1 packet per frame)  |
-|:-------------------:|:--------------------:|:---------------------:|
-|               14400 |                 7200 |                  3600 |
-
-For a conference with a single incoming audio stream (@ 50 pps) and 4 incoming
-video streams (@200 Kbps), the savings in overhead is 34800 - 9600 = ~25 Kbps,
-or ~3%.
-
+| Stream                 | Base Kbps | Overhead Kbps | Overhead % |
+|:-----------------------|:---------:|:-------------:|:----------:|
+| Participant 1 audio    |         8 |           1.4 |      17.9% |
+| Participant 1 video    |        45 |           1.3 |       2.9% |
+| Participant 2 audio    |        32 |           9   |      26.9% |
+| Participant 2 video    |      1500 |           5   |       0.3% |
+| Total at SFU           |      1585 |          16.5 |       1.0% |
+{: #conference-overhead title="SFrame overhead for a two-person conference" }
 
 # Test Vectors
 

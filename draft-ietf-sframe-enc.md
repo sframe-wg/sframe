@@ -836,7 +836,7 @@ such, it is up to the application to define what information should go in the
 functions at the appropriate points.  A receiver SHOULD NOT use SFrame-authenticated
 metadata until after the SFrame decrypt function has authenticated it.
 
-Note that the `metadata` input is at risk that needs more confirmation that it
+Note: The `metadata` input is a feature at risk, and needs more confirmation that it
 is useful and/or needed.
 
 --- back

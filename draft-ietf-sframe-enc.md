@@ -660,7 +660,7 @@ prepared for the epoch counter to roll over, removing an old epoch when a new
 epoch with the same E lower bits is introduced.  (Sender indices cannot be
 similarly compressed.)
 
-Let `S` be the number of bits requierd to encode a member index in the group,
+Let `S` be the number of bits required to encode a member index in the group,
 i.e., the smallest value such that `group_size` < (1 << S)`.  The sender index
 is encoded in the `S` bits above the epoch.  The remaining `64 - S - E` bits of
 the KID value are a `context` value chosen by the sender (context value `0` will

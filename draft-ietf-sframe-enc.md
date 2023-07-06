@@ -198,7 +198,7 @@ Applying SFrame per-frame in this system offers higher efficiency, but may
 require a more complex integration in environments where depacketization relies
 on the content of media packets. Applying SFrame per-packet avoids this
 complexity, at the cost of higher bandwidth consumption.  Some quantitative
-discussion of these trade-offs is provided in {{overhead}}.
+discussion of these trade-offs is provided in {{overhead-analysis}}.
 
 As noted above, however, SFrame is a general media encapsulation, and can be
 applied in other scenarios.  The precise efficiency and complexity trade-offs
@@ -839,8 +839,8 @@ development of SFrame.
 # Overhead Analysis
 
 Any use of SFrame will impose overhead in terms of the amount of bandwidth
-necessary to transmit a given media stream.  Exactly much overhead will be added
-depend on several factors:
+necessary to transmit a given media stream.  Exactly how much overhead will be added
+depends on several factors:
 
 * How many senders are involved in a conference (length of KID)
 * How long the conference has been going on (length of CTR)
@@ -853,8 +853,8 @@ Overall, the overhead rate in kilobits per second can be estimated as:
 OverheadKbps = (1 + |CTR| + |KID| + |TAG|) * 8 * UnitsPerSecond / 1024
 ```
 
-Here the constant value `1` reflect the fixed SFrame header; `|CTR|` and
-`|KID|` reflect the length of those fields; `|TAG|` reflects the cipher
+Here the constant value `1` reflects the fixed SFrame header; `|CTR|` and
+`|KID|` reflect the lengths of those fields; `|TAG|` reflects the cipher
 overhead; and `UnitsPerSecond` reflects the number of SFrame-encrypted units
 sent per second (e.g., packets or frames per second).
 
@@ -877,15 +877,15 @@ bound on those seen in practice.
 In total, then, we assume that each SFrame encryption will add 22 bytes of
 overhead.
 
-We consider two "units" of encryption, frames and packets.  In each scenario, we
-compute the SFrame overhead in absolute terms (Kbps) and as a percentage of the
-base bandwidth.
+We consider two scenarios, applying SFrame per-frame and per-packet.  In each
+scenario, we compute the SFrame overhead in absolute terms (Kbps) and as a
+percentage of the base bandwidth.
 
 ## Audio
 
 In audio streams, there is typically a one-to-one relationship between frames
 and packets, so the overhead is the same whether one uses SFrame at a per-packet
-or whole-frame level.
+or per-frame level.
 
 The below table considers three scenarios, based on recommended configurations
 of the Opus codec {{?RFC6716}}:
@@ -938,7 +938,7 @@ bytes of SFrame overhead divided by an assumed 1200-byte MTU, or about 1.8%).
 
 Real conferences usually involve several audio and video streams.  The overhead
 of SFrame in such a conference is the aggregate of the overhead over all the
-individual streams.  Thus, while SFrame incur a large percentage overhead on an
+individual streams.  Thus, while SFrame incurs a large percentage overhead on an
 audio stream, if the conference also involves a video stream, then the audio
 overhead is likely negligible relative to the overall bandwidth of the
 conference.

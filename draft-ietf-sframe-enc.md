@@ -400,7 +400,7 @@ length `AEAD.Nn`.
 
 The encryptor forms an SFrame header using the CTR, and KID values provided.
 The encoded header is provided as AAD to the AEAD encryption operation, together
-with application-provided metadata about the encrypted media.
+with application-provided metadata about the encrypted media (see {{metadata}}).
 
 ~~~~~
 def encrypt(S, CTR, KID, metadata, plaintext):
@@ -783,6 +783,11 @@ The handling of replay is out of the scope of this document. However, senders
 MUST reject requests to encrypt multiple times with the same key and nonce,
 since this leads to serious consequences (see, e.g., {{Section 5.1.1 of RFC5116}}).
 
+## Application-Provided Metadata
+
+Application-provided metadata is at risk that needs more confirmation that it
+is useful and/or needed.
+
 # IANA Considerations
 
 This document makes no requests of IANA.
@@ -819,6 +824,11 @@ with the same key and salt.
 
 It is not mandatory to implement anti-replay on the receiver side. Receivers MAY
 apply time or counter based anti-replay mitigation.
+
+## Metadata
+
+Pure application-specified data, and as such is up to the application to define,
+provide, and interpret.
 
 --- back
 

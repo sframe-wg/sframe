@@ -92,8 +92,8 @@ several realistic SFU scenarios.
 
 This document proposes a new end-to-end encryption mechanism known as SFrame,
 specifically designed to work in group conference calls with SFUs. SFrame is a
-general encryption framing that can be used to protect payloads, agnostic of
-transport.
+general encryption framing that can be used to protect media payloads, agnostic
+of transport.
 
 # Terminology
 
@@ -464,13 +464,13 @@ header ----+------------------>| AAD
 
 ### Decryption
 
-Before decrypting, a client needs to assemble a full SFrame ciphertext.  When
-SFrame is applied per-packet, this is done by extracting the payload of a
-decrypted SRTP packet.  When SFrame is applied per-frame, the receiving client
-buffers all packets that belong to the same frame using the frame beginning and
-ending marks in the generic RTP frame header extension. Once all packets are
-available and in order, the receiver forms an SFrame ciphertext by concatenating
-their payloads, then passes the ciphertext to SFrame for decryption.
+Before decrypting, a client needs to assemble a full SFrame ciphertext. When
+an SFrame ciphertext may be fragmented into multiple parts for transport (e.g.,
+a whole encrypted frame sent in multiple SRTP packets), the receiving client
+collects all the fragments of the ciphertext, using an appropriate sequencing
+and start/end markers in the transport. Once all of the required fragments are
+available, the client reassembles them into the SFrame ciphertext, then passes
+the ciphertext to SFrame for decryption.
 
 The KID field in the SFrame header is used to find the right key and salt for
 the encrypted frame, and the CTR field is used to construct the nonce.
@@ -918,37 +918,6 @@ is only around 1%.
 | Total at SFU           |      1585 |          16.5 |       1.0% |
 {: #conference-overhead title="SFrame overhead for a two-person conference" }
 
-# Test Vectors
-
-This section provides a set of test vectors that implementations can use to
-verify that they correctly implement SFrame encryption and decryption.  For each
-ciphersuite, we provide:
-
-* [in] The `base_key` value (hex encoded)
-* [out] The `secret`, `key`, and `salt` values derived from the `base_key` (hex
-  encoded)
-* A plaintext value that is encrypted in the following encryption cases
-* A sequence of encryption cases, including:
-  * [in] The `KID` and `CTR` values to be included in the header
-  * [out] The resulting encoded header (hex encoded)
-  * [out] The nonce computed from the `salt` and `CTR` values
-  * The ciphertext resulting from encrypting the plaintext with these parameters
-    (hex encoded)
-
-An implementation should reproduce the output values given the input values:
-
-* An implementation should be able to encrypt with the input values and the
-  plaintext to produce the ciphertext.
-
-* An implementation must be able to decrypt with the input values and the
-  ciphertext to generate the plaintext.
-
-Line breaks and whitespace within values are inserted to conform to the width
-requirements of the RFC format.  They should be removed before use.
-These test vectors are also available in JSON format at {{TestVectors}}.
-
-{::include test-vectors.md}
-
 # Examples
 
 ## RTP
@@ -1032,3 +1001,34 @@ header ----+------------------>| AAD
 +---------------+      +---------------+     +---------------+
 ~~~~~
 {: title="Encryption flow with per-frame encryption for RTP" }
+
+# Test Vectors
+
+This section provides a set of test vectors that implementations can use to
+verify that they correctly implement SFrame encryption and decryption.  For each
+ciphersuite, we provide:
+
+* [in] The `base_key` value (hex encoded)
+* [out] The `secret`, `key`, and `salt` values derived from the `base_key` (hex
+  encoded)
+* A plaintext value that is encrypted in the following encryption cases
+* A sequence of encryption cases, including:
+  * [in] The `KID` and `CTR` values to be included in the header
+  * [out] The resulting encoded header (hex encoded)
+  * [out] The nonce computed from the `salt` and `CTR` values
+  * The ciphertext resulting from encrypting the plaintext with these parameters
+    (hex encoded)
+
+An implementation should reproduce the output values given the input values:
+
+* An implementation should be able to encrypt with the input values and the
+  plaintext to produce the ciphertext.
+
+* An implementation must be able to decrypt with the input values and the
+  ciphertext to generate the plaintext.
+
+Line breaks and whitespace within values are inserted to conform to the width
+requirements of the RFC format.  They should be removed before use.
+These test vectors are also available in JSON format at {{TestVectors}}.
+
+{::include test-vectors.md}

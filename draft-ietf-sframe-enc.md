@@ -783,16 +783,17 @@ The handling of replay is out of the scope of this document. However, senders
 MUST reject requests to encrypt multiple times with the same key and nonce,
 since several AEAD algorithms fail badly in such cases (see, e.g., {{Section 5.1.1 of RFC5116}}).
 
-## Application-Provided Metadata
-
-Application-provided metadata is at risk that needs more confirmation that it
-is useful and/or needed.
-
 # IANA Considerations
 
 This document makes no requests of IANA.
 
 # Application Responsibilities
+
+To use SFrame, an application needs to define the inputs to the SFrame
+encryption and decryption operations, and how SFrame ciphertexts are delivered
+from sender to receiver (including any fragmentation and reassembly).  In this
+section, we lay out additional requirements that an integration must meet in
+order for SFrame to operate securely.
 
 ## Header Value Uniqueness
 
@@ -805,30 +806,38 @@ possible.
 
 ## Key Management Framework
 
-Applications must provide an E2E Key Management Framework for managing the keys
-used for SFrame. The key management framework MUST ensure that each key used
-avoids reuse of IVs.
+It is up to the application to provision SFrame with a mapping of KID values to
+`base_key` values and the resulting keys and salts.  More importantly, the
+application specifies which KID values are used for which purposes (e.g., by
+which senders).  An applications KID assignment strategy MUST be structured to
+assure the non-reuse properties discussed above.
 
-It is up to the application to define a rotation schedule for keys.  For example,
-one application might have an ephemeral group for every call and keep rotating
-keys when end points joins or leave the call, while another application could
-have a persistent group that can be used for multiple calls and simply derives
-ephemeral symmetric keys for a specific call.
+It is also up to the application to define a rotation schedule for keys.  For
+example, one application might have an ephemeral group for every call and keep
+rotating keys when end points join or leave the call, while another application
+could have a persistent group that can be used for multiple calls and simply
+derives ephemeral symmetric keys for a specific call.
 
 ## Anti-Replay
 
 It is the responsibility of the application to handle anti-replay. Replay by network
 attackers is assumed to be prevented by network-layer facilities (e.g., TLS, SRTP).
 As mentioned in {{replay}}, senders MUST reject requests to encrypt multiple times
-with the same key and salt.
+with the same key and nonce.
 
 It is not mandatory to implement anti-replay on the receiver side. Receivers MAY
 apply time or counter based anti-replay mitigations.
 
 ## Metadata
 
-Pure application-specified data, and as such is up to the application to define,
-provide, and interpret.
+The `metadata` input to SFrame operations is pure application-specified data. As
+such, it is up to the application to define what information should go in the
+`metadata` input and ensure that it is provided to the encryption and decryption
+functions at the appropriate points.  A receiver SHOULD NOT use SFrame-authenticated
+metadata until after the SFrame decrypt function has authenticated it.
+
+Note that the `metadata` input is at risk that needs more confirmation that it
+is useful and/or needed.
 
 --- back
 

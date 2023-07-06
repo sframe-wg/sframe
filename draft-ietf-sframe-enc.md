@@ -548,7 +548,10 @@ follows, where `Nk` represents the key size for the AES block cipher in use and
 
 ~~~~~
 def derive_subkeys(sframe_key):
-  aead_secret = HKDF-Extract(sframe_key, 'SFrame10 AES CTR AEAD')
+  # tag_len = length of a tag for this cipher, in bytes
+  tag_len_enc = encode_big_endian(tag_len, 8)
+  aead_label = 'SFrame10 AES CTR AEAD' + 
+  aead_secret = HKDF-Extract(sframe_key, aead_label)
   enc_key = HKDF-Expand(aead_secret, 'enc', Nk)
   auth_key = HKDF-Expand(aead_secret, 'auth', Nh)
   return enc_key, auth_key
@@ -562,7 +565,9 @@ to a number of bytes `tag_len` fixed by the ciphersuite.
 def compute_tag(auth_key, nonce, aad, ct):
   aad_len = encode_big_endian(len(aad), 8)
   ct_len = encode_big_endian(len(ct), 8)
-  auth_data = aad_len + ct_len + nonce + aad + ct
+  # tag_len = length of a tag for this cipher, in bytes
+  tag_len_enc = encode_big_endian(tag_len, 8)
+  auth_data = aad_len + ct_len + nonce + tag_len_enc + aad + ct
   tag = HMAC(auth_key, auth_data)
   return truncate(tag, tag_len)
 

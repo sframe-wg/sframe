@@ -646,8 +646,8 @@ To generate keys and nonces for SFrame, we use the MLS exporter function to
 generate a `base_key` value for each MLS epoch.  Each member of the group is
 assigned a set of KID values, so that each member has a unique `sframe_key` and
 `sframe_salt` that it uses to encrypt with.  Senders may choose any KID value
-within their assigned set of KID values, e.g., to accommodate multiple
-uncoordinated outbound media streams at a sender.
+within their assigned set of KID values, e.g., to allow a single sender to send
+multiple uncoordinated outbound media streams.
 
 ~~~~~ pseudocode
 base_key = MLS-Exporter("SFrame 1.0", "", AEAD.Nk)
@@ -660,11 +660,11 @@ prepared for the epoch counter to roll over, removing an old epoch when a new
 epoch with the same E lower bits is introduced.  (Sender indices cannot be
 similarly compressed.)
 
-Let `S` required to encode the size of the group, i.e., the smallest value such
-that `group_size - 1 < (1 << S)`.  The sender index is encoded in the `S` bits
-above the epoch.  The remaining `64 - S - E` bits of the KID value are a
-`context` value chosen by the sender (context value `0` will produce the
-shortest encoded KID).
+Let `S` be the number of bits requierd to encode a member index in the group,
+i.e., the smallest value such that `group_size` < (1 << S)`.  The sender index
+is encoded in the `S` bits above the epoch.  The remaining `64 - S - E` bits of
+the KID value are a `context` value chosen by the sender (context value `0` will
+produce the shortest encoded KID).
 
 ~~~~~ pseudocode
 KID = (context << (S + E)) + (sender_index << E) + (epoch % (1 << E))

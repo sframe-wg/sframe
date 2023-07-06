@@ -781,7 +781,7 @@ tag if the short ones are proved insecure.
 
 The handling of replay is out of the scope of this document. However, senders
 MUST reject requests to encrypt multiple times with the same key and nonce,
-since this leads to serious consequences (see, e.g., {{Section 5.1.1 of RFC5116}}).
+since several AEAD algorithms fail badly in such cases (see, e.g., {{Section 5.1.1 of RFC5116}}).
 
 ## Application-Provided Metadata
 
@@ -823,7 +823,7 @@ As mentioned in {{replay}}, senders MUST reject requests to encrypt multiple tim
 with the same key and salt.
 
 It is not mandatory to implement anti-replay on the receiver side. Receivers MAY
-apply time or counter based anti-replay mitigation.
+apply time or counter based anti-replay mitigations.
 
 ## Metadata
 

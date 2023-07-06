@@ -641,7 +641,7 @@ group.
 To generate keys and nonces for SFrame, we use the MLS exporter function to
 generate a `base_key` value for each MLS epoch.  Each member of the group is
 assigned a unique KID value, so that each member has a unique `sframe_key` and
-`sframe_salt` that it uses to encrypt with. 
+`sframe_salt` that it uses to encrypt with.
 
 ~~~~~
 base_key = MLS-Exporter("SFrame 1.0", "", AEAD.Nk)

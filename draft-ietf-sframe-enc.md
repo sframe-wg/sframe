@@ -644,23 +644,40 @@ group.
 
 To generate keys and nonces for SFrame, we use the MLS exporter function to
 generate a `base_key` value for each MLS epoch.  Each member of the group is
-assigned a unique KID value, so that each member has a unique `sframe_key` and
-`sframe_salt` that it uses to encrypt with.
+assigned a set of KID values, so that each member has a unique `sframe_key` and
+`sframe_salt` that it uses to encrypt with.  Senders may choose any KID value
+within their assigned set of KID values, e.g., to accommodate multiple
+uncoordinated outbound media streams at a sender.
 
-~~~~~
+~~~~~ pseudocode
 base_key = MLS-Exporter("SFrame 1.0", "", AEAD.Nk)
 ~~~~~
 
 For compactness, we do not send the whole epoch number.  Instead, we send only its
-low-order E bits.  Note that E effectively defines a re-ordering window, since
+low-order `E` bits.  Note that `E` effectively defines a re-ordering window, since
 no more than 2^E epochs can be active at a given time.  Receivers MUST be
 prepared for the epoch counter to roll over, removing an old epoch when a new
 epoch with the same E lower bits is introduced.  (Sender indices cannot be
 similarly compressed.)
 
+Let `S` required to encode the size of the group, i.e., the smallest value such
+that `group_size - 1 < (1 << S)`.  The sender index is encoded in the `S` bits
+above the epoch.  The remaining `64 - S - E` bits of the KID value are a
+`context` value chosen by the sender (context value `0` will produce the
+shortest encoded KID).
+
+~~~~~ pseudocode
+KID = (context << (S + E)) + (sender_index << E) + (epoch % (1 << E))
 ~~~~~
-KID = (sender_index << E) + (epoch % (1 << E))
-~~~~~
+
+~~~ aasvg
+  64-S-E bits   S bits   E bits
+ <-----------> <------> <------>
++-------------+--------+-------+
+| Context ID  | Index  | Epoch |
++-------------+--------+-------+
+~~~
+{: #mls-kid title="Structure of a KID for an MLS Sender" }
 
 Once an SFrame stack has been provisioned with the `sframe_epoch_secret` for an
 epoch, it can compute the required KIDs and `sender_base_key` values on demand,
@@ -669,18 +686,6 @@ as it needs to encrypt/decrypt for a given member.
 ~~~ aasvg
   ...
          |
-Epoch 17 +--+-- index=33 --> KID = 0x211
-         |  |
-         |  +-- index=51 --> KID = 0x331
-         |
-         |
-Epoch 16 +--+-- index=2 ---> KID = 0x20
-         |
-         |
-Epoch 15 +--+-- index=3 ---> KID = 0x3f
-         |  |
-         |  +-- index=5 ---> KID = 0x5f
-         |
          |
 Epoch 14 +--+-- index=3 ---> KID = 0x3e
          |  |
@@ -688,8 +693,26 @@ Epoch 14 +--+-- index=3 ---> KID = 0x3e
          |  |
          |  +-- index=20 --> KID = 0x14e
          |
+         |
+Epoch 15 +--+-- index=3 ---> KID = 0x3f
+         |  |
+         |  +-- index=5 ---> KID = 0x5f
+         |
+         |
+Epoch 16 +----- index=2 --+--> context = 2 --> KID = 0x820
+         |                |
+         |                +--> context = 3 --> KID = 0xc20
+         |
+         |
+Epoch 17 +--+-- index=33 --> KID = 0x211
+         |  |
+         |  +-- index=51 --> KID = 0x331
+         |
+         |
   ...
 ~~~~~
+{: #mls-evolution title="An example sequence of KIDs for an MLS-based SFrame
+session.  We assume that the group has 64 members, S=6." }
 
 # Media Considerations
 

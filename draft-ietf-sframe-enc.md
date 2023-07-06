@@ -850,12 +850,12 @@ depends on several factors:
 Overall, the overhead rate in kilobits per second can be estimated as:
 
 ```
-OverheadKbps = (1 + |CTR| + |KID| + |TAG|) * 8 * UnitsPerSecond / 1024
+OverheadKbps = (1 + |CTR| + |KID| + |TAG|) * 8 * CTPerSecond / 1024
 ```
 
 Here the constant value `1` reflects the fixed SFrame header; `|CTR|` and
 `|KID|` reflect the lengths of those fields; `|TAG|` reflects the cipher
-overhead; and `UnitsPerSecond` reflects the number of SFrame-encrypted units
+overhead; and `CTPerSecond` reflects the number of SFrame ciphertexts
 sent per second (e.g., packets or frames per second).
 
 In the remainder of this secton, we compute overhead estimates for a collection

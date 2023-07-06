@@ -958,24 +958,6 @@ is only around 1%.
 | Total at SFU           |      1585 |          16.5 |       1.0% |
 {: #conference-overhead title="SFrame overhead for a two-person conference" }
 
-### Audio
-
-| Overhead bps@20ms | Overhead  bps@40ms | Overhead bps@100ms |
-|:-----------------:|:------------------:|:------------------:|
-|              6000 |               3000 |               1200 |
-
-### Video
-
-| Overhead  bps@30fps |  Overhead  bps@15fps |  Overhead  bps@7.5fps |
-|(4 packets per frame)| (2 packets per frame)| (1 packet per frame)  |
-|:-------------------:|:--------------------:|:---------------------:|
-|               14400 |                 7200 |                  3600 |
-
-For a conference with a single incoming audio stream (@ 50 pps) and 4 incoming
-video streams (@200 Kbps), the savings in overhead is 34800 - 9600 = ~25 Kbps,
-or ~3%.
-
-
 # Test Vectors
 
 This section provides a set of test vectors that implementations can use to

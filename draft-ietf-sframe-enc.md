@@ -520,6 +520,7 @@ This document defines the following ciphersuites:
 | 0x0003 | `AES_CTR_128_HMAC_SHA256_32`  | 32 | 16 | 12 |  4 | RFC XXXX  |
 | 0x0004 | `AES_GCM_128_SHA256_128`      | 32 | 16 | 12 | 16 | RFC XXXX  |
 | 0x0005 | `AES_GCM_256_SHA512_128`      | 64 | 32 | 12 | 16 | RFC XXXX  |
+{: #iana-cipher-suites title="SFrame cipher suites" }
 
 
 <!-- RFC EDITOR: Please replace XXXX above with the RFC number assigned to this
@@ -543,14 +544,14 @@ authentication.  We use an encrypt-then-MAC approach as in SRTP {{?RFC3711}}.
 
 Before encryption or decryption, encryption and authentication subkeys are
 derived from the single AEAD key using HKDF.  The subkeys are derived as
-follows, where `Nk` represents the key size for the AES block cipher in use and
-`Nh` represents the output size of the hash function:
+follows, where `Nk` represents the key size for the AES block cipher in use,
+`Nh` represents the output size of the hash function, and `Nt` represents the
+size of a tag for the cipher in bytes (as in {{iana-cipher-suites}}):
 
 ~~~~~
 def derive_subkeys(sframe_key):
-  # tag_len = length of a tag for this cipher, in bytes
-  tag_len_enc = encode_big_endian(tag_len, 8)
-  aead_label = 'SFrame10 AES CTR AEAD' +
+  tag_len = encode_big_endian(Nt, 8)
+  aead_label = 'SFrame10 AES CTR AEAD' + tag_len
   aead_secret = HKDF-Extract(sframe_key, aead_label)
   enc_key = HKDF-Expand(aead_secret, 'enc', Nk)
   auth_key = HKDF-Expand(aead_secret, 'auth', Nh)
@@ -559,17 +560,16 @@ def derive_subkeys(sframe_key):
 
 The AEAD encryption and decryption functions are then composed of individual
 calls to the CTR encrypt function and HMAC.  The resulting MAC value is truncated
-to a number of bytes `tag_len` fixed by the ciphersuite.
+to a number of bytes `Nt` fixed by the ciphersuite.
 
 ~~~~~
 def compute_tag(auth_key, nonce, aad, ct):
   aad_len = encode_big_endian(len(aad), 8)
   ct_len = encode_big_endian(len(ct), 8)
-  # tag_len = length of a tag for this cipher, in bytes
-  tag_len_enc = encode_big_endian(tag_len, 8)
-  auth_data = aad_len + ct_len + tag_len_enc + nonce + aad + ct
+  tag_len = encode_big_endian(Nt, 8)
+  auth_data = aad_len + ct_len + tag_len + nonce + aad + ct
   tag = HMAC(auth_key, auth_data)
-  return truncate(tag, tag_len)
+  return truncate(tag, Nt)
 
 def AEAD.Encrypt(key, nonce, aad, pt):
   enc_key, auth_key = derive_subkeys(key)

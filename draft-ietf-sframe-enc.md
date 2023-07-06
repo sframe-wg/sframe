@@ -550,7 +550,7 @@ follows, where `Nk` represents the key size for the AES block cipher in use and
 def derive_subkeys(sframe_key):
   # tag_len = length of a tag for this cipher, in bytes
   tag_len_enc = encode_big_endian(tag_len, 8)
-  aead_label = 'SFrame10 AES CTR AEAD' + 
+  aead_label = 'SFrame10 AES CTR AEAD' +
   aead_secret = HKDF-Extract(sframe_key, aead_label)
   enc_key = HKDF-Expand(aead_secret, 'enc', Nk)
   auth_key = HKDF-Expand(aead_secret, 'auth', Nh)

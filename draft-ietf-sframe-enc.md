@@ -265,11 +265,7 @@ derived:
 * A counter (CTR) that is used to construct the IV for the encryption
 
 Applications MUST ensure that each (KID, CTR) combination is used for exactly
-one encryption operation.  Typically this is done by assigning each sender a KID
-or set of KIDs, then having each sender use the CTR field as a monotonic
-counter, incrementing for each plaintext that is encrypted.  Note that in
-addition to its simplicity, this scheme minimizes overhead by keeping CTR values
-as small as possible.
+one encryption operation. A typical example is detailed in {{header-value-uniqueness}}.
 
 Both the counter and the key id are encoded as integers in network (big-endian)
 byte order, in a variable length format to decrease the overhead.  The length of
@@ -592,11 +588,8 @@ framework provides the following functions:
 * Provisioning KID/`base_key` mappings to participating clients
 * Updating the above data as clients join or leave
 
-It is up to the application to define a rotation schedule for keys.  For example,
-one application might have an ephemeral group for every call and keep rotating key
-when end points joins or leave the call, while another application could have a
-persistent group that can be used for multiple calls and simply derives
-ephemeral symmetric keys for a specific call.
+It is the responsibility of the application to provide the key management
+framework, as described in {{key-management-framework}}.
 
 ## Sender Keys
 
@@ -787,6 +780,29 @@ tag if the short ones are proved insecure.
 # IANA Considerations
 
 This document makes no requests of IANA.
+
+# Application Responsibilities
+
+## Header Value Uniqueness
+
+Applications MUST ensure that each (KID, CTR) combination is used for exactly
+one encryption operation. Typically this is done by assigning each sender a KID
+or set of KIDs, then having each sender use the CTR field as a monotonic counter,
+incrementing for each plaintext that is encrypted. Note that in addition to its
+simplicity, this scheme minimizes overhead by keeping CTR values as small as
+possible.
+
+## Key Management Framework
+
+Applications must provide an E2E Key Management Framework for managing the keys
+used for SFrame. The key management framework MUST ensure that each key used
+avoids reuse of IVs.
+
+It is up to the application to define a rotation schedule for keys.  For example,
+one application might have an ephemeral group for every call and keep rotating
+keys when end points joins or leave the call, while another application could
+have a persistent group that can be used for multiple calls and simply derives
+ephemeral symmetric keys for a specific call.
 
 --- back
 

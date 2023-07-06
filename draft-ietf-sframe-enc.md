@@ -777,6 +777,12 @@ The cipher suites defined in this draft use short authentication tags for
 encryption, however it can easily support other ciphers with full authentication
 tag if the short ones are proved insecure.
 
+## Replay
+
+The handling of replay is out of the scope of this document. However, senders
+MUST reject requests to encrypt multiple times with the same key and nonce,
+since this leads to serious consequences (see, e.g., {{Section 5.1.1 of RFC5116}}).
+
 # IANA Considerations
 
 This document makes no requests of IANA.
@@ -803,6 +809,16 @@ one application might have an ephemeral group for every call and keep rotating
 keys when end points joins or leave the call, while another application could
 have a persistent group that can be used for multiple calls and simply derives
 ephemeral symmetric keys for a specific call.
+
+## Anti-Replay
+
+It is the responsibility of the application to handle anti-replay. Replay by network
+attackers is assumed to be prevented by network-layer facilities (e.g., TLS, SRTP).
+As mentioned in {{replay}}, senders MUST reject requests to encrypt multiple times
+with the same key and salt.
+
+It is not mandatory to implement anti-replay on the receiver side. Receivers MAY
+apply time or counter based anti-replay mitigation.
 
 --- back
 

@@ -567,7 +567,7 @@ def compute_tag(auth_key, nonce, aad, ct):
   ct_len = encode_big_endian(len(ct), 8)
   # tag_len = length of a tag for this cipher, in bytes
   tag_len_enc = encode_big_endian(tag_len, 8)
-  auth_data = aad_len + ct_len + nonce + tag_len_enc + aad + ct
+  auth_data = aad_len + ct_len + tag_len_enc + nonce + aad + ct
   tag = HMAC(auth_key, auth_data)
   return truncate(tag, tag_len)
 

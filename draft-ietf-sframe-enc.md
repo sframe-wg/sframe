@@ -902,12 +902,12 @@ The primary operations on an SFrame context are as follows:
 * **Encrypt a plaintext:** Encrypt a given plaintext using the key for a given KID,
   including the specified metadata.
 * **Decrypt an SFrame ciphertext:** Decrypt an SFrame ciphertext with the KID
-  and CTR values specified in the SFrame Header, and the provided metadata. 
+  and CTR values specified in the SFrame Header, and the provided metadata.
 
 {{rust-api}} shows an example of the types of structures and methods that could
 be used to create an SFrame API in Rust.
 
-``` rust
+~~~ rust
 type KeyId = u64;
 type Counter = u64;
 type CipherSuite = u16;
@@ -936,7 +936,7 @@ trait SFrameContextMethods {
   fn encrypt(&mut self, kid: KeyId, metadata: &[u8], plaintext: &[u8]) -> Vec<u8>;
   fn decrypt(&self, metadata: &[u8], ciphertext: &[u8]) -> Vec<u8>;
 }
-```
+~~~
 {: #rust-api title="An example SFrame API" }
 
 # Overhead Analysis

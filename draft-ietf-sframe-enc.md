@@ -547,7 +547,7 @@ size of a tag for the cipher in bytes (as in {{iana-cipher-suites}}):
 ~~~~~
 def derive_subkeys(sframe_key):
   tag_len = encode_big_endian(Nt, 8)
-  aead_label = 'SFrame10 AES CTR AEAD' + tag_len
+  aead_label = 'SFrame 1.0 AES CTR AEAD' + tag_len
   aead_secret = HKDF-Extract(sframe_key, aead_label)
   enc_key = HKDF-Expand(aead_secret, 'enc', Nk)
   auth_key = HKDF-Expand(aead_secret, 'auth', Nh)
@@ -612,7 +612,7 @@ can ratchet their key forward for forward secrecy:
 
 ~~~~~
 sender_key[i+1] = HKDF-Expand(
-                    HKDF-Extract(sender_key[i], 'SFrame10 ratchet'),
+                    HKDF-Extract(sender_key[i], 'SFrame 1.0 ratchet'),
                       '', AEAD.Nk)
 ~~~~~
 

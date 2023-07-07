@@ -875,6 +875,70 @@ The authors wish to specially thank Dr. Alex Gouaillard as one of the early
 contributors to the document. His passion and energy were key to the design and
 development of SFrame.
 
+# Example API
+
+**This section is not normative.**
+
+This section describes a notional API that an SFrame implementation might
+expose.  The core concept is an "SFrame context", within which KID values are
+meaningful.  In the key management scheme described in {{sender-keys}}, each
+sender has a different context; in the scheme described in {{mls}}, all senders
+share the same context.
+
+An SFrame context stores mappings from KID values to "key contexts", which are
+different depending on whether the KID is to be used for sending or receiving
+(an SFrame keys should never be used for both operations).  A key context tracks
+the key and salt associated to the KID, and the current CTR value.  A key
+context to be used for sending also tracks the next CTR value to be used.
+
+The primary operations on an SFrame context are as follows:
+
+* **Create an SFrame context:** The context is initialized with a ciphersuite and
+  no KID mappings.
+* **Adding a key for sending:** The key and salt are derived from the base key, and
+  used to initialize a send context, together with a zero counter value.
+* **Adding a key for receiving:** The key and salt are derived from the base key, and
+  used to initialize a send context.
+* **Encrypt a plaintext:** Encrypt a given plaintext using the key for a given KID,
+  including the specified metadata.
+* **Decrypt an SFrame ciphertext:** Decrypt an SFrame ciphertext with the KID
+  and CTR values specified in the SFrame Header, and the provided metadata. 
+
+{{rust-api}} shows an example of the types of structures and methods that could
+be used to create an SFrame API in Rust.
+
+``` rust
+type KeyId = u64;
+type Counter = u64;
+type CipherSuite = u16;
+
+struct SendKeyContext {
+  key: Vec<u8>,
+  salt: Vec<u8>,
+  next_counter: Counter,
+}
+
+struct RecvKeyContext {
+  key: Vec<u8>,
+  salt: Vec<u8>,
+}
+
+struct SFrameContext {
+  cipher_suite: CipherSuite,
+  send_keys: HashMap<KeyId, SendKeyContext>,
+  recv_keys: HashMap<KeyId, RecvKeyContext>,
+}
+
+trait SFrameContextMethods {
+  fn create(cipher_suite: CipherSuite) -> Self;
+  fn add_send_key(&self, kid: KeyId, base_key: &[u8]);
+  fn add_recv_key(&self, kid: KeyId, base_key: &[u8]);
+  fn encrypt(&mut self, kid: KeyId, metadata: &[u8], plaintext: &[u8]) -> Vec<u8>;
+  fn decrypt(&self, metadata: &[u8], ciphertext: &[u8]) -> Vec<u8>;
+}
+```
+{: #rust-api title="An example SFrame API" }
+
 # Overhead Analysis
 
 Any use of SFrame will impose overhead in terms of the amount of bandwidth

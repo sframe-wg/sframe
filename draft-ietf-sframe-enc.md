@@ -887,7 +887,7 @@ share the same context.
 
 An SFrame context stores mappings from KID values to "key contexts", which are
 different depending on whether the KID is to be used for sending or receiving
-(an SFrame keys should never be used for both operations).  A key context tracks
+(an SFrame key should never be used for both operations).  A key context tracks
 the key and salt associated to the KID, and the current CTR value.  A key
 context to be used for sending also tracks the next CTR value to be used.
 

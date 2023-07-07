@@ -70,7 +70,7 @@ be applied to whole media frames in order to be more bandwidth efficient.
 # Introduction
 
 Modern multi-party video call systems use Selective Forwarding Unit (SFU)
-servers to efficiently route RTP streams to call endpoints based on factors such
+servers to efficiently route media streams to call endpoints based on factors such
 as available bandwidth, desired video size, codec support, and other factors. An
 SFU typically does not need access to the media content of the conference,
 allowing for the media to be "end-to-end" encrypted so that it cannot be
@@ -103,9 +103,6 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
 BCP 14 {{!RFC2119}} {{!RFC8174}} when, and only when, they appear in all
 capitals, as shown here.
 
-SFU:
-: Selective Forwarding Unit (AKA RTP Switch)
-
 IV:
 : Initialization Vector
 
@@ -117,6 +114,12 @@ E2EE:
 
 HBH:
 : Hop By Hop
+
+We use "Selective Forwarding Unit (SFU)" and "media stream" in a less formal sense
+than in {{?RFC7656}}.  An SFU is a selective switching function for media
+payloads, and a media stream a sequence of media payloads, in both cases
+regardless of whether those media payloads are transported over RTP or some
+other protocol.
 
 # Goals
 
@@ -714,10 +717,10 @@ session.  We assume that the group has 64 members, S=6." }
 
 # Media Considerations
 
-## SFU
+## Selective Forwarding Units
 
-Selective Forwarding Units (SFUs) as described in {{Section 3.7 of ?RFC7667}}
-receive the RTP streams from each participant and select which ones should be
+Selective Forwarding Units (SFUs) (e.g., those described in {{Section 3.7 of ?RFC7667}})
+receive the media streams from each participant and select which ones should be
 forwarded to each of the other participants.  There are several approaches about
 how to do this stream selection but in general, in order to do so, the SFU needs
 to access metadata associated to each frame and modify the RTP information of
@@ -729,17 +732,17 @@ E2EE provided by SFrame
 ### LastN and RTP stream reuse
 
 The SFU may choose to send only a certain number of streams based on the voice
-activity of the participants. To reduce the number of SDP O/A required to
-establish a new RTP stream, the SFU may decide to reuse previously existing RTP
-sessions or even pre-allocate a predefined number of RTP streams and choose in
-each moment in time which participant media will be sending through it.
+activity of the participants. To avoid the overhead involved in establishing new
+transport streams, the SFU may decide to reuse previously existing streams or
+even pre-allocate a predefined number of streams and choose in each moment in
+time which participant media will be sent through it.
 
-This means that in the same RTP stream (defined by either SSRC or MID) may carry
-media from different streams of different participants. As different keys are
-used by each participant for encoding their media, the receiver will be able to
-verify which is the sender of the media coming within the RTP stream at any
-given point in time, preventing the SFU trying to impersonate any of the
-participants with another participant's media.
+This means that in the same transport-level stream (e.g., an RTP stream defined
+by either SSRC or MID) may carry media from different streams of different
+participants. As different keys are used by each participant for encoding their
+media, the receiver will be able to verify which is the sender of the media
+coming within the RTP stream at any given point in time, preventing the SFU
+trying to impersonate any of the participants with another participant's media.
 
 Note that in order to prevent impersonation by a malicious participant (not the
 SFU), a mechanism based on digital signature would be required. SFrame does not

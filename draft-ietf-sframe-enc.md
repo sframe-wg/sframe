@@ -846,6 +846,14 @@ rotating keys when end points join or leave the call, while another application
 could have a persistent group that can be used for multiple calls and simply
 derives ephemeral symmetric keys for a specific call.
 
+It should be noted that KID values are not encrypted by SFrame, and are thus
+visible to any application-layer intermediaries that might handle an SFrame
+ciphertext.  If there are application semantics included in KID values, then
+this information would be exposed to intermediaries.  For example, in the scheme
+of {{sender-keys}}, the number of ratchet steps per sender is exposed, and in
+the scheme of {{mls}}, the number of epochs and the MLS sender ID of the SFrame
+sender are exposed.
+
 ## Anti-Replay
 
 It is the responsibility of the application to handle anti-replay. Replay by network

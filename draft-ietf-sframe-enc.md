@@ -620,10 +620,13 @@ sender_base_key[i+1] = HKDF-Expand(
 ~~~~~
 
 For compactness, we do not send the whole epoch number.  Instead, we send only
-its low-order `R` bits, where `R` is a value set by the application.  `R`
-effectively defines a re-ordering window, since no more than 2<sup>`R`</sup>
-epochs can be active at a given time.  The key generation is sent in the
-remaining `64 - R` bits of the key ID.
+its low-order `R` bits, where `R` is a value set by the application.  Different
+senders may use differen values of `R`, but each receiver of a given sender
+needs to know what value of `R` is used by the sender so that they can recognize
+when they need to ratchet (vs. expecting a new key).  `R` effectively defines a
+re-ordering window, since no more than 2<sup>`R`</sup> ratchet steps can be
+active at a given time.  The key generation is sent in the remaining `64 - R`
+bits of the key ID.
 
 ~~~~~ pseudocode
 KID = (key_generation << R) + (ratchet_step % (1 << R))

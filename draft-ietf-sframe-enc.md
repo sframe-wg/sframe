@@ -136,7 +136,7 @@ media in a broad range of scenarios, as outlined by the following goals:
    network conditions as possible.
 
 4. Independence from the underlying transport, including use in non-RTP
-   transports, e.g., WebTransport.
+   transports, e.g., WebTransport {{?I-D.ietf-webtrans-overview}}.
 
 5. When used with RTP and its associated error resilience mechanisms, i.e., RTX
    and FEC, require no special handling for RTX and FEC packets.
@@ -244,9 +244,9 @@ The SFrame header is a variable-length structure described in detail in
 are determined by the AEAD algorithm in use.
 
 ~~~ aasvg
-   +-+---+-+----+------------------------------------------+<-+
-   |S|LEN|X|KID |         Frame Counter                    |  |
-+->+-+---+-+----+------------------------------------------+  |
+   +-+---+-+----+--------------------+---------------------+<-+
+   |R|LEN|X|KLEN|       Key ID       |       Counter       |  |
++->+-+---+-+----+--------------------+---------------------+  |
 |  |                                                       |  |
 |  |                                                       |  |
 |  |                                                       |  |
@@ -278,7 +278,8 @@ derived:
 * A counter (CTR) that is used to construct the IV for the encryption
 
 Applications MUST ensure that each (KID, CTR) combination is used for exactly
-one encryption operation. A typical example is detailed in {{header-value-uniqueness}}.
+one encryption operation. A typical approach to achieving this gaurantee is
+outlined in {{header-value-uniqueness}}.
 
 Both the counter and the key id are encoded as integers in network (big-endian)
 byte order, in a variable length format to decrease the overhead.  The length of
@@ -344,11 +345,11 @@ aspects of the AEAD algorithm below:
   the authentication tag part of the ciphertext produced by `AEAD.Encrypt` (as
   opposed to a separate field as in SRTP {{?RFC3711}}).
 
-* `AEAD.Nk` - The size of a key for the encryption algorithm, in bytes
+* `AEAD.Nk` - The size in bytes of a key for the encryption algorithm 
 
-* `AEAD.Nn` - The size of a nonce for the encryption algorithm, in bytes
+* `AEAD.Nn` - The size in bytes of a nonce for the encryption algorithm 
 
-* `AEAD.Nt` - The overhead of the encryption algorithm, in bytes (typically the
+* `AEAD.Nt` - The overhead in bytes of the encryption algorithm (typically the
   size of a "tag" that is added to the plaintext)
 
 ### Key Selection
@@ -393,9 +394,11 @@ associated to a KID.  Given a `base_key` value, the key and salt are derived
 using HKDF {{!RFC5869}} as follows:
 
 ~~~~~
-sframe_secret = HKDF-Extract("SFrame 1.0 Secret " + KID, base_key)
-sframe_key = HKDF-Expand(sframe_secret, "key", AEAD.Nk)
-sframe_salt = HKDF-Expand(sframe_secret, "salt", AEAD.Nn)
+def derive_key_salt(KID, base_key):
+  sframe_secret = HKDF-Extract("SFrame 1.0 Secret " + KID, base_key)
+  sframe_key = HKDF-Expand(sframe_secret, "key", AEAD.Nk)
+  sframe_salt = HKDF-Expand(sframe_secret, "salt", AEAD.Nn)
+  return sframe_key, sframe_salt
 ~~~~~
 
 In the derivation of `sframe_secret`, the `+` operator represents concatenation
@@ -416,7 +419,7 @@ The encoded header is provided as AAD to the AEAD encryption operation, together
 with application-provided metadata about the encrypted media (see {{metadata}}).
 
 ~~~~~
-def encrypt(S, CTR, KID, metadata, plaintext):
+def encrypt(CTR, KID, metadata, plaintext):
   sframe_key, sframe_salt = key_store[KID]
 
   ctr = encode_big_endian(CTR, AEAD.Nn)
@@ -429,11 +432,11 @@ def encrypt(S, CTR, KID, metadata, plaintext):
   return header + ciphertext
 ~~~~~
 
-The metadata input to encryption allows for frame metadata to be authenticated
-when SFrame is applied per-frame.  After encoding the frame and before
-packetizing it, the necessary media metadata will be moved out of the encoded
-frame buffer, to be sent in some channel visible to the SFU (e.g., an RTP
-header extension).
+For example, the metadata input to encryption allows for frame metadata to be
+authenticated when SFrame is applied per-frame.  After encoding the frame and
+before packetizing it, the necessary media metadata will be moved out of the
+encoded frame buffer, to be sent in some channel visible to the SFU (e.g., an
+RTP header extension).
 
 ~~~ aasvg
 
@@ -485,8 +488,8 @@ The KID field in the SFrame header is used to find the right key and salt for
 the encrypted frame, and the CTR field is used to construct the nonce.
 
 ~~~~~
-def decrypt(metadata, sframe):
-  CTR, KID, ciphertext = parse_ciphertext(sframe)
+def decrypt(metadata, sframe_ciphertext):
+  KID, CTR, ciphertext = parse_ciphertext(sframe_ciphertext)
 
   sframe_key, sframe_salt = key_store[KID]
 
@@ -501,15 +504,6 @@ If a ciphertext fails to decrypt because there is no key available for the KID
 in the SFrame header, the client MAY buffer the ciphertext and retry decryption
 once a key with that KID is received.
 
-### Duplicate Frames
-
-Unlike messaging application, in video calls, receiving a duplicate frame
-doesn't necessarily mean the client is under a replay attack, there are other
-reasons that might cause this, for example the sender might just be sending them
-in case of packet loss. SFrame decryptors use the highest received frame counter
-to protect against this. It allows only older frame pithing a short interval to
-support out of order delivery.
-
 ## Cipher Suites
 
 Each SFrame session uses a single cipher suite that specifies the following
@@ -520,15 +514,8 @@ primitives:
 * An AEAD encryption algorithm [RFC5116] used for frame encryption, optionally
   with a truncated authentication tag
 
-The following constants are defined per cipher suite, for use in SFrame
-computations:
-
-* Nh: The length in bytes of the output from the hash function
-* Nk: The length in bytes of a key for the AEAD algorithm
-* Nn: The length in bytes of a nonce for the AEAD algorithm
-* Nt: The length in bytes of the overhead added by the AEAD algorithm
-
-This document defines the following cipher suites:
+This document defines the following cipher suites, with the constants defined in
+{{encryption-schema}}:
 
 | Name                          | Nh | Nk | Nn | Nt |
 |:------------------------------|:---|----|:---|:---|
@@ -539,12 +526,8 @@ This document defines the following cipher suites:
 | `AES_256_GCM_SHA512_128`      | 64 | 32 | 12 | 16 |
 {: #cipher-suite-constants title="SFrame cipher suite constants" }
 
-
 Numeric identifiers for these cipher suites are defined in the IANA registry
 created in {{sframe-cipher-suites}}.
-
-<!-- RFC EDITOR: Please replace XXXX above with the RFC number assigned to this
-document -->
 
 In the suite names, the length of the authentication tag is indicated by
 the last value: "\_128" indicates a hundred-twenty-eight-bit tag, "\_80" indicates
@@ -560,7 +543,7 @@ and another cipher suite with thirty-two-bit tags for audio frames.
 
 In order to allow very short tag sizes, we define a synthetic AEAD function
 using the authenticated counter mode of AES together with HMAC for
-authentication.  We use an encrypt-then-MAC approach as in SRTP {{?RFC3711}}.
+authentication.  We use an encrypt-then-MAC approach, as in SRTP {{?RFC3711}}.
 
 Before encryption or decryption, encryption and authentication subkeys are
 derived from the single AEAD key using HKDF.  The subkeys are derived as
@@ -614,7 +597,7 @@ SFrame must be integrated with an E2E key management framework to exchange and
 rotate the keys used for SFrame encryption. The key management
 framework provides the following functions:
 
-* Provisioning KID/`base_key` mappings to participating clients
+* Provisioning KID / `base_key` mappings to participating clients
 * Updating the above data as clients join or leave
 
 It is the responsibility of the application to provide the key management
@@ -643,9 +626,9 @@ sender_base_key[i+1] = HKDF-Expand(
                          "", CipherSuite.Nh)
 ~~~~~
 
-For compactness, we do not send the whole epoch number.  Instead, we send only
+For compactness, we do not send the whole ratchet step.  Instead, we send only
 its low-order `R` bits, where `R` is a value set by the application.  Different
-senders may use differen values of `R`, but each receiver of a given sender
+senders may use different values of `R`, but each receiver of a given sender
 needs to know what value of `R` is used by the sender so that they can recognize
 when they need to ratchet (vs. expecting a new key).  `R` effectively defines a
 re-ordering window, since no more than 2<sup>`R`</sup> ratchet steps can be

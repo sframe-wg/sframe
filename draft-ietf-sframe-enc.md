@@ -148,7 +148,6 @@ media in a broad range of scenarios, as outlined by the following goals:
 8. Work with the most popular audio and video codecs used in conferencing
    scenarios.
 
-
 # SFrame
 
 This document defines an encryption mechanism that provides effective end-to-end
@@ -159,18 +158,24 @@ overhead only once per media frame, instead of once per packet.
 
 ## Application Context
 
-SFrame is a general encryption framing, which is typically applied in one of two
-ways: Either to encrypt whole media frames (per-frame) or individual media
-payloads (per-packet).  The scale at which SFrame encryption is applied to media
-determines the overall amount of overhead that SFrame adds to the media stream,
-as well as the engineering complexity involved in integrating SFrame into a
-particular environment.
+SFrame is a general encryption framing, intended to be used as an E2E encryption
+layer over an underlying HBH-encrypted transport such as SRTP or QUIC
+{{RFC3711}}{{?I-D.ietf-moq-transport}}.
 
-For example, {{media-stack}} shows a typical media stack that takes media in
-from some source, encodes it into frames, divides those frames into media
-payloads, and then sends those payloads in SRTP packets.  Arrows indicate the
-points where SFrame protection would be integrated into this media stack, when
-applied per-frame or per-packet.
+The scale at which SFrame encryption is applied to media determines the overall
+amount of overhead that SFrame adds to the media stream, as well as the
+engineering complexity involved in integrating SFrame into a particular
+environment. Two patterns are common: Either using SFrame to encrypt whole
+media frames (per-frame) or individual transport-level media payloads
+(per-packet).
+
+For example, {{media-stack}} shows a typical media sender stack that takes media
+in from some source, encodes it into frames, divides those frames into media
+packets, and then sends those payloads in SRTP packets. The receiver stack
+performs the reverse operations, reassembling frames from SRTP packets and
+decoding.  Arrows indicate two different ways that SFrame protection could be
+integrated into this media stack, to encrypt whole frames or individual media
+packets.
 
 Applying SFrame per-frame in this system offers higher efficiency, but may
 require a more complex integration in environments where depacketization relies
@@ -179,42 +184,47 @@ complexity, at the cost of higher bandwidth consumption.  Some quantitative
 discussion of these trade-offs is provided in {{overhead-analysis}}.
 
 As noted above, however, SFrame is a general media encapsulation, and can be
-applied in other scenarios.  The precise efficiency and complexity trade-offs
-will depend on the environment in which SFrame is being integrated.
+applied in other scenarios.  The important thing is that the sender and
+receivers of an SFrame-encrypted object agree on that object's semantics.
+SFrame does not provide this agreement; it must be arranged by the application.
 
 ~~~ aasvg
       +--------------------------------------------------------+
       |                                                        |
       |  +----------+      +-------------+      +-----------+  |
- .-.  |  |          |      |             |      |   SRTP    |  |
-|   | |  |  Encode  |----->|  Packetize  |----->|  Encrypt  |-----------+
- '+'  |  |          |  ^   |             |  ^   |           |  |        |
- /|\  |  +----------+  |   +-----+-------+  |   +-----------+  |        |
-/ + \ |                |         ^          |         ^        |        |
- / \  |              SFrame      |       SFrame       |        |        |
-/   \ |              Protect     |       Protect      |        |        |
-Alice |            (per-frame)   |     (per-packet)   |        |        |
-      +--------------------------|--------------------|--------+        |
-                                 |                    |                 v
-                                 |                    |           +-----+------+
-                       E2E Key   |          HBH Key   |           |   Media    |
-                      Management |         Management |           |   Server   |
-                                 |                    |           +-----+------+
-                                 |                    |                 |
-      +--------------------------|--------------------|--------+        |
- .-.  |              SFrame      |        SFrame      |        |        |
-|   | |             Unprotect    |       Unprotect    |        |        |
- '+'  |            (per-frame)   |      (per-packet)  |        |        |
- /|\  |                 |        V           |        V        |        |
-/ + \ |  +----------+   |  +-----+-------+   |  +-----------+  |        |
- / \  |  |          |   V  |             |   V  |   SRTP    |  |        |
-/   \ |  |  Decode  |<-----| Depacketize |<-----|  Decrypt  |<----------+
+ .-.  |  |          |      |             |      |    HBH    |  |
+|   | |  |  Encode  |----->|  Packetize  |----->|  Protect  |-----------+
+ '+'  |  |          |   ^  |             |  ^   |           |  |        |
+ /|\  |  +----------+   |  +-------------+  |   +-----------+  |        |
+/ + \ |                 |                   |         ^        |        |
+ / \  |              SFrame              SFrame       |        |        |
+/   \ |              Protect             Protect      |        |        |
+Alice |            (per-frame)         (per-packet)   |        |        |
+      |                 ^                   ^         |        |        |
+      |                 |                   |         |        |        |
+      +-----------------|-------------------|---------|--------+        |
+                        |                   |         |                 v
+                        |                   |         |             +---+----+
+                        |      E2E Key      |         | HBH Key     | Media  |
+                        +---- Management ---+         | Management  | Server |
+                        |                   |         |             +---+----+
+                        |                   |         |                 |
+      +-----------------|-------------------|---------|--------+        |
+      |                 |                   |         |        |        |
+      |                 V                   V         |        |        |
+ .-.  |              SFrame               SFrame      |        |        |
+|   | |             Unprotect            Unprotect    |        |        |
+ '+'  |            (per-frame)          (per-packet)  |        |        |
+ /|\  |                 |                    |        V        |        |
+/ + \ |  +----------+   |  +-------------+   |  +-----------+  |        |
+ / \  |  |          |   V  |             |   V  |    HBH    |  |        |
+/   \ |  |  Decode  |<-----| Depacketize |<-----| Unprotect |<----------+
  Bob  |  |          |      |             |      |           |  |
       |  +----------+      +-------------+      +-----------+  |
       |                                                        |
       +--------------------------------------------------------+
 ~~~~~
-{: #media-stack "Integration of SFrame in a typical media stack" }
+{: #media-stack "Two options for integrating SFrame in a typical media stack" }
 
 Like SRTP, SFrame does not define how the keys used for SFrame are exchanged by
 the parties in the conference.  Keys for SFrame might be distributed over an
@@ -1143,13 +1153,35 @@ is only around 1%.
 | Total at SFU           |      1585 |          16.5 |       1.0% |
 {: #conference-overhead title="SFrame overhead for a two-person conference" }
 
-# Examples
+## SFrame over RTP
 
-## RTP
+SFrame is a generic encapsulation format, but many of the applications in which
+it is likely to be integrated are based on RTP.  This section discusses how an
+integration between SFrame and RTP could be done, and some of the challenges
+that would need to be overcome.
 
-The following figures show examples of an SRTP packet using an SFrame protected
-payload, as well as the suggested encryption flow with per-frame encryption for
-RTP.
+As discussed in {{application-context}}, there are two natural patterns for
+integrating SFrame into an application: applying SFrame per-frame or per-packet.
+In RTP-based applications, applying SFrame per-packet means that the payload of
+each RTP packet will be an SFrame ciphertext, starting with an SFrame Header, as
+shown in {{sframe-packet}}.  Applying SFrame per-frame means that different
+RTP payloads will have different formats: The first payload of a frame will
+contain the SFrame headers, and subsequent payloads will contain further chunks
+of the ciphertext, as shown in {{sframe-multi-packet}}.
+
+In order for these media payloads to be properly interpreted by receivers,
+receivers will need to be configured to know which of the above schemes the
+sender has  applied to a given sequence of RTP packets. SFrame does not provide
+a mechanism for distributing this configuration information. In applications
+that use SDP for negotiating RTP media streams {{?RFC4566}}, an appropriate
+extension to SDP could provide this function.
+
+Applying SFrame per-frame also requires that packetization and depacketization
+be done in a generic manner that does not depend on the media content of the
+packets, since the content being packetized / depacketized will be opaque
+ciphertext (except for the SFrame header).  In order for such a generic
+packetization scheme to work interoperably one would have to be defined, e.g.,
+as proposed in {{?I-D.codec-agnostic-rtp-payload-format}}.
 
 ~~~ aasvg
    +---+-+-+-------+-+-------------+-------------------------------+<-+
@@ -1175,10 +1207,9 @@ RTP.
 |                                                                     |
 +--- SRTP Encrypted Portion             SRTP Authenticated Portion ---+
 ~~~~~
-{: title="SRTP packet with SFrame-protected payload"}
+{: #sframe-packet title="SRTP packet with SFrame-protected payload"}
 
 ~~~ aasvg
-
    +----------------+  +---------------+
    | frame metadata |  |               |
    +-------+--------+  |               |
@@ -1187,19 +1218,12 @@ RTP.
            |           |               |
            |           +-------+-------+
            |                   |
-header ----+------------------>| AAD
-+-----+                        |
-|  S  |                        |
-+-----+                        |
-| KID +--+--> sframe_key ----->| Key
-|     |  |                     |
-|     |  +--> sframe_salt --+  |
-+-----+                     |  |
-| CTR +---------------------+->| Nonce
-|     |                        |
-|     |                        |
-+-----+                        |
-   |                       AEAD.Encrypt
+           |                   |
+           V                   V
++--------------------------------------+
+|            SFrame Encrypt            |
++--------------------------------------+
+   |                           |
    |                           |
    |                           V
    |                   +-------+-------+
@@ -1213,7 +1237,6 @@ header ----+------------------>| AAD
    |                           |
    |                  generic RTP packetize
    |                           |
-   |                           |
    |    +----------------------+--------.....--------+
    |    |                      |                     |
    V    V                      V                     V
@@ -1225,7 +1248,7 @@ header ----+------------------>| AAD
 |               |      |               |     |               |
 +---------------+      +---------------+     +---------------+
 ~~~~~
-{: title="Encryption flow with per-frame encryption for RTP" }
+{: #sframe-multi-packet title="Encryption flow with per-frame encryption for RTP" }
 
 # Test Vectors
 

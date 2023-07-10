@@ -393,9 +393,9 @@ associated to a KID.  Given a `base_key` value, the key and salt are derived
 using HKDF {{!RFC5869}} as follows:
 
 ~~~~~
-sframe_secret = HKDF-Extract(base_key, 'SFrame 1.0 ' + KID)
-sframe_key = HKDF-Expand(sframe_secret, 'key', AEAD.Nk)
-sframe_salt = HKDF-Expand(sframe_secret, 'salt', AEAD.Nn)
+sframe_secret = HKDF-Extract("SFrame 1.0 Secret " + KID, base_key)
+sframe_key = HKDF-Expand(sframe_secret, "key", AEAD.Nk)
+sframe_salt = HKDF-Expand(sframe_secret, "salt", AEAD.Nn)
 ~~~~~
 
 In the derivation of `sframe_secret`, the `+` operator represents concatenation
@@ -532,11 +532,11 @@ This document defines the following cipher suites:
 
 | Name                          | Nh | Nk | Nn | Nt |
 |:------------------------------|:---|----|:---|:---|
-| `AES_CTR_128_HMAC_SHA256_80`  | 32 | 16 | 12 | 10 |
-| `AES_CTR_128_HMAC_SHA256_64`  | 32 | 16 | 12 |  8 |
-| `AES_CTR_128_HMAC_SHA256_32`  | 32 | 16 | 12 |  4 |
-| `AES_GCM_128_SHA256_128`      | 32 | 16 | 12 | 16 |
-| `AES_GCM_256_SHA512_128`      | 64 | 32 | 12 | 16 |
+| `AES_128_CTR_HMAC_SHA256_80`  | 32 | 16 | 12 | 10 |
+| `AES_128_CTR_HMAC_SHA256_64`  | 32 | 16 | 12 |  8 |
+| `AES_128_CTR_HMAC_SHA256_32`  | 32 | 16 | 12 |  4 |
+| `AES_128_GCM_SHA256_128`      | 32 | 16 | 12 | 16 |
+| `AES_256_GCM_SHA512_128`      | 64 | 32 | 12 | 16 |
 {: #cipher-suite-constants title="SFrame cipher suite constants" }
 
 
@@ -571,10 +571,10 @@ size of a tag for the cipher in bytes (as in {{iana-cipher-suites}}):
 ~~~~~
 def derive_subkeys(sframe_key):
   tag_len = encode_big_endian(Nt, 8)
-  aead_label = 'SFrame 1.0 AES CTR AEAD' + tag_len
-  aead_secret = HKDF-Extract(sframe_key, aead_label)
-  enc_key = HKDF-Expand(aead_secret, 'enc', Nk)
-  auth_key = HKDF-Expand(aead_secret, 'auth', Nh)
+  aead_label = "SFrame 1.0 AES CTR AEAD " + tag_len
+  aead_secret = HKDF-Extract(aead_label, sframe_key)
+  enc_key = HKDF-Expand(aead_secret, "enc", Nk)
+  auth_key = HKDF-Expand(aead_secret, "auth", Nh)
   return enc_key, auth_key
 ~~~~~
 
@@ -639,8 +639,8 @@ incremented each time the sender ratchets their key forward for forward secrecy:
 
 ~~~~~ pseudocode
 sender_base_key[i+1] = HKDF-Expand(
-                         HKDF-Extract(sender_base_key[i], 'SFrame 1.0 ratchet'),
-                         '', CipherSuite.Nh)
+                         HKDF-Extract("SFrame 1.0 Ratchet", sender_base_key[i]),
+                         "", CipherSuite.Nh)
 ~~~~~
 
 For compactness, we do not send the whole epoch number.  Instead, we send only
@@ -698,7 +698,7 @@ within their assigned set of KID values, e.g., to allow a single sender to send
 multiple uncoordinated outbound media streams.
 
 ~~~~~ pseudocode
-base_key = MLS-Exporter("SFrame 1.0", "", AEAD.Nk)
+base_key = MLS-Exporter("SFrame 1.0 Base Key", "", AEAD.Nk)
 ~~~~~
 
 For compactness, we do not send the whole epoch number.  Instead, we send only
@@ -892,11 +892,11 @@ Initial contents:
 
 | Value  | Name                          | Reference |
 |:-------|:------------------------------|:----------|
-| 0x0001 | `AES_CTR_128_HMAC_SHA256_80`  | RFC XXXX  |
-| 0x0002 | `AES_CTR_128_HMAC_SHA256_64`  | RFC XXXX  |
-| 0x0003 | `AES_CTR_128_HMAC_SHA256_32`  | RFC XXXX  |
-| 0x0004 | `AES_GCM_128_SHA256_128`      | RFC XXXX  |
-| 0x0005 | `AES_GCM_256_SHA512_128`      | RFC XXXX  |
+| 0x0001 | `AES_128_CTR_HMAC_SHA256_80`  | RFC XXXX  |
+| 0x0002 | `AES_128_CTR_HMAC_SHA256_64`  | RFC XXXX  |
+| 0x0003 | `AES_128_CTR_HMAC_SHA256_32`  | RFC XXXX  |
+| 0x0004 | `AES_128_GCM_SHA256_128`      | RFC XXXX  |
+| 0x0005 | `AES_256_GCM_SHA512_128`      | RFC XXXX  |
 {: #iana-cipher-suites title="SFrame cipher suites" }
 
 # Application Responsibilities

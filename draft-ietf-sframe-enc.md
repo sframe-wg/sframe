@@ -620,20 +620,46 @@ the other participants.
 
 In this scheme, it is assumed that receivers have a signal outside of SFrame for
 which client has sent a given frame (e.g., an RTP SSRC).  SFrame KID
-values are then used to distinguish generations of the sender's key.  At the
-beginning of a call, each sender encrypts with KID=0.  Thereafter, the sender
-can ratchet their key forward for forward secrecy:
+values are then used to distinguish between versions of the sender's key.
 
-~~~~~
-sender_key[i+1] = HKDF-Expand(
-                    HKDF-Extract(sender_key[i], 'SFrame 1.0 ratchet'),
-                      '', AEAD.Nk)
+Key IDs in this scheme have two parts, a "key generation" and a "ratchet step".
+Both are unsigned integers that begin at zero.  The key generation increments
+each time the sender distributes a new key to receivers.  The "ratchet step" is
+incremented each time the sender ratchets their key forward for forward secrecy:
+
+~~~~~ pseudocode
+sender_base_key[i+1] = HKDF-Expand(
+                         HKDF-Extract(sender_base_key[i], 'SFrame 1.0 ratchet'),
+                         '', CipherSuite.Nh)
 ~~~~~
 
-The sender signals such an update by incrementing their KID value.  A receiver
-who receives from a sender with a new KID computes the new key as above.  The
-old key may be kept for some time to allow for out-of-order delivery, but should
-be deleted promptly.
+For compactness, we do not send the whole epoch number.  Instead, we send only
+its low-order `R` bits, where `R` is a value set by the application.  Different
+senders may use differen values of `R`, but each receiver of a given sender
+needs to know what value of `R` is used by the sender so that they can recognize
+when they need to ratchet (vs. expecting a new key).  `R` effectively defines a
+re-ordering window, since no more than 2<sup>`R`</sup> ratchet steps can be
+active at a given time.  The key generation is sent in the remaining `64 - R`
+bits of the key ID.
+
+~~~~~ pseudocode
+KID = (key_generation << R) + (ratchet_step % (1 << R))
+~~~~~
+
+~~~ aasvg
+     64-R bits         R bits
+ <---------------> <------------>
++-----------------+--------------+
+| Key Generation  | Ratchet Step |
++-----------------+--------------+
+~~~
+{: #sender-keys-kid title="Structure of a KID in the Sender Keys scheme" }
+
+The sender signals such a ratchet step update by sending with a KID value in
+which the ratchet step has been incremented.  A receiver who receives from a
+sender with a new KID computes the new key as above.  The old key may be kept
+for some time to allow for out-of-order delivery, but should be deleted
+promptly.
 
 If a new participant joins mid-call, they will need to receive from each sender
 (a) the current sender key for that sender and (b) the current KID value for the
@@ -665,12 +691,12 @@ multiple uncoordinated outbound media streams.
 base_key = MLS-Exporter("SFrame 1.0", "", AEAD.Nk)
 ~~~~~
 
-For compactness, we do not send the whole epoch number.  Instead, we send only its
-low-order `E` bits.  Note that `E` effectively defines a re-ordering window, since
-no more than 2^E epochs can be active at a given time.  Receivers MUST be
-prepared for the epoch counter to roll over, removing an old epoch when a new
-epoch with the same E lower bits is introduced.  (Sender indices cannot be
-similarly compressed.)
+For compactness, we do not send the whole epoch number.  Instead, we send only
+its low-order `E` bits, where `E` is a value set by the application.  `E`
+effectively defines a re-ordering window, since no more than 2<sup>`E`</sup>
+epochs can be active at a given time.  Receivers MUST be prepared for the epoch
+counter to roll over, removing an old epoch when a new epoch with the same E
+lower bits is introduced.
 
 Let `S` be the number of bits required to encode a member index in the group,
 i.e., the smallest value such that `group_size` < (1 << S)`.  The sender index

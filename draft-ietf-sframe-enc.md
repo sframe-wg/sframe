@@ -682,7 +682,7 @@ its low-order `E` bits, where `E` is a value set by the application.  `E`
 effectively defines a re-ordering window, since no more than 2<sup>`E`</sup>
 epochs can be active at a given time.  Receivers MUST be prepared for the epoch
 counter to roll over, removing an old epoch when a new epoch with the same E
-lower bits is introduced (sender indices cannot be similarly compressed).
+lower bits is introduced.
 
 Let `S` be the number of bits required to encode a member index in the group,
 i.e., the smallest value such that `group_size` < (1 << S)`.  The sender index

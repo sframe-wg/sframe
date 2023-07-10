@@ -192,7 +192,7 @@ SFrame does not provide this agreement; it must be arranged by the application.
       +--------------------------------------------------------+
       |                                                        |
       |  +----------+      +-------------+      +-----------+  |
- .-.  |  |          |      |             |      |   SRTP    |  |
+ .-.  |  |          |      |             |      |    HBH    |  |
 |   | |  |  Encode  |----->|  Packetize  |----->|  Protect  |-----------+
  '+'  |  |          |   ^  |             |  ^   |           |  |        |
  /|\  |  +----------+   |  +-------------+  |   +-----------+  |        |
@@ -217,7 +217,7 @@ Alice |            (per-frame)         (per-packet)   |        |        |
  '+'  |            (per-frame)          (per-packet)  |        |        |
  /|\  |                 |                    |        V        |        |
 / + \ |  +----------+   |  +-------------+   |  +-----------+  |        |
- / \  |  |          |   V  |             |   V  |   SRTP    |  |        |
+ / \  |  |          |   V  |             |   V  |    HBH    |  |        |
 /   \ |  |  Decode  |<-----| Depacketize |<-----| Unprotect |<----------+
  Bob  |  |          |      |             |      |           |  |
       |  +----------+      +-------------+      +-----------+  |
@@ -1161,7 +1161,7 @@ integration between SFrame and RTP could be done, and some of the challenges
 that would need to be overcome.
 
 As discussed in {{application-context}}, there are two natural patterns for
-integrating SFrame into an application, applying SFrame per-frame or per-packet.
+integrating SFrame into an application: applying SFrame per-frame or per-packet.
 In RTP-based applications, applying SFrame per-packet means that the payload of
 each RTP packet will be an SFrame ciphertext, starting with an SFrame Header, as
 shown in {{sframe-packet}}.  Applying SFrame per-frame means that different
@@ -1170,16 +1170,16 @@ contain the SFrame headers, and subsequent payloads will contain further chunks
 of the ciphertext, as shown in {{sframe-multi-packet}}.
 
 In order for these media payloads to be properly interpreted by receivers,
-receivers will need to be configured to known which of the above schemes has
-been applied to a given sequence of RTP packets. SFrame does not provide a
-mechanism for distributing this configuration information. In applications that
-use SDP for negotiating RTP media streams {{RFC4566}}, an appropriate extension
-to SDP could provide this function.
+receivers will need to be configured to know which of the above schemes the
+sender has  applied to a given sequence of RTP packets. SFrame does not provide
+a mechanism for distributing this configuration information. In applications
+that use SDP for negotiating RTP media streams {{RFC4566}}, an appropriate
+extension to SDP could provide this function.
 
 Applying SFrame per-frame also requires that packetization and depacketization
 be done in a generic manner that does not depend on the media content of the
 packets, since the content being packetized / depacketized will be opaque
-ciphertext except for the SFrame header.  In order for such a generic
+ciphertext (except for the SFrame header).  In order for such a generic
 packetization scheme to work interoperably one would have to be defined, e.g.,
 as proposed in {{?I-D.codec-agnostic-rtp-payload-format}}.
 

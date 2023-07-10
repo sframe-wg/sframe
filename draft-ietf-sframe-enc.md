@@ -345,9 +345,9 @@ aspects of the AEAD algorithm below:
   the authentication tag part of the ciphertext produced by `AEAD.Encrypt` (as
   opposed to a separate field as in SRTP {{?RFC3711}}).
 
-* `AEAD.Nk` - The size in bytes of a key for the encryption algorithm 
+* `AEAD.Nk` - The size in bytes of a key for the encryption algorithm
 
-* `AEAD.Nn` - The size in bytes of a nonce for the encryption algorithm 
+* `AEAD.Nn` - The size in bytes of a nonce for the encryption algorithm
 
 * `AEAD.Nt` - The overhead in bytes of the encryption algorithm (typically the
   size of a "tag" that is added to the plaintext)

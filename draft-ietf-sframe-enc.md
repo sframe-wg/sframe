@@ -326,7 +326,7 @@ in the next LEN bytes:
 ## Encryption Schema
 
 SFrame encryption uses an AEAD encryption algorithm and hash function defined by
-the ciphersuite in use (see {{ciphersuites}}).  We will refer to the following
+the cipher suite in use (see {{cipher-suites}}).  We will refer to the following
 aspects of the AEAD algorithm below:
 
 * `AEAD.Encrypt` and `AEAD.Decrypt` - The encryption and decryption functions
@@ -392,11 +392,11 @@ In the derivation of `sframe_secret`, the `+` operator represents concatenation
 of octet strings and the KID value is encoded as an 8-byte big-endian integer
 (not the compressed form used in the SFrame header).
 
-The hash function used for HKDF is determined by the ciphersuite in use.
+The hash function used for HKDF is determined by the cipher suite in use.
 
 ### Encryption
 
-SFrame encryption uses the AEAD encryption algorithm for the ciphersuite in use.
+SFrame encryption uses the AEAD encryption algorithm for the cipher suite in use.
 The key for the encryption is the `sframe_key` and the nonce is formed by XORing
 the `sframe_salt` with the current counter, encoded as a big-endian integer of
 length `AEAD.Nn`.
@@ -500,9 +500,9 @@ in case of packet loss. SFrame decryptors use the highest received frame counter
 to protect against this. It allows only older frame pithing a short interval to
 support out of order delivery.
 
-## Ciphersuites
+## Cipher Suites
 
-Each SFrame session uses a single ciphersuite that specifies the following
+Each SFrame session uses a single cipher suite that specifies the following
 primitives:
 
 * A hash function used for key derivation
@@ -510,17 +510,28 @@ primitives:
 * An AEAD encryption algorithm [RFC5116] used for frame encryption, optionally
   with a truncated authentication tag
 
-This document defines the following ciphersuites:
+The following constants are defined per cipher suite, for use in SFrame
+computations:
 
-| Value  | Name                          | Nh | Nk | Nn | Nt | Reference |
-|:-------|:------------------------------|:---|----|:---|:---|:----------|
-| 0x0001 | `AES_CTR_128_HMAC_SHA256_80`  | 32 | 16 | 12 | 10 | RFC XXXX  |
-| 0x0002 | `AES_CTR_128_HMAC_SHA256_64`  | 32 | 16 | 12 |  8 | RFC XXXX  |
-| 0x0003 | `AES_CTR_128_HMAC_SHA256_32`  | 32 | 16 | 12 |  4 | RFC XXXX  |
-| 0x0004 | `AES_GCM_128_SHA256_128`      | 32 | 16 | 12 | 16 | RFC XXXX  |
-| 0x0005 | `AES_GCM_256_SHA512_128`      | 64 | 32 | 12 | 16 | RFC XXXX  |
-{: #iana-cipher-suites title="SFrame cipher suites" }
+* Nh: The length in bytes of the output from the hash function
+* Nk: The length in bytes of a key for the AEAD algorithm
+* Nn: The length in bytes of a nonce for the AEAD algorithm
+* Nt: The length in bytes of the overhead added by the AEAD algorithm
 
+This document defines the following cipher suites:
+
+| Name                          | Nh | Nk | Nn | Nt |
+|:------------------------------|:---|----|:---|:---|
+| `AES_CTR_128_HMAC_SHA256_80`  | 32 | 16 | 12 | 10 |
+| `AES_CTR_128_HMAC_SHA256_64`  | 32 | 16 | 12 |  8 |
+| `AES_CTR_128_HMAC_SHA256_32`  | 32 | 16 | 12 |  4 |
+| `AES_GCM_128_SHA256_128`      | 32 | 16 | 12 | 16 |
+| `AES_GCM_256_SHA512_128`      | 64 | 32 | 12 | 16 |
+{: #cipher-suite-constants title="SFrame cipher suite constants" }
+
+
+Numeric identifiers for these cipher suites are defined in the IANA registry
+created in {{sframe-cipher-suites}}.
 
 <!-- RFC EDITOR: Please replace XXXX above with the RFC number assigned to this
 document -->
@@ -530,10 +541,10 @@ the last value: "\_128" indicates a hundred-twenty-eight-bit tag, "\_80" indicat
 a eighty-bit tag, "\_64" indicates a sixty-four-bit tag and "\_32" indicates a
 thirty-two-bit tag.
 
-In a session that uses multiple media streams, different ciphersuites might be
+In a session that uses multiple media streams, different cipher suites might be
 configured for different media streams.  For example, in order to conserve
-bandwidth, a session might use a ciphersuite with eighty-bit tags for video frames
-and another ciphersuite with thirty-two-bit tags for audio frames.
+bandwidth, a session might use a cipher suite with eighty-bit tags for video frames
+and another cipher suite with thirty-two-bit tags for audio frames.
 
 ### AES-CTR with SHA2
 
@@ -559,7 +570,7 @@ def derive_subkeys(sframe_key):
 
 The AEAD encryption and decryption functions are then composed of individual
 calls to the CTR encrypt function and HMAC.  The resulting MAC value is truncated
-to a number of bytes `Nt` fixed by the ciphersuite.
+to a number of bytes `Nt` fixed by the cipher suite.
 
 ~~~~~
 def compute_tag(auth_key, nonce, aad, ct):
@@ -816,7 +827,41 @@ since several AEAD algorithms fail badly in such cases (see, e.g., {{Section 5.1
 
 # IANA Considerations
 
-This document makes no requests of IANA.
+This document requests the creation of the following new IANA registries:
+
+* SFrame Cipher Suites ({{sframe-cipher-suites}})
+
+This registries should be under a heading of "SFrame",
+and assignments are made via the Specification Required policy {{!RFC8126}}.
+
+RFC EDITOR: Please replace XXXX throughout with the RFC number assigned to
+this document
+
+## SFrame Cipher Suites
+
+This registry lists identifiers for SFrame cipher suites, as defined in
+{{cipher-suites}}.  The cipher suite field is two bytes wide, so the valid cipher
+suites are in the range 0x0000 to 0xFFFF.
+
+Template:
+
+* Value: The numeric value of the cipher suite
+
+* Name: The name of the cipher suite
+
+* Reference: The document where this wire format is defined
+
+Initial contents:
+
+
+| Value  | Name                          | Reference |
+|:-------|:------------------------------|:----------|
+| 0x0001 | `AES_CTR_128_HMAC_SHA256_80`  | RFC XXXX  |
+| 0x0002 | `AES_CTR_128_HMAC_SHA256_64`  | RFC XXXX  |
+| 0x0003 | `AES_CTR_128_HMAC_SHA256_32`  | RFC XXXX  |
+| 0x0004 | `AES_GCM_128_SHA256_128`      | RFC XXXX  |
+| 0x0005 | `AES_GCM_256_SHA512_128`      | RFC XXXX  |
+{: #iana-cipher-suites title="SFrame cipher suites" }
 
 # Application Responsibilities
 
@@ -894,7 +939,7 @@ depends on several factors:
 
 * How many senders are involved in a conference (length of KID)
 * How long the conference has been going on (length of CTR)
-* The ciphersuite in use (length of authentication tag)
+* The cipher suite in use (length of authentication tag)
 * Whether SFrame is used to encrypt packets, whole frames, or some other unit
 
 Overall, the overhead rate in kilobits per second can be estimated as:
@@ -1096,7 +1141,7 @@ header ----+------------------>| AAD
 
 This section provides a set of test vectors that implementations can use to
 verify that they correctly implement SFrame encryption and decryption.  For each
-ciphersuite, we provide:
+cipher suite, we provide:
 
 * [in] The `base_key` value (hex encoded)
 * [out] The `secret`, `key`, and `salt` values derived from the `base_key` (hex

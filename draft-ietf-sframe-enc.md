@@ -606,12 +606,12 @@ the other participants.
 
 In this scheme, it is assumed that receivers have a signal outside of SFrame for
 which client has sent a given frame (e.g., an RTP SSRC).  SFrame KID
-values are then used to distinguish versions of the sender's key.
+values are then used to distinguish between versions of the sender's key.
 
 Key IDs in this scheme have two parts, a "key generation" and a "ratchet step".
 Both are unsigned integers that begin at zero.  The key generation increments
 each time the sender distributes a new key to receivers.  The "ratchet step" is
-increment each time the sender ratchets their key forward for forward secrecy:
+incremented each time the sender ratchets their key forward for forward secrecy:
 
 ~~~~~ pseudocode
 sender_base_key[i+1] = HKDF-Expand(
@@ -638,8 +638,8 @@ KID = (key_generation << R) + (ratchet_step % (1 << R))
 ~~~
 {: #sender-keys-kid title="Structure of a KID in the Sender Keys scheme" }
 
-The sender signals such an ratchet step update by sending with a KID value in
-which the tratchet step has been incremented.  A receiver who receives from a
+The sender signals such a ratchet step update by sending with a KID value in
+which the ratchet step has been incremented.  A receiver who receives from a
 sender with a new KID computes the new key as above.  The old key may be kept
 for some time to allow for out-of-order delivery, but should be deleted
 promptly.
@@ -679,7 +679,7 @@ its low-order `E` bits, where `E` is a value set by the application.  `E`
 effectively defines a re-ordering window, since no more than 2<sup>`E`</sup>
 epochs can be active at a given time.  Receivers MUST be prepared for the epoch
 counter to roll over, removing an old epoch when a new epoch with the same E
-lower bits is introduced.  (Sender indices cannot be similarly compressed.)
+lower bits is introduced (sender indices cannot be similarly compressed).
 
 Let `S` be the number of bits required to encode a member index in the group,
 i.e., the smallest value such that `group_size` < (1 << S)`.  The sender index

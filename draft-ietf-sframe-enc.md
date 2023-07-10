@@ -1173,7 +1173,7 @@ In order for these media payloads to be properly interpreted by receivers,
 receivers will need to be configured to know which of the above schemes the
 sender has  applied to a given sequence of RTP packets. SFrame does not provide
 a mechanism for distributing this configuration information. In applications
-that use SDP for negotiating RTP media streams {{RFC4566}}, an appropriate
+that use SDP for negotiating RTP media streams {{?RFC4566}}, an appropriate
 extension to SDP could provide this function.
 
 Applying SFrame per-frame also requires that packetization and depacketization
@@ -1248,7 +1248,7 @@ as proposed in {{?I-D.codec-agnostic-rtp-payload-format}}.
 |               |      |               |     |               |
 +---------------+      +---------------+     +---------------+
 ~~~~~
-{: title="Encryption flow with per-frame encryption for RTP" }
+{: #sframe-multi-packet title="Encryption flow with per-frame encryption for RTP" }
 
 # Test Vectors
 

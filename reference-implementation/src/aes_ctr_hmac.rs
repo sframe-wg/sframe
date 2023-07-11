@@ -22,8 +22,18 @@ where
     D: Digest,
     T: ArrayLength<u8>,
 {
-    enc_key: Key<C>,
-    auth_key: Output<D>,
+    /// The `aead_label` value used as salt in HKDF
+    pub aead_label: Vec<u8>,
+
+    /// The `aead_secret` value used as an HKDF PRK
+    pub aead_secret: Output<D>,
+
+    /// The derived encryption subkey
+    pub enc_key: Key<C>,
+
+    /// The derived authentication subkey
+    pub auth_key: Output<D>,
+
     _ctr: PhantomData<C>,
     _hmac: PhantomData<D>,
     _tag: PhantomData<T>,
@@ -94,7 +104,7 @@ where
         let mut aead_label = b"SFrame 1.0 AES CTR AEAD ".to_vec();
         aead_label.extend_from_slice(&T::to_u64().to_be_bytes());
 
-        let h = Hkdf::<D, SimpleHmac<D>>::new(Some(&aead_label), key);
+        let (aead_secret, h) = Hkdf::<D, SimpleHmac<D>>::extract(Some(&aead_label), key);
 
         let mut enc_key: Key<C> = Default::default();
         h.expand(b"enc", &mut enc_key).unwrap();
@@ -103,6 +113,8 @@ where
         h.expand(b"auth", &mut auth_key).unwrap();
 
         Self {
+            aead_label,
+            aead_secret,
             enc_key,
             auth_key,
             _ctr: PhantomData,

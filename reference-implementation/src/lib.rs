@@ -56,6 +56,25 @@ pub struct SFrameContext {
     recv_keys: HashMap<KeyId, RecvKeyContext>,
 }
 
+impl SFrameContext {
+    /// This function allows the caller to directly specify the CTR value, for use in generating
+    /// test vectors.
+    pub fn encrypt_raw(
+        &mut self,
+        kid: KeyId,
+        ctr: Counter,
+        metadata: &[u8],
+        plaintext: &[u8],
+    ) -> Vec<u8> {
+        let ctx = self.send_keys.get_mut(&kid).unwrap();
+        let header = Header::new(kid, ctr);
+        let mut raw_ciphertext = ctx.cipher.encrypt(&header, metadata, plaintext);
+        let mut ciphertext = header.to_vec();
+        ciphertext.append(&mut raw_ciphertext);
+        ciphertext
+    }
+}
+
 /// SFrameContextMethods describes the major protocol operations available for SFrame.
 pub trait SFrameContextMethods {
     /// Create a new context for this cipher suite, with no keys
@@ -67,9 +86,8 @@ pub trait SFrameContextMethods {
     /// Add a receive-only key
     fn add_recv_key(&mut self, kid: KeyId, base_key: &[u8]);
 
-    /// Compute the cipher overhead for encrypting/decrypting with the specified key.  Panics if
-    /// the KID value is unknown.
-    fn overhead(&self, kid: KeyId) -> usize;
+    /// Access the cipher for a KID.  Panics if the KID value is unknown.
+    fn cipher(&self, kid: KeyId) -> &dyn Cipher;
 
     /// Encrypt with the specified key.  Panics if the KID value is unknown.
     fn encrypt(&mut self, kid: KeyId, metadata: &[u8], plaintext: &[u8]) -> Vec<u8>;
@@ -114,24 +132,20 @@ impl SFrameContextMethods for SFrameContext {
         self.recv_keys.insert(kid, key_ctx);
     }
 
-    fn overhead(&self, kid: KeyId) -> usize {
+    fn cipher(&self, kid: KeyId) -> &dyn Cipher {
         self.send_keys
             .get(&kid)
-            .map(|c| c.cipher.overhead())
-            .or(self.recv_keys.get(&kid).map(|c| c.cipher.overhead()))
+            .map(|c| c.cipher.as_ref())
+            .or(self.recv_keys.get(&kid).map(|c| c.cipher.as_ref()))
             .unwrap()
     }
 
     fn encrypt(&mut self, kid: KeyId, metadata: &[u8], plaintext: &[u8]) -> Vec<u8> {
         let ctx = self.send_keys.get_mut(&kid).unwrap();
-
-        let header = Header::new(kid, ctx.next_counter);
+        let ctr = ctx.next_counter;
         ctx.next_counter.0 += 1;
 
-        let mut raw_ciphertext = ctx.cipher.encrypt(&header, metadata, plaintext);
-        let mut ciphertext = header.to_vec();
-        ciphertext.append(&mut raw_ciphertext);
-        ciphertext
+        self.encrypt_raw(kid, ctr, metadata, plaintext)
     }
 
     fn decrypt(&self, metadata: &[u8], ciphertext: &[u8]) -> Option<Vec<u8>> {
@@ -145,7 +159,7 @@ impl SFrameContextMethods for SFrameContext {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::cipher::test::ALL_CIPHER_SUITES;
+    use crate::cipher::ALL_CIPHER_SUITES;
 
     fn round_trip_one(cipher_suite: CipherSuite) {
         let kid = KeyId(0x0102030405060708);
@@ -166,7 +180,7 @@ mod test {
         assert_eq!(&header, &ciphertext[..header.len()]);
         assert_eq!(
             ciphertext.len(),
-            plaintext.len() + header.len() + send.overhead(kid)
+            plaintext.len() + header.len() + send.cipher(kid).overhead()
         );
 
         // Verify that the receiver can decrypt the ciphertext

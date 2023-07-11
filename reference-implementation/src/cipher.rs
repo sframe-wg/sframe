@@ -26,8 +26,18 @@ fn xor_eq(a: &mut [u8], b: &[u8]) {
 }
 
 struct CipherImpl<A: Aead> {
+    /// The label value used as a salt in HKDF
+    pub sframe_label: Vec<u8>,
+
+    /// The `aead_secret` value used as an HKDF PRK
+    pub sframe_secret: Vec<u8>,
+
+    /// The derived AEAD encryption key
+    pub sframe_key: Key<A>,
+
+    /// The derived AEAD encryption salt
+    pub sframe_salt: Nonce<A>,
     aead: A,
-    salt: Nonce<A>,
 }
 
 impl<A: Aead> CipherImpl<A> {
@@ -35,7 +45,7 @@ impl<A: Aead> CipherImpl<A> {
         let mut sframe_label = b"SFrame 1.0 ".to_vec();
         sframe_label.extend_from_slice(&kid.0.to_be_bytes());
 
-        let h = Hkdf::<D, SimpleHmac<D>>::new(Some(&base_key), &sframe_label);
+        let (sframe_secret, h) = Hkdf::<D, SimpleHmac<D>>::extract(Some(&base_key), &sframe_label);
 
         let mut sframe_key: Key<A> = Default::default();
         h.expand(b"key", &mut sframe_key).unwrap();
@@ -43,15 +53,20 @@ impl<A: Aead> CipherImpl<A> {
         let mut sframe_salt: Nonce<A> = Default::default();
         h.expand(b"salt", &mut sframe_salt).unwrap();
 
+        let aead = A::new(&sframe_key);
+
         Self {
-            aead: A::new(&sframe_key),
-            salt: sframe_salt,
+            sframe_label,
+            sframe_secret: sframe_secret.to_vec(),
+            sframe_key,
+            sframe_salt,
+            aead,
         }
     }
 
     pub fn prepare(&self, header: &Header, metadata: &[u8]) -> (Nonce<A>, Vec<u8>) {
         // Form the nonce
-        let mut nonce = self.salt.clone();
+        let mut nonce = self.sframe_salt.clone();
         let ctr_data = header.ctr.0.to_be_bytes();
         let start = nonce.len() - ctr_data.len();
         xor_eq(&mut nonce[start..], &ctr_data);
@@ -69,6 +84,18 @@ impl<A: Aead> CipherImpl<A> {
 /// header, and metadata values, and the resulting AEAD encryption/decryption.  (Key derivation is
 /// handled by the implementation struct.)
 pub trait Cipher {
+    /// The label value used as a salt in HKDF
+    fn sframe_label(&self) -> Vec<u8>;
+
+    /// The `aead_secret` value used as an HKDF PRK
+    fn sframe_secret(&self) -> Vec<u8>;
+
+    /// The derived AEAD encryption key
+    fn sframe_key(&self) -> Vec<u8>;
+
+    /// The derived AEAD encryption salt
+    fn sframe_salt(&self) -> Vec<u8>;
+
     /// The number of bytes of overhead added to a plaintext on encryption
     fn overhead(&self) -> usize;
 
@@ -81,6 +108,22 @@ pub trait Cipher {
 }
 
 impl<A: Aead> Cipher for CipherImpl<A> {
+    fn sframe_label(&self) -> Vec<u8> {
+        self.sframe_label.clone()
+    }
+
+    fn sframe_secret(&self) -> Vec<u8> {
+        self.sframe_secret.clone()
+    }
+
+    fn sframe_key(&self) -> Vec<u8> {
+        self.sframe_key.to_vec()
+    }
+
+    fn sframe_salt(&self) -> Vec<u8> {
+        self.sframe_salt.to_vec()
+    }
+
     fn overhead(&self) -> usize {
         A::TagSize::to_usize()
     }
@@ -127,6 +170,15 @@ impl CipherSuite {
     pub const AES_256_GCM_SHA_512: CipherSuite = CipherSuite(0x0005);
 }
 
+/// A list of all available ciphersuites
+pub const ALL_CIPHER_SUITES: [CipherSuite; 5] = [
+    CipherSuite::AES_128_CTR_HMAC_SHA_256_80,
+    CipherSuite::AES_128_CTR_HMAC_SHA_256_64,
+    CipherSuite::AES_128_CTR_HMAC_SHA_256_32,
+    CipherSuite::AES_128_GCM_SHA_256,
+    CipherSuite::AES_256_GCM_SHA_512,
+];
+
 type Aes128CtrHmacSha256_80 = CipherImpl<AesCtrHmac<Aes128, Sha256, U10>>;
 type Aes128CtrHmacSha256_64 = CipherImpl<AesCtrHmac<Aes128, Sha256, U8>>;
 type Aes128CtrHmacSha256_32 = CipherImpl<AesCtrHmac<Aes128, Sha256, U4>>;
@@ -156,14 +208,6 @@ pub fn new_cipher(cipher_suite: CipherSuite, kid: KeyId, base_key: &[u8]) -> Box
 pub mod test {
     use super::*;
     use crate::Counter;
-
-    pub const ALL_CIPHER_SUITES: [CipherSuite; 5] = [
-        CipherSuite::AES_128_CTR_HMAC_SHA_256_80,
-        CipherSuite::AES_128_CTR_HMAC_SHA_256_64,
-        CipherSuite::AES_128_CTR_HMAC_SHA_256_32,
-        CipherSuite::AES_128_GCM_SHA_256,
-        CipherSuite::AES_256_GCM_SHA_512,
-    ];
 
     fn round_trip_one(cipher_suite: CipherSuite) {
         let kid = KeyId(0x0102030405060708);

@@ -45,7 +45,7 @@ impl<A: Aead> CipherImpl<A> {
         let mut sframe_label = b"SFrame 1.0 ".to_vec();
         sframe_label.extend_from_slice(&kid.0.to_be_bytes());
 
-        let (sframe_secret, h) = Hkdf::<D, SimpleHmac<D>>::extract(Some(&base_key), &sframe_label);
+        let (sframe_secret, h) = Hkdf::<D, SimpleHmac<D>>::extract(Some(base_key), &sframe_label);
 
         let mut sframe_key: Key<A> = Default::default();
         h.expand(b"key", &mut sframe_key).unwrap();
@@ -74,7 +74,7 @@ impl<A: Aead> CipherImpl<A> {
         // Form the AAD
         let mut aad: Vec<u8> = Vec::new();
         aad.extend_from_slice(&header.to_vec());
-        aad.extend_from_slice(&metadata);
+        aad.extend_from_slice(metadata);
 
         (nonce, aad)
     }
@@ -131,7 +131,7 @@ impl<A: Aead> Cipher for CipherImpl<A> {
     fn encrypt(&self, header: &Header, metadata: &[u8], plaintext: &[u8]) -> Vec<u8> {
         let (nonce, aad) = self.prepare(header, metadata);
         let payload = Payload {
-            msg: &plaintext,
+            msg: plaintext,
             aad: &aad,
         };
 
@@ -141,7 +141,7 @@ impl<A: Aead> Cipher for CipherImpl<A> {
     fn decrypt(&self, header: &Header, metadata: &[u8], ciphertext: &[u8]) -> Option<Vec<u8>> {
         let (nonce, aad) = self.prepare(header, metadata);
         let payload = Payload {
-            msg: &ciphertext,
+            msg: ciphertext,
             aad: &aad,
         };
 

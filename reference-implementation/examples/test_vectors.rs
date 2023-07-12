@@ -20,8 +20,7 @@ mod header {
         pub fn make_all() -> Vec<Self> {
             let mut values: Vec<u64> = (0..64)
                 .step_by(8)
-                .map(|n| [(1 << n) - 1, (1 << n)])
-                .flatten()
+                .flat_map(|n| [(1 << n) - 1, (1 << n)])
                 .collect();
             values.push(u64::MAX);
 

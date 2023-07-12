@@ -47,7 +47,7 @@ where
 {
     fn nonce_to_iv(short_nonce: &Nonce<Self>) -> Iv<Ctr32BE<C>> {
         let mut iv: Iv<Ctr32BE<C>> = Default::default();
-        iv[..short_nonce.len()].copy_from_slice(&short_nonce);
+        iv[..short_nonce.len()].copy_from_slice(short_nonce);
         iv
     }
 
@@ -65,9 +65,9 @@ where
         let tag_len = T::to_u64().to_be_bytes();
 
         let h = <SimpleHmac<D> as Mac>::new_from_slice(self.auth_key.as_slice()).unwrap();
-        h.chain(&aad_len)
-            .chain(&ct_len)
-            .chain(&tag_len)
+        h.chain(aad_len)
+            .chain(ct_len)
+            .chain(tag_len)
             .chain(nonce)
             .chain(aad)
             .chain(ct)

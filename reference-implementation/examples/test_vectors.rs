@@ -3,12 +3,6 @@ mod header {
     use serde::Serialize;
     use sframe_reference::header::*;
 
-    const MARKDOWN_SNIPPET: &str = "~~~
-KID: 0x{kid}
-CTR: 0x{ctr}
-Header: {header}
-~~~";
-
     #[derive(Serialize)]
     pub struct TestVector {
         kid: u64,
@@ -43,10 +37,14 @@ Header: {header}
 
     impl super::ToMarkdown for TestVector {
         fn to_markdown(&self) -> String {
-            MARKDOWN_SNIPPET
-                .replace("{kid}", &format!("{:016x}", self.kid))
-                .replace("{ctr}", &format!("{:016x}", self.ctr))
-                .replace("{header}", &self.encoded)
+            let TestVector { kid, ctr, encoded } = self;
+            format!(
+                "~~~
+KID: 0x{kid:016x}
+CTR: 0x{ctr:016x}
+Header: {encoded}
+~~~"
+            )
         }
     }
 }
@@ -61,19 +59,6 @@ mod aes_ctr_hmac {
     use sframe_reference::aes_ctr_hmac::*;
     use sframe_reference::cipher::CipherSuite;
     use sha2::Sha256;
-
-    const MARKDOWN_SNIPPET: &str = "~~~
-Cipher suite: {cipher_suite}
-`key`: {key}
-`aead_label`: {aead_label}
-`aead_secret`: {aead_secret}
-`enc_key`: {enc_key}
-`auth_key`: {auth_key}
-`nonce`: {nonce}
-`aad`: {aad}
-`pt`: {pt}
-`ct`: {ct}
-~~~";
 
     #[derive(Serialize)]
     pub struct TestVector {
@@ -136,17 +121,33 @@ Cipher suite: {cipher_suite}
 
     impl super::ToMarkdown for TestVector {
         fn to_markdown(&self) -> String {
-            MARKDOWN_SNIPPET
-                .replace("{cipher_suite}", &format!("{:04x}", self.cipher_suite))
-                .replace("{key}", &self.key)
-                .replace("{aead_label}", &self.aead_label)
-                .replace("{aead_secret}", &self.aead_secret)
-                .replace("{enc_key}", &self.enc_key)
-                .replace("{auth_key}", &self.auth_key)
-                .replace("{nonce}", &self.nonce)
-                .replace("{aad}", &self.aad)
-                .replace("{pt}", &self.pt)
-                .replace("{ct}", &self.ct)
+            let TestVector {
+                cipher_suite,
+                key,
+                aead_label,
+                aead_secret,
+                enc_key,
+                auth_key,
+                nonce,
+                aad,
+                pt,
+                ct,
+            } = self;
+
+            format!(
+                "~~~
+Cipher suite: 0x{cipher_suite:04x}
+`key`: {key}
+`aead_label`: {aead_label}
+`aead_secret`: {aead_secret}
+`enc_key`: {enc_key}
+`auth_key`: {auth_key}
+`nonce`: {nonce}
+`aad`: {aad}
+`pt`: {pt}
+`ct`: {ct}
+~~~"
+            )
         }
     }
 }
@@ -155,20 +156,6 @@ mod sframe {
     use hex_literal::hex;
     use serde::Serialize;
     use sframe_reference::*;
-
-    const MARKDOWN_SNIPPET: &str = "~~~
-Cipher suite: {cipher_suite}
-`base_key`: {base_key}
-`sframe_label`: {sframe_label}
-`sframe_secret`: {sframe_secret}
-`sframe_key`: {sframe_key}
-`sframe_salt`: {sframe_salt}
-`kid`: 0x{kid}
-`ctr`: 0x{ctr}
-`metadata`: {metadata}
-`pt`: {pt}
-`ct`: {ct}
-~~~";
 
     #[derive(Serialize)]
     pub struct TestVector {
@@ -224,18 +211,35 @@ Cipher suite: {cipher_suite}
 
     impl super::ToMarkdown for TestVector {
         fn to_markdown(&self) -> String {
-            MARKDOWN_SNIPPET
-                .replace("{cipher_suite}", &format!("{:04x}", self.cipher_suite))
-                .replace("{base_key}", &self.base_key)
-                .replace("{sframe_label}", &self.sframe_label)
-                .replace("{sframe_secret}", &self.sframe_secret)
-                .replace("{sframe_key}", &self.sframe_key)
-                .replace("{sframe_salt}", &self.sframe_salt)
-                .replace("{kid}", &format!("{:016x}", self.kid))
-                .replace("{ctr}", &format!("{:016x}", self.ctr))
-                .replace("{metadata}", &self.metadata)
-                .replace("{pt}", &self.pt)
-                .replace("{ct}", &self.ct)
+            let TestVector {
+                cipher_suite,
+                base_key,
+                sframe_label,
+                sframe_secret,
+                sframe_key,
+                sframe_salt,
+                kid,
+                ctr,
+                metadata,
+                pt,
+                ct,
+            } = self;
+
+            format!(
+                "~~~
+Cipher suite: 0x{cipher_suite:04x}
+`base_key`: {base_key}
+`sframe_label`: {sframe_label}
+`sframe_secret`: {sframe_secret}
+`sframe_key`: {sframe_key}
+`sframe_salt`: {sframe_salt}
+`kid`: 0x{kid:016x}
+`ctr`: 0x{ctr:016x}
+`metadata`: {metadata}
+`pt`: {pt}
+`ct`: {ct}
+~~~"
+            )
         }
     }
 }

@@ -68,9 +68,12 @@ impl SFrameContext {
     ) -> Vec<u8> {
         let ctx = self.send_keys.get_mut(&kid).unwrap();
         let header = Header::new(kid, ctr);
-        let mut raw_ciphertext = ctx.cipher.encrypt(&header, metadata, plaintext);
-        let mut ciphertext = header.to_vec();
-        ciphertext.append(&mut raw_ciphertext);
+
+        let raw_ciphertext = ctx.cipher.encrypt(&header, metadata, plaintext);
+
+        let mut ciphertext = Vec::new();
+        ciphertext.extend_from_slice(header.as_slice());
+        ciphertext.extend_from_slice(raw_ciphertext.as_slice());
         ciphertext
     }
 }
@@ -176,8 +179,8 @@ mod test {
         // Verify that an SFrame ciphertext has the proper form
         let ciphertext = send.encrypt(kid, metadata, plaintext);
 
-        let header = Header::new(kid, Counter(0)).to_vec();
-        assert_eq!(&header, &ciphertext[..header.len()]);
+        let header = Header::new(kid, Counter(0)).as_slice().to_vec();
+        assert_eq!(header, &ciphertext[..header.len()]);
         assert_eq!(
             ciphertext.len(),
             plaintext.len() + header.len() + send.cipher(kid).overhead()

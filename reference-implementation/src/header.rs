@@ -81,9 +81,9 @@ impl Header {
         (Self { kid, ctr, encoded }, raw_ciphertext)
     }
 
-    /// The encoded header value.
-    pub fn to_vec(&self) -> Vec<u8> {
-        self.encoded.clone()
+    /// A view of the encoded header value
+    pub fn as_slice(&self) -> &[u8] {
+        self.encoded.as_slice()
     }
 }
 
@@ -100,8 +100,7 @@ mod test {
                 let ctr = Counter(1 << log_ctr);
 
                 let before = Header::new(kid, ctr);
-                let encoded = before.to_vec();
-                let (after, rest) = Header::parse(&encoded);
+                let (after, rest) = Header::parse(before.as_slice());
                 assert_eq!(rest.len(), 0);
                 assert_eq!(before, after);
             }
@@ -137,7 +136,7 @@ mod test {
 
         for (kid, ctr, encoded) in cases {
             let constructed = Header::new(kid, ctr);
-            assert_eq!(encoded, constructed.to_vec());
+            assert_eq!(encoded, constructed.as_slice());
 
             let (parsed, rest) = Header::parse(encoded);
             assert_eq!(rest.len(), 0);

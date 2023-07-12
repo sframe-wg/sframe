@@ -13,7 +13,7 @@ mod header {
     impl TestVector {
         fn new(kid: u64, ctr: u64) -> Self {
             let header = Header::new(KeyId(kid), Counter(ctr));
-            let encoded = hex::encode(header.to_vec());
+            let encoded = hex::encode(header.as_slice());
             Self { kid, ctr, encoded }
         }
 

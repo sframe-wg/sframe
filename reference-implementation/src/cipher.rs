@@ -73,7 +73,7 @@ impl<A: Aead> CipherImpl<A> {
 
         // Form the AAD
         let mut aad: Vec<u8> = Vec::new();
-        aad.extend_from_slice(&header.to_vec());
+        aad.extend_from_slice(header.as_slice());
         aad.extend_from_slice(metadata);
 
         (nonce, aad)

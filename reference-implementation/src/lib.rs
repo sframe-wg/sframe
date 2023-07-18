@@ -14,11 +14,12 @@
 //!
 //! let mut send = SFrameContext::new(cipher_suite);
 //! send.add_send_key(kid, base_key);
-//! let ciphertext = send.encrypt(kid, metadata, plaintext);
+//! let ciphertext = send.encrypt(kid, metadata, plaintext).unwrap();
 //!
 //! let mut recv = SFrameContext::new(cipher_suite);
 //! recv.add_recv_key(kid, base_key);
 //! let decrypted = recv.decrypt(metadata, &ciphertext).unwrap();
+//! assert_eq!(plaintext, decrypted.as_slice());
 //! ```
 //!
 //! [SFrame]: https://datatracker.ietf.org/doc/draft-ietf-sframe-enc/
@@ -38,6 +39,25 @@ pub mod cipher;
 pub use crate::cipher::{new_cipher, Cipher, CipherSuite};
 pub use crate::header::{Counter, Header, KeyId};
 use std::collections::HashMap;
+
+/// Errors that can result from SFrame operations
+#[derive(Debug, PartialEq, Eq)]
+pub enum Error {
+    /// No send/recv context was configured for the required operation
+    NoContext,
+
+    /// A context already exists in the opposite direction
+    Conflict,
+
+    /// The ciphertext was too short to contain an encoded header
+    InsufficientHeaderData,
+
+    /// The AEAD function reported a failure
+    AeadError,
+}
+
+/// A Result with the standard error type for this library
+pub type Result<T> = std::result::Result<T, Error>;
 
 struct SendKeyContext {
     cipher: Box<dyn Cipher>,
@@ -65,16 +85,16 @@ impl SFrameContext {
         ctr: Counter,
         metadata: &[u8],
         plaintext: &[u8],
-    ) -> Vec<u8> {
+    ) -> Result<Vec<u8>> {
         let ctx = self.send_keys.get_mut(&kid).unwrap();
         let header = Header::new(kid, ctr);
 
-        let raw_ciphertext = ctx.cipher.encrypt(&header, metadata, plaintext);
+        let raw_ciphertext = ctx.cipher.encrypt(&header, metadata, plaintext)?;
 
         let mut ciphertext = Vec::new();
         ciphertext.extend_from_slice(header.as_slice());
         ciphertext.extend_from_slice(raw_ciphertext.as_slice());
-        ciphertext
+        Ok(ciphertext)
     }
 }
 
@@ -84,19 +104,19 @@ pub trait SFrameContextMethods {
     fn new(cipher_suite: CipherSuite) -> Self;
 
     /// Add a send-only key
-    fn add_send_key(&mut self, kid: KeyId, base_key: &[u8]);
+    fn add_send_key(&mut self, kid: KeyId, base_key: &[u8]) -> Result<()>;
 
     /// Add a receive-only key
-    fn add_recv_key(&mut self, kid: KeyId, base_key: &[u8]);
+    fn add_recv_key(&mut self, kid: KeyId, base_key: &[u8]) -> Result<()>;
 
     /// Access the cipher for a KID.  Panics if the KID value is unknown.
     fn cipher(&self, kid: KeyId) -> &dyn Cipher;
 
     /// Encrypt with the specified key.  Panics if the KID value is unknown.
-    fn encrypt(&mut self, kid: KeyId, metadata: &[u8], plaintext: &[u8]) -> Vec<u8>;
+    fn encrypt(&mut self, kid: KeyId, metadata: &[u8], plaintext: &[u8]) -> Result<Vec<u8>>;
 
     /// Decrypt with the specified key.  Panics if the KID value is unknown.
-    fn decrypt(&self, metadata: &[u8], ciphertext: &[u8]) -> Option<Vec<u8>>;
+    fn decrypt(&self, metadata: &[u8], ciphertext: &[u8]) -> Result<Vec<u8>>;
 }
 
 impl SFrameContextMethods for SFrameContext {
@@ -108,10 +128,10 @@ impl SFrameContextMethods for SFrameContext {
         }
     }
 
-    fn add_send_key(&mut self, kid: KeyId, base_key: &[u8]) {
+    fn add_send_key(&mut self, kid: KeyId, base_key: &[u8]) -> Result<()> {
         // Verify that the key does not exist as a recv key
         if self.recv_keys.contains_key(&kid) {
-            panic!("Send key is already provisioned as receive key");
+            return Err(Error::Conflict);
         }
 
         // Derive the key and salt, and create the key context
@@ -120,12 +140,13 @@ impl SFrameContextMethods for SFrameContext {
             next_counter: Counter(0),
         };
         self.send_keys.insert(kid, key_ctx);
+        Ok(())
     }
 
-    fn add_recv_key(&mut self, kid: KeyId, base_key: &[u8]) {
+    fn add_recv_key(&mut self, kid: KeyId, base_key: &[u8]) -> Result<()> {
         // Verify that the key does not exist as a recv key
         if self.send_keys.contains_key(&kid) {
-            panic!("Receive key is already provisioned as send key");
+            return Err(Error::Conflict);
         }
 
         // Derive the key and salt, and create the key context
@@ -133,6 +154,7 @@ impl SFrameContextMethods for SFrameContext {
             cipher: new_cipher(self.cipher_suite, kid, base_key),
         };
         self.recv_keys.insert(kid, key_ctx);
+        Ok(())
     }
 
     fn cipher(&self, kid: KeyId) -> &dyn Cipher {
@@ -143,18 +165,18 @@ impl SFrameContextMethods for SFrameContext {
             .unwrap()
     }
 
-    fn encrypt(&mut self, kid: KeyId, metadata: &[u8], plaintext: &[u8]) -> Vec<u8> {
-        let ctx = self.send_keys.get_mut(&kid).unwrap();
+    fn encrypt(&mut self, kid: KeyId, metadata: &[u8], plaintext: &[u8]) -> Result<Vec<u8>> {
+        let ctx = self.send_keys.get_mut(&kid).ok_or(Error::NoContext)?;
         let ctr = ctx.next_counter;
         ctx.next_counter.0 += 1;
 
         self.encrypt_raw(kid, ctr, metadata, plaintext)
     }
 
-    fn decrypt(&self, metadata: &[u8], ciphertext: &[u8]) -> Option<Vec<u8>> {
-        let (header, raw_ciphertext) = Header::parse(ciphertext);
+    fn decrypt(&self, metadata: &[u8], ciphertext: &[u8]) -> Result<Vec<u8>> {
+        let (header, raw_ciphertext) = Header::parse(ciphertext)?;
 
-        let ctx = self.recv_keys.get(&header.kid).unwrap();
+        let ctx = self.recv_keys.get(&header.kid).ok_or(Error::NoContext)?;
         ctx.cipher.decrypt(&header, metadata, raw_ciphertext)
     }
 }
@@ -171,13 +193,13 @@ mod test {
         let plaintext = b"He kindly stopped for me";
 
         let mut send = SFrameContext::new(cipher_suite);
-        send.add_send_key(kid, base_key);
+        send.add_send_key(kid, base_key).unwrap();
 
         let mut recv = SFrameContext::new(cipher_suite);
-        recv.add_recv_key(kid, base_key);
+        recv.add_recv_key(kid, base_key).unwrap();
 
         // Verify that an SFrame ciphertext has the proper form
-        let ciphertext = send.encrypt(kid, metadata, plaintext);
+        let ciphertext = send.encrypt(kid, metadata, plaintext).unwrap();
 
         let header = Header::new(kid, Counter(0)).as_slice().to_vec();
         assert_eq!(header, &ciphertext[..header.len()]);
@@ -196,5 +218,28 @@ mod test {
         for cipher_suite in ALL_CIPHER_SUITES.clone().into_iter() {
             round_trip_one(cipher_suite);
         }
+    }
+
+    #[test]
+    fn conflict() {
+        let cipher_suite = CipherSuite::AES_128_GCM_SHA_256;
+        let kid = KeyId(0x0102030405060708);
+        let base_key = b"sixteen byte key";
+
+        // Verify that conflict is detected with send first
+        let mut send = SFrameContext::new(cipher_suite);
+        send.add_send_key(kid, base_key).unwrap();
+        assert_eq!(
+            send.add_recv_key(kid, base_key).unwrap_err(),
+            Error::Conflict
+        );
+
+        // Verify that conflict is detected with recv first
+        let mut recv = SFrameContext::new(cipher_suite);
+        recv.add_recv_key(kid, base_key).unwrap();
+        assert_eq!(
+            recv.add_send_key(kid, base_key).unwrap_err(),
+            Error::Conflict
+        );
     }
 }

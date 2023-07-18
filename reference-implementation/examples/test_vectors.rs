@@ -180,8 +180,8 @@ mod sframe {
             let pt = b"draft-ietf-sframe-enc";
 
             let mut ctx = SFrameContext::new(cipher_suite);
-            ctx.add_send_key(kid, &base_key);
-            let ct = ctx.encrypt_raw(kid, ctr, metadata, pt);
+            ctx.add_send_key(kid, &base_key).unwrap();
+            let ct = ctx.encrypt_raw(kid, ctr, metadata, pt).unwrap();
 
             let cipher = ctx.cipher(kid);
 

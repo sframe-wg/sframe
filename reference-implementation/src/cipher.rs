@@ -1,5 +1,6 @@
 use crate::aes_ctr_hmac::AesCtrHmac;
 use crate::header::{Header, KeyId};
+use crate::{Error, Result};
 
 use aead::{AeadCore, Key, KeyInit, KeySizeUser, Nonce, Payload};
 use aes::Aes128;
@@ -45,7 +46,7 @@ impl<A: Aead> CipherImpl<A> {
         let mut sframe_label = b"SFrame 1.0 ".to_vec();
         sframe_label.extend_from_slice(&kid.0.to_be_bytes());
 
-        let (sframe_secret, h) = Hkdf::<D, SimpleHmac<D>>::extract(Some(base_key), &sframe_label);
+        let (sframe_secret, h) = Hkdf::<D, SimpleHmac<D>>::extract(Some(&sframe_label), base_key);
 
         let mut sframe_key: Key<A> = Default::default();
         h.expand(b"key", &mut sframe_key).unwrap();
@@ -100,11 +101,11 @@ pub trait Cipher {
     fn overhead(&self) -> usize;
 
     /// Encrypt the plaintext with a nonce and AAD derived from the header and metadata
-    fn encrypt(&self, header: &Header, metadata: &[u8], plaintext: &[u8]) -> Vec<u8>;
+    fn encrypt(&self, header: &Header, metadata: &[u8], plaintext: &[u8]) -> Result<Vec<u8>>;
 
     /// Decrypt the ciphertext with a nonce and AAD derived from the header and metadata.  Returns
     /// [None] on decrypt failure.
-    fn decrypt(&self, header: &Header, metadata: &[u8], ciphertext: &[u8]) -> Option<Vec<u8>>;
+    fn decrypt(&self, header: &Header, metadata: &[u8], ciphertext: &[u8]) -> Result<Vec<u8>>;
 }
 
 impl<A: Aead> Cipher for CipherImpl<A> {
@@ -128,24 +129,28 @@ impl<A: Aead> Cipher for CipherImpl<A> {
         A::TagSize::to_usize()
     }
 
-    fn encrypt(&self, header: &Header, metadata: &[u8], plaintext: &[u8]) -> Vec<u8> {
+    fn encrypt(&self, header: &Header, metadata: &[u8], plaintext: &[u8]) -> Result<Vec<u8>> {
         let (nonce, aad) = self.prepare(header, metadata);
         let payload = Payload {
             msg: plaintext,
             aad: &aad,
         };
 
-        self.aead.encrypt(&nonce, payload).unwrap()
+        self.aead
+            .encrypt(&nonce, payload)
+            .map_err(|_| Error::AeadError)
     }
 
-    fn decrypt(&self, header: &Header, metadata: &[u8], ciphertext: &[u8]) -> Option<Vec<u8>> {
+    fn decrypt(&self, header: &Header, metadata: &[u8], ciphertext: &[u8]) -> Result<Vec<u8>> {
         let (nonce, aad) = self.prepare(header, metadata);
         let payload = Payload {
             msg: ciphertext,
             aad: &aad,
         };
 
-        self.aead.decrypt(&nonce, payload).ok()
+        self.aead
+            .decrypt(&nonce, payload)
+            .map_err(|_| Error::AeadError)
     }
 }
 
@@ -220,7 +225,7 @@ pub mod test {
         let cipher = new_cipher(cipher_suite, kid, base_key);
 
         // Verify that an encrypt/decrypt round-trip works
-        let encrypted = cipher.encrypt(&header, metadata, message);
+        let encrypted = cipher.encrypt(&header, metadata, message).unwrap();
         assert_eq!(encrypted.len(), message.len() + cipher.overhead());
 
         let decrypted = cipher.decrypt(&header, metadata, &encrypted).unwrap();
@@ -228,20 +233,36 @@ pub mod test {
 
         // Verify that changing the KID causes decryption to fail
         let bad_kid = Header::new(KeyId(0), ctr);
-        assert!(cipher.decrypt(&bad_kid, metadata, &encrypted).is_none());
+        assert_eq!(
+            cipher.decrypt(&bad_kid, metadata, &encrypted).unwrap_err(),
+            Error::AeadError
+        );
 
         // Verify that changing the CTR causes decryption to fail
         let bad_ctr = Header::new(kid, Counter(0));
-        assert!(cipher.decrypt(&bad_ctr, metadata, &encrypted).is_none());
+        assert_eq!(
+            cipher.decrypt(&bad_ctr, metadata, &encrypted).unwrap_err(),
+            Error::AeadError
+        );
 
         // Verify that changing the metdata causes decryption to fail
         let bad_metadata = b"I shall but love thee better after death.";
-        assert!(cipher.decrypt(&header, bad_metadata, &encrypted).is_none());
+        assert_eq!(
+            cipher
+                .decrypt(&header, bad_metadata, &encrypted)
+                .unwrap_err(),
+            Error::AeadError
+        );
 
         // Verify that changing the ciphertext causes decryption to fail
         let mut bad_encrypted = encrypted.clone();
         bad_encrypted[0] ^= 0xff;
-        assert!(cipher.decrypt(&header, metadata, &bad_encrypted).is_none());
+        assert_eq!(
+            cipher
+                .decrypt(&header, metadata, &bad_encrypted)
+                .unwrap_err(),
+            Error::AeadError
+        );
     }
 
     #[test]

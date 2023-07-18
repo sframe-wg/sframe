@@ -1,6 +1,7 @@
 use aead::{AeadCore, KeyInit, KeySizeUser, Nonce, Payload};
 use cipher::consts::{U12, U16};
 use cipher::{ArrayLength, BlockCipher, BlockEncryptMut, KeyIvInit, StreamCipher};
+use core::convert::TryInto;
 use core::marker::PhantomData;
 use crypto_common::{Iv, Key};
 use ctr::Ctr32BE;
@@ -34,9 +35,7 @@ where
     /// The derived authentication subkey
     pub auth_key: Output<D>,
 
-    _ctr: PhantomData<C>,
-    _hmac: PhantomData<D>,
-    _tag: PhantomData<T>,
+    _marker: PhantomData<(C, T)>,
 }
 
 impl<C, D, T> AesCtrHmac<C, D, T>
@@ -60,8 +59,11 @@ where
     }
 
     fn compute_tag(&self, nonce: &[u8], aad: &[u8], ct: &[u8]) -> SimpleHmac<D> {
-        let aad_len = (aad.len() as u64).to_be_bytes();
-        let ct_len = (ct.len() as u64).to_be_bytes();
+        let aad_len_u64: u64 = aad.len().try_into().unwrap();
+        let ct_len_u64: u64 = ct.len().try_into().unwrap();
+
+        let aad_len = aad_len_u64.to_be_bytes();
+        let ct_len = ct_len_u64.to_be_bytes();
         let tag_len = T::to_u64().to_be_bytes();
 
         let h = <SimpleHmac<D> as Mac>::new_from_slice(self.auth_key.as_slice()).unwrap();
@@ -117,9 +119,7 @@ where
             aead_secret,
             enc_key,
             auth_key,
-            _ctr: PhantomData,
-            _hmac: PhantomData,
-            _tag: PhantomData,
+            _marker: PhantomData,
         }
     }
 }

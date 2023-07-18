@@ -1,3 +1,8 @@
+use crate::{Error, Result};
+
+use core::cmp::max;
+use std::convert::TryInto;
+
 /// An SFrame key ID
 #[derive(PartialEq, Eq, Hash, Debug, Copy, Clone)]
 pub struct KeyId(pub u64);
@@ -18,10 +23,16 @@ pub struct Header {
     encoded: Vec<u8>,
 }
 
-fn to_min_be_bytes(val: u64) -> Vec<u8> {
+fn min_encoded_len(val: u64) -> usize {
+    max((u64::BITS - val.leading_zeros() + 7) / 8, 1)
+        .try_into()
+        .unwrap()
+}
+
+fn write_be_bytes(out: &mut [u8], val: u64) {
     let bytes = val.to_be_bytes();
-    let start = bytes.iter().position(|&x| x != 0).unwrap_or(7);
-    bytes[start..].to_vec()
+    let start = bytes.len() - out.len();
+    out.copy_from_slice(&bytes[start..]);
 }
 
 fn parse_be_bytes(data: &[u8]) -> u64 {
@@ -34,41 +45,55 @@ fn parse_be_bytes(data: &[u8]) -> u64 {
 impl Header {
     /// Encode a new SFrame header with the specified KID and CTR values
     pub fn new(kid: KeyId, ctr: Counter) -> Self {
-        let mut encoded = vec![0];
-
-        if kid.0 < 0x08 {
-            encoded[0] |= kid.0 as u8;
+        let (kid_len, mut config_byte) = if kid.0 < 0x08 {
+            (0, kid.0.try_into().unwrap())
         } else {
-            let mut kid_bytes = to_min_be_bytes(kid.0);
-            encoded[0] |= 0x08 | ((kid_bytes.len() - 1) as u8);
-            encoded.append(&mut kid_bytes);
-        }
+            let kid_len = min_encoded_len(kid.0);
+            let kid_len_u8: u8 = (kid_len - 1).try_into().unwrap();
+            (kid_len, 0x08 | kid_len_u8)
+        };
 
-        let mut ctr_bytes = to_min_be_bytes(ctr.0);
-        encoded[0] |= ((ctr_bytes.len() - 1) as u8) << 4;
-        encoded.append(&mut ctr_bytes);
+        let ctr_len = min_encoded_len(ctr.0);
+        let ctr_len_u8: u8 = (ctr_len - 1).try_into().unwrap();
+        config_byte |= ctr_len_u8 << 4;
+
+        let kid_start = 1;
+        let ctr_start = kid_start + kid_len;
+        let ctr_end = ctr_start + ctr_len;
+        let mut encoded = vec![0u8; 1 + kid_len + ctr_len];
+
+        println!(
+            "{kid:?} {ctr:?} | len {kid_len} {ctr_len} | start {kid_start} {kid_start} {ctr_start} {ctr_end}"
+        );
+        encoded[0] = config_byte;
+        write_be_bytes(&mut encoded[kid_start..ctr_start], kid.0);
+        write_be_bytes(&mut encoded[ctr_start..ctr_end], ctr.0);
 
         Self { kid, ctr, encoded }
     }
 
     /// Decode an SFrame header from the beginning of the ciphertext.  Returns the header and the
     /// part of the ciphertext that remains after the header.
-    pub fn parse(ciphertext: &[u8]) -> (Self, &[u8]) {
+    pub fn parse(ciphertext: &[u8]) -> Result<(Self, &[u8])> {
         let header = ciphertext[0] & 0x7f; // Mask the R bit
-        let ctr_len = ((header >> 4) + 1) as usize;
-        let kid_len = if header & 0x08 != 0 {
-            ((header & 0x07) + 1) as usize
+        let ctr_len: usize = ((header >> 4) + 1).into();
+        let kid_len: usize = if header & 0x08 != 0 {
+            ((header & 0x07) + 1).into()
         } else {
             0
         };
 
+        if ciphertext.len() < 1 + kid_len + ctr_len {
+            return Err(Error::InsufficientHeaderData);
+        }
+
         let kid_start = 1;
         let ctr_start = kid_start + kid_len;
         let header_end = ctr_start + ctr_len;
-        let kid = if kid_len > 0 {
+        let kid: u64 = if kid_len > 0 {
             parse_be_bytes(&ciphertext[kid_start..ctr_start])
         } else {
-            (header & 0x07) as u64
+            (header & 0x07).into()
         };
         let kid = KeyId(kid);
 
@@ -78,7 +103,7 @@ impl Header {
         let (header, raw_ciphertext) = ciphertext.split_at(header_end);
         let encoded = header.to_vec();
 
-        (Self { kid, ctr, encoded }, raw_ciphertext)
+        Ok((Self { kid, ctr, encoded }, raw_ciphertext))
     }
 
     /// A view of the encoded header value
@@ -100,7 +125,7 @@ mod test {
                 let ctr = Counter(1 << log_ctr);
 
                 let before = Header::new(kid, ctr);
-                let (after, rest) = Header::parse(before.as_slice());
+                let (after, rest) = Header::parse(before.as_slice()).unwrap();
                 assert_eq!(rest.len(), 0);
                 assert_eq!(before, after);
             }
@@ -138,7 +163,7 @@ mod test {
             let constructed = Header::new(kid, ctr);
             assert_eq!(encoded, constructed.as_slice());
 
-            let (parsed, rest) = Header::parse(encoded);
+            let (parsed, rest) = Header::parse(encoded).unwrap();
             assert_eq!(rest.len(), 0);
             assert_eq!(parsed.kid, kid);
             assert_eq!(parsed.ctr, ctr);

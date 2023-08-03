@@ -1,0 +1,4 @@
+enum Error {
+    InsufficientHeaderData,
+    AuthenticationFailure,
+}

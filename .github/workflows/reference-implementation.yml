@@ -1,12 +1,11 @@
 name: "Build Reference Implementation"
 
 on:
-  push:
-    paths:
-    - reference-implementation/**
   pull_request:
+    branches:
+      - main
     paths:
-    - reference-implementation/**
+      - reference-implementation/**
 
 jobs:
   build:

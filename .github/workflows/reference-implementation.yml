@@ -4,9 +4,13 @@ on:
   push:
     branches:
       - main
+    paths:
+      - reference-implementation/**
   pull_request:
     branches:
       - main
+    paths:
+      - reference-implementation/**
 
 jobs:
   build:
@@ -17,6 +21,6 @@ jobs:
       uses: actions/checkout@v2
 
     - name: "Build Reference Implementation"
-      run:
-        - cd reference-implementation
-        - cargo test
+      run: |
+        cd reference-implementation
+        cargo test

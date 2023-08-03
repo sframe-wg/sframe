@@ -1,0 +1,22 @@
+name: "Build Reference Implementation"
+
+on:
+  push:
+    paths:
+    - reference-implementation/**
+  pull_request:
+    paths:
+    - reference-implementation/**
+
+jobs:
+  build:
+    name: "Build Reference Implementation"
+    runs-on: ubuntu-latest
+    steps:
+    - name: "Checkout"
+      uses: actions/checkout@v2
+
+    - name: "Build Reference Implementation"
+      run:
+        - cd reference-implementation
+        - cargo test

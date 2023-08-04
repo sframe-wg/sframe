@@ -39,9 +39,9 @@ mod header {
             let TestVector { kid, ctr, encoded } = self;
             format!(
                 "~~~
-KID: 0x{kid:016x}
-CTR: 0x{ctr:016x}
-Header: {encoded}
+kid: 0x{kid:016x}
+ctr: 0x{ctr:016x}
+header: {encoded}
 ~~~"
             )
         }
@@ -135,16 +135,16 @@ mod aes_ctr_hmac {
 
             format!(
                 "~~~
-Cipher suite: 0x{cipher_suite:04x}
-`key`: {key}
-`aead_label`: {aead_label}
-`aead_secret`: {aead_secret}
-`enc_key`: {enc_key}
-`auth_key`: {auth_key}
-`nonce`: {nonce}
-`aad`: {aad}
-`pt`: {pt}
-`ct`: {ct}
+cipher_suite: 0x{cipher_suite:04x}
+key: {key}
+aead_label: {aead_label}
+aead_secret: {aead_secret}
+enc_key: {enc_key}
+auth_key: {auth_key}
+nonce: {nonce}
+aad: {aad}
+pt: {pt}
+ct: {ct}
 ~~~"
             )
         }
@@ -159,14 +159,16 @@ mod sframe {
     #[derive(Serialize)]
     pub struct TestVector {
         cipher_suite: u16,
+        kid: u64,
+        ctr: u64,
         base_key: String,
         sframe_label: String,
         sframe_secret: String,
         sframe_key: String,
         sframe_salt: String,
-        kid: u64,
-        ctr: u64,
         metadata: String,
+        nonce: String,
+        aad: String,
         pt: String,
         ct: String,
     }
@@ -181,20 +183,22 @@ mod sframe {
 
             let mut ctx = SFrameContext::new(cipher_suite);
             ctx.add_send_key(kid, &base_key).unwrap();
-            let ct = ctx.encrypt_raw(kid, ctr, metadata, pt).unwrap();
+            let (ct, vals) = ctx.encrypt_raw(kid, ctr, metadata, pt).unwrap();
 
             let cipher = ctx.cipher(kid);
 
             Self {
                 cipher_suite: cipher_suite.0,
+                kid: kid.0,
+                ctr: ctr.0,
                 base_key: hex::encode(base_key),
                 sframe_label: hex::encode(cipher.sframe_label()),
                 sframe_secret: hex::encode(cipher.sframe_secret()),
                 sframe_key: hex::encode(cipher.sframe_key()),
                 sframe_salt: hex::encode(cipher.sframe_salt()),
-                kid: kid.0,
-                ctr: ctr.0,
                 metadata: hex::encode(metadata),
+                nonce: hex::encode(vals.nonce),
+                aad: hex::encode(vals.aad),
                 pt: hex::encode(pt),
                 ct: hex::encode(ct),
             }
@@ -212,31 +216,35 @@ mod sframe {
         fn to_markdown(&self) -> String {
             let TestVector {
                 cipher_suite,
+                kid,
+                ctr,
                 base_key,
                 sframe_label,
                 sframe_secret,
                 sframe_key,
                 sframe_salt,
-                kid,
-                ctr,
                 metadata,
+                nonce,
+                aad,
                 pt,
                 ct,
             } = self;
 
             format!(
                 "~~~
-Cipher suite: 0x{cipher_suite:04x}
-`base_key`: {base_key}
-`sframe_label`: {sframe_label}
-`sframe_secret`: {sframe_secret}
-`sframe_key`: {sframe_key}
-`sframe_salt`: {sframe_salt}
-`kid`: 0x{kid:016x}
-`ctr`: 0x{ctr:016x}
-`metadata`: {metadata}
-`pt`: {pt}
-`ct`: {ct}
+cipher_suite: 0x{cipher_suite:04x}
+kid: 0x{kid:016x}
+ctr: 0x{ctr:016x}
+base_key: {base_key}
+sframe_label: {sframe_label}
+sframe_secret: {sframe_secret}
+sframe_key: {sframe_key}
+sframe_salt: {sframe_salt}
+metadata: {metadata}
+nonce: {nonce}
+aad: {aad}
+pt: {pt}
+ct: {ct}
 ~~~"
             )
         }

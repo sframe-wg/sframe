@@ -402,7 +402,7 @@ def derive_key_salt(KID, base_key):
 ~~~~~
 
 In the derivation of `sframe_secret`, the `+` operator represents concatenation
-of octet strings and the KID value is encoded as an 8-byte big-endian integer
+of byte strings and the KID value is encoded as an 8-byte big-endian integer
 (not the compressed form used in the SFrame header).
 
 The hash function used for HKDF is determined by the cipher suite in use.
@@ -1236,30 +1236,91 @@ as proposed in {{?I-D.codec-agnostic-rtp-payload-format}}.
 # Test Vectors
 
 This section provides a set of test vectors that implementations can use to
-verify that they correctly implement SFrame encryption and decryption.  For each
-cipher suite, we provide:
+verify that they correctly implement SFrame encryption and decryption.  In
+addition to test vectors for the overall process of SFrame
+encryption/decryption, we also provide test vectors for header
+encoding/decoding, and for AEAD encryption/decryption using the AES-CTR
+construction defined in {{aes-ctr-with-sha2}}.
 
-* [in] The `base_key` value (hex encoded)
-* [out] The `secret`, `key`, and `salt` values derived from the `base_key` (hex
-  encoded)
-* A plaintext value that is encrypted in the following encryption cases
-* A sequence of encryption cases, including:
-  * [in] The `KID` and `CTR` values to be included in the header
-  * [out] The resulting encoded header (hex encoded)
-  * [out] The nonce computed from the `salt` and `CTR` values
-  * The ciphertext resulting from encrypting the plaintext with these parameters
-    (hex encoded)
-
-An implementation should reproduce the output values given the input values:
-
-* An implementation should be able to encrypt with the input values and the
-  plaintext to produce the ciphertext.
-
-* An implementation must be able to decrypt with the input values and the
-  ciphertext to generate the plaintext.
+All values are either numeric or byte strings.  Numeric values are represented
+as hex values, prefixed with `0x`.  Byte strings are represented in hex
+encoding.
 
 Line breaks and whitespace within values are inserted to conform to the width
 requirements of the RFC format.  They should be removed before use.
-These test vectors are also available in JSON format at {{TestVectors}}.
 
-{::include test-vectors.md}
+These test vectors are also available in JSON format at {{TestVectors}}.  In the
+JSON test vectors, numeric values are JSON numbers and byte string values are
+JSON strings containing the hex encoding of the byte strings.
+
+## Header encoding/decoding
+
+For each case, we provide:
+
+* `kid`: A KID value
+* `ctr`: A CTR value
+* `header`: An encoded SFrame header
+
+An implementation should verify that:
+
+* Encoding a header with the KID and CTR results in the provided header value
+* Decoding the provided header value results in the provided KID and CTR values
+
+{::include test-vectors/header.md}
+
+
+## AEAD encryption/decryption using AES-CTR and HMAC
+
+For each case, we provide:
+
+* `cipher_suite`: The index of the cipher suite in use (see
+  {{sframe-cipher-suites}})
+* `key`: The `key` input to encryption/decryption
+* `aead_label`: The `aead_label` variable in the `derive_subkeys()` algorithm
+* `aead_secret`: The `aead_secret` variable in the `derive_subkeys()` algorithm
+* `enc_key`: The encryption subkey produced by the `derive_subkeys()` algorithm
+* `auth_key`: The encryption subkey produced by the `derive_subkeys()` algorithm
+* `nonce`: The `nonce` input to encryption/decryption
+* `aad`: The `aad` input to encryption/decryption
+* `pt`: The plaintext
+* `ct`: The ciphertext
+
+An implementation should verify that the following are true, where
+`AEAD.Encrypt` and `AEAD.Decrypt` are as defined in {{aes-ctr-with-sha2}}:
+
+* `AEAD.Encrypt(key, nonce, aad, pt) == ct`
+* `AEAD.Decrypt(key, nonce, aad, ct) == pt`
+
+The other values in the test vector are intermediate values provided to
+facilitate debugging of test failures.
+
+{::include test-vectors/aes-ctr-hmac.md}
+
+## SFrame encryption/decryption
+
+For each case, we provide:
+
+* `cipher_suite`: The index of the cipher suite in use (see
+  {{sframe-cipher-suites}})
+* `kid`: A KID value
+* `ctr`: A CTR value
+* `base_key`: The `base_key` input to the `derive_key_salt` algorithm
+* `sframe_label`: The `sframe_label` variable in the `derive_key_salt` algorithm
+* `sframe_secret`: The `sframe_secret` variable in the `derive_key_salt` algorithm
+* `sframe_key`: The `sframe_key` value produced by the `derive_key_salt` algorithm
+* `sframe_salt`: The `sframe_salt` value produced by the `derive_key_salt` algorithm
+* `metadata`: The `metadata` input to the SFrame `encrypt` algorithm
+* `pt`: The plaintext
+* `ct`: The SFrame ciphertext
+
+An implementation should verify that the following are true, where
+`encrypt` and `decrypt` are as defined in {{encryption-schema}}, using an SFrame
+context initialized with `base_key` assigned to `kid`:
+
+* `encrypt(ctr, kid, metadata, plaintext) == ct`
+* `decrypt(metadata, ct) == pt`
+
+The other values in the test vector are intermediate values provided to
+facilitate debugging of test failures.
+
+{::include test-vectors/sframe.md}

@@ -62,9 +62,6 @@ impl Header {
         let ctr_end = ctr_start + ctr_len;
         let mut encoded = vec![0u8; 1 + kid_len + ctr_len];
 
-        println!(
-            "{kid:?} {ctr:?} | len {kid_len} {ctr_len} | start {kid_start} {kid_start} {ctr_start} {ctr_end}"
-        );
         encoded[0] = config_byte;
         write_be_bytes(&mut encoded[kid_start..ctr_start], kid.0);
         write_be_bytes(&mut encoded[ctr_start..ctr_end], ctr.0);

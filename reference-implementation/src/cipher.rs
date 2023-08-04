@@ -7,6 +7,7 @@ use aes::Aes128;
 use aes_gcm::{Aes128Gcm, Aes256Gcm};
 use cipher::consts::{U10, U4, U8};
 use cipher::Unsigned;
+use core::ops::Deref;
 use crypto_common::BlockSizeUser;
 use hkdf::Hkdf;
 use hmac::SimpleHmac;
@@ -84,6 +85,23 @@ impl<A: Aead> CipherImpl<A> {
     }
 }
 
+/// Intermediate values in an SFrame encryption/decryption
+#[derive(Clone, Debug)]
+pub struct SFrameIntermediateValues {
+    /// The nonce value
+    pub nonce: Vec<u8>,
+
+    /// The AAD value
+    pub aad: Vec<u8>,
+}
+
+impl SFrameIntermediateValues {
+    fn new(nonce: impl Deref<Target = [u8]>, aad: Vec<u8>) -> Self {
+        let nonce = nonce.to_vec();
+        Self { nonce, aad }
+    }
+}
+
 /// A cipher for SFrame, which handles the formation of nonces and AAD values from the SFrame salt
 /// header, and metadata values, and the resulting AEAD encryption/decryption.  (Key derivation is
 /// handled by the implementation struct.)
@@ -104,11 +122,21 @@ pub trait Cipher {
     fn overhead(&self) -> usize;
 
     /// Encrypt the plaintext with a nonce and AAD derived from the header and metadata
-    fn encrypt(&self, header: &Header, metadata: &[u8], plaintext: &[u8]) -> Result<Vec<u8>>;
+    fn encrypt(
+        &self,
+        header: &Header,
+        metadata: &[u8],
+        plaintext: &[u8],
+    ) -> Result<(Vec<u8>, SFrameIntermediateValues)>;
 
     /// Decrypt the ciphertext with a nonce and AAD derived from the header and metadata.  Returns
     /// [None] on decrypt failure.
-    fn decrypt(&self, header: &Header, metadata: &[u8], ciphertext: &[u8]) -> Result<Vec<u8>>;
+    fn decrypt(
+        &self,
+        header: &Header,
+        metadata: &[u8],
+        ciphertext: &[u8],
+    ) -> Result<(Vec<u8>, SFrameIntermediateValues)>;
 }
 
 impl<A: Aead> Cipher for CipherImpl<A> {
@@ -132,7 +160,12 @@ impl<A: Aead> Cipher for CipherImpl<A> {
         A::TagSize::to_usize()
     }
 
-    fn encrypt(&self, header: &Header, metadata: &[u8], plaintext: &[u8]) -> Result<Vec<u8>> {
+    fn encrypt(
+        &self,
+        header: &Header,
+        metadata: &[u8],
+        plaintext: &[u8],
+    ) -> Result<(Vec<u8>, SFrameIntermediateValues)> {
         let (nonce, aad) = self.prepare(header, metadata);
         let payload = Payload {
             msg: plaintext,
@@ -142,9 +175,15 @@ impl<A: Aead> Cipher for CipherImpl<A> {
         self.aead
             .encrypt(&nonce, payload)
             .map_err(|_| Error::AeadError)
+            .map(|ct| (ct, SFrameIntermediateValues::new(nonce, aad)))
     }
 
-    fn decrypt(&self, header: &Header, metadata: &[u8], ciphertext: &[u8]) -> Result<Vec<u8>> {
+    fn decrypt(
+        &self,
+        header: &Header,
+        metadata: &[u8],
+        ciphertext: &[u8],
+    ) -> Result<(Vec<u8>, SFrameIntermediateValues)> {
         let (nonce, aad) = self.prepare(header, metadata);
         let payload = Payload {
             msg: ciphertext,
@@ -154,6 +193,7 @@ impl<A: Aead> Cipher for CipherImpl<A> {
         self.aead
             .decrypt(&nonce, payload)
             .map_err(|_| Error::AeadError)
+            .map(|pt| (pt, SFrameIntermediateValues::new(nonce, aad)))
     }
 }
 
@@ -228,10 +268,10 @@ pub mod test {
         let cipher = new_cipher(cipher_suite, kid, base_key);
 
         // Verify that an encrypt/decrypt round-trip works
-        let encrypted = cipher.encrypt(&header, metadata, message).unwrap();
+        let (encrypted, _vals) = cipher.encrypt(&header, metadata, message).unwrap();
         assert_eq!(encrypted.len(), message.len() + cipher.overhead());
 
-        let decrypted = cipher.decrypt(&header, metadata, &encrypted).unwrap();
+        let (decrypted, _vals) = cipher.decrypt(&header, metadata, &encrypted).unwrap();
         assert_eq!(&decrypted, message);
 
         // Verify that changing the KID causes decryption to fail

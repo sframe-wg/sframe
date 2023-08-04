@@ -27,7 +27,7 @@ fn xor_eq(a: &mut [u8], b: &[u8]) {
 }
 
 struct CipherImpl<A: Aead> {
-    /// The label value used as a salt in HKDF
+    /// The prefix of the label value used as a info in HKDF
     pub sframe_label: Vec<u8>,
 
     /// The `aead_secret` value used as an HKDF PRK
@@ -43,21 +43,24 @@ struct CipherImpl<A: Aead> {
 
 impl<A: Aead> CipherImpl<A> {
     pub fn new<D: Digest>(kid: KeyId, base_key: &[u8]) -> Self {
-        let mut sframe_label = b"SFrame 1.0 ".to_vec();
-        sframe_label.extend_from_slice(&kid.0.to_be_bytes());
+        let (sframe_secret, h) = Hkdf::<D, SimpleHmac<D>>::extract(None, base_key);
 
-        let (sframe_secret, h) = Hkdf::<D, SimpleHmac<D>>::extract(Some(&sframe_label), base_key);
+        let sframe_label = b"SFrame 1.0 ";
+
+        let sframe_key_label = [sframe_label.as_ref(), b"key ", &kid.0.to_be_bytes()].concat();
 
         let mut sframe_key: Key<A> = Default::default();
-        h.expand(b"key", &mut sframe_key).unwrap();
+        h.expand(&sframe_key_label, &mut sframe_key).unwrap();
+
+        let sframe_salt_label = [sframe_label.as_ref(), b"salt ", &kid.0.to_be_bytes()].concat();
 
         let mut sframe_salt: Nonce<A> = Default::default();
-        h.expand(b"salt", &mut sframe_salt).unwrap();
+        h.expand(&sframe_salt_label, &mut sframe_salt).unwrap();
 
         let aead = A::new(&sframe_key);
 
         Self {
-            sframe_label,
+            sframe_label: sframe_label.to_vec(),
             sframe_secret: sframe_secret.to_vec(),
             sframe_key,
             sframe_salt,

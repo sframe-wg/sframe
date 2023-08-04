@@ -1,9 +1,9 @@
 mod header {
     use itertools::Itertools;
-    use serde::Serialize;
+    use serde::{Deserialize, Serialize};
     use sframe_reference::header::*;
 
-    #[derive(Serialize)]
+    #[derive(Serialize, Deserialize)]
     pub struct TestVector {
         kid: u64,
         ctr: u64,
@@ -32,6 +32,18 @@ mod header {
                 .map(|(kid, ctr)| Self::new(kid, ctr))
                 .collect()
         }
+
+        pub fn verify(&self) -> bool {
+            let encoded_vec = hex::decode(self.encoded.clone()).unwrap();
+
+            let encoded = Header::new(KeyId(self.kid), Counter(self.ctr));
+            let encode_pass = encoded.as_slice() == encoded_vec;
+
+            let (decoded, _) = Header::parse(&encoded_vec).unwrap();
+            let decode_pass = (decoded.kid.0 == self.kid) && (decoded.ctr.0 == self.ctr);
+
+            encode_pass && decode_pass
+        }
     }
 
     impl super::ToMarkdown for TestVector {
@@ -54,12 +66,12 @@ mod aes_ctr_hmac {
     use cipher::consts::{U10, U16, U4, U8};
     use cipher::ArrayLength;
     use hex_literal::hex;
-    use serde::Serialize;
+    use serde::{Deserialize, Serialize};
     use sframe_reference::aes_ctr_hmac::*;
     use sframe_reference::cipher::CipherSuite;
     use sha2::Sha256;
 
-    #[derive(Serialize)]
+    #[derive(Serialize, Deserialize)]
     pub struct TestVector {
         cipher_suite: u16,
         key: String,
@@ -116,6 +128,51 @@ mod aes_ctr_hmac {
                 Self::new::<Aes128, Sha256, U4>(),
             ]
         }
+
+        fn verify_one<C, D, T>(&self) -> bool
+        where
+            C: Cipher + KeySizeUser<KeySize = U16>,
+            D: Digest,
+            T: ArrayLength<u8>,
+        {
+            let key = hex::decode(self.key.clone()).unwrap();
+            let nonce = hex::decode(self.nonce.clone()).unwrap();
+            let aad = hex::decode(self.aad.clone()).unwrap();
+            let pt = hex::decode(self.pt.clone()).unwrap();
+            let ct = hex::decode(self.ct.clone()).unwrap();
+
+            let key = Key::<AesCtrHmac<C, D, T>>::from_slice(&key);
+            let nonce = Nonce::<AesCtrHmac<C, D, T>>::from_slice(&nonce);
+
+            let cipher = AesCtrHmac::<C, D, T>::new(&key);
+
+            let payload = Payload {
+                msg: &pt,
+                aad: &aad,
+            };
+            let encrypted = cipher.encrypt(&nonce, payload).unwrap();
+            let encrypt_pass = encrypted == ct;
+
+            let payload = Payload {
+                msg: &ct,
+                aad: &aad,
+            };
+            let decrypted = cipher.decrypt(&nonce, payload).unwrap();
+            let decrypt_pass = decrypted == pt;
+
+            encrypt_pass && decrypt_pass
+        }
+
+        pub fn verify(&self) -> bool {
+            match CipherSuite(self.cipher_suite) {
+                CipherSuite::AES_128_CTR_HMAC_SHA_256_80 => {
+                    self.verify_one::<Aes128, Sha256, U10>()
+                }
+                CipherSuite::AES_128_CTR_HMAC_SHA_256_64 => self.verify_one::<Aes128, Sha256, U8>(),
+                CipherSuite::AES_128_CTR_HMAC_SHA_256_32 => self.verify_one::<Aes128, Sha256, U4>(),
+                _ => unreachable!(),
+            }
+        }
     }
 
     impl super::ToMarkdown for TestVector {
@@ -153,10 +210,10 @@ ct: {ct}
 
 mod sframe {
     use hex_literal::hex;
-    use serde::Serialize;
+    use serde::{Deserialize, Serialize};
     use sframe_reference::*;
 
-    #[derive(Serialize)]
+    #[derive(Serialize, Deserialize)]
     pub struct TestVector {
         cipher_suite: u16,
         kid: u64,
@@ -210,6 +267,28 @@ mod sframe {
                 .map(|&cipher_suite| TestVector::new(cipher_suite))
                 .collect()
         }
+
+        pub fn verify(&self) -> bool {
+            let cipher_suite = CipherSuite(self.cipher_suite);
+            let kid = KeyId(self.kid);
+            let ctr = Counter(self.ctr);
+            let base_key = hex::decode(self.base_key.clone()).unwrap();
+            let metadata = hex::decode(self.metadata.clone()).unwrap();
+            let pt = hex::decode(self.pt.clone()).unwrap();
+            let ct = hex::decode(self.ct.clone()).unwrap();
+
+            let mut ctx = SFrameContext::new(cipher_suite);
+            ctx.add_send_key(kid, &base_key).unwrap();
+            let (encrypted, _) = ctx.encrypt_raw(kid, ctr, &metadata, &pt).unwrap();
+            let encrypt_pass = encrypted == ct;
+
+            let mut ctx = SFrameContext::new(cipher_suite);
+            ctx.add_recv_key(kid, &base_key).unwrap();
+            let (decrypted, _) = ctx.decrypt(&metadata, &ct).unwrap();
+            let decrypt_pass = decrypted == pt;
+
+            encrypt_pass && decrypt_pass
+        }
     }
 
     impl super::ToMarkdown for TestVector {
@@ -252,7 +331,7 @@ ct: {ct}
 }
 
 use clap::{Parser, Subcommand, ValueEnum};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 #[derive(Copy, Clone, ValueEnum)]
 enum TestVectorType {
@@ -265,7 +344,7 @@ trait ToMarkdown {
     fn to_markdown(&self) -> String;
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize)]
 struct TestVectors {
     header: Vec<header::TestVector>,
     aes_ctr_hmac: Vec<aes_ctr_hmac::TestVector>,
@@ -279,6 +358,14 @@ impl TestVectors {
             aes_ctr_hmac: aes_ctr_hmac::TestVector::make_all(),
             sframe: sframe::TestVector::make_all(),
         }
+    }
+
+    fn verify_all(&self) -> bool {
+        let header = self.header.iter().map(|tv| tv.verify());
+        let aes_ctr_hmac = self.aes_ctr_hmac.iter().map(|tv| tv.verify());
+        let sframe = self.sframe.iter().map(|tv| tv.verify());
+
+        header.chain(aes_ctr_hmac).chain(sframe).all(|x| x)
     }
 
     fn print_md_all<T: ToMarkdown>(vecs: &[T]) {
@@ -306,19 +393,39 @@ struct Cli {
 enum Commands {
     Md { vec_type: TestVectorType },
     Json,
+    Verify,
+    SelfTest,
 }
 
-fn main() {
+fn main() -> Result<(), u32> {
     let cli = Cli::parse();
-    let vec = TestVectors::make_all();
 
     match &cli.command {
         Commands::Md { vec_type } => {
+            let vec = TestVectors::make_all();
             vec.print_md(*vec_type);
+            Ok(())
         }
 
         Commands::Json => {
+            let vec = TestVectors::make_all();
             println!("{}", serde_json::to_string_pretty(&vec).unwrap());
+            Ok(())
+        }
+
+        Commands::Verify => {
+            let stdin = std::io::stdin();
+            let vec: TestVectors = serde_json::from_reader(stdin).unwrap();
+
+            vec.verify_all().then(|| ()).ok_or(1)
+        }
+
+        Commands::SelfTest => {
+            let vec = TestVectors::make_all();
+            let vec_json = serde_json::to_string_pretty(&vec).unwrap();
+
+            let vec: TestVectors = serde_json::from_reader(vec_json.as_bytes()).unwrap();
+            vec.verify_all().then(|| ()).ok_or(1)
         }
     }
 }

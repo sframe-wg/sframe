@@ -395,9 +395,9 @@ using HKDF {{!RFC5869}} as follows:
 
 ~~~~~
 def derive_key_salt(KID, base_key):
-  sframe_secret = HKDF-Extract("SFrame 1.0 Secret " + KID, base_key)
-  sframe_key = HKDF-Expand(sframe_secret, "key", AEAD.Nk)
-  sframe_salt = HKDF-Expand(sframe_secret, "salt", AEAD.Nn)
+  sframe_secret = HKDF-Extract("", base_key)
+  sframe_key = HKDF-Expand(sframe_secret, "SFrame 1.0 Secret key " + KID, AEAD.Nk)
+  sframe_salt = HKDF-Expand(sframe_secret, "SFrame 1.0 Secret salt " + KID, AEAD.Nn)
   return sframe_key, sframe_salt
 ~~~~~
 
@@ -622,8 +622,8 @@ incremented each time the sender ratchets their key forward for forward secrecy:
 
 ~~~~~ pseudocode
 sender_base_key[i+1] = HKDF-Expand(
-                         HKDF-Extract("SFrame 1.0 Ratchet", sender_base_key[i]),
-                         "", CipherSuite.Nh)
+                         HKDF-Extract("", sender_base_key[i]),
+                         "SFrame 1.0 Ratchet", CipherSuite.Nh)
 ~~~~~
 
 For compactness, we do not send the whole ratchet step.  Instead, we send only

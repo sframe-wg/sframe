@@ -1,0 +1,1564 @@
+{
+  "header": [
+    {
+      "kid": 0,
+      "ctr": 0,
+      "encoded": "0000"
+    },
+    {
+      "kid": 0,
+      "ctr": 1,
+      "encoded": "0001"
+    },
+    {
+      "kid": 0,
+      "ctr": 255,
+      "encoded": "00ff"
+    },
+    {
+      "kid": 0,
+      "ctr": 256,
+      "encoded": "100100"
+    },
+    {
+      "kid": 0,
+      "ctr": 65535,
+      "encoded": "10ffff"
+    },
+    {
+      "kid": 0,
+      "ctr": 65536,
+      "encoded": "20010000"
+    },
+    {
+      "kid": 0,
+      "ctr": 16777215,
+      "encoded": "20ffffff"
+    },
+    {
+      "kid": 0,
+      "ctr": 16777216,
+      "encoded": "3001000000"
+    },
+    {
+      "kid": 0,
+      "ctr": 4294967295,
+      "encoded": "30ffffffff"
+    },
+    {
+      "kid": 0,
+      "ctr": 4294967296,
+      "encoded": "400100000000"
+    },
+    {
+      "kid": 0,
+      "ctr": 1099511627775,
+      "encoded": "40ffffffffff"
+    },
+    {
+      "kid": 0,
+      "ctr": 1099511627776,
+      "encoded": "50010000000000"
+    },
+    {
+      "kid": 0,
+      "ctr": 281474976710655,
+      "encoded": "50ffffffffffff"
+    },
+    {
+      "kid": 0,
+      "ctr": 281474976710656,
+      "encoded": "6001000000000000"
+    },
+    {
+      "kid": 0,
+      "ctr": 72057594037927935,
+      "encoded": "60ffffffffffffff"
+    },
+    {
+      "kid": 0,
+      "ctr": 72057594037927936,
+      "encoded": "700100000000000000"
+    },
+    {
+      "kid": 0,
+      "ctr": 18446744073709551615,
+      "encoded": "70ffffffffffffffff"
+    },
+    {
+      "kid": 1,
+      "ctr": 0,
+      "encoded": "0100"
+    },
+    {
+      "kid": 1,
+      "ctr": 1,
+      "encoded": "0101"
+    },
+    {
+      "kid": 1,
+      "ctr": 255,
+      "encoded": "01ff"
+    },
+    {
+      "kid": 1,
+      "ctr": 256,
+      "encoded": "110100"
+    },
+    {
+      "kid": 1,
+      "ctr": 65535,
+      "encoded": "11ffff"
+    },
+    {
+      "kid": 1,
+      "ctr": 65536,
+      "encoded": "21010000"
+    },
+    {
+      "kid": 1,
+      "ctr": 16777215,
+      "encoded": "21ffffff"
+    },
+    {
+      "kid": 1,
+      "ctr": 16777216,
+      "encoded": "3101000000"
+    },
+    {
+      "kid": 1,
+      "ctr": 4294967295,
+      "encoded": "31ffffffff"
+    },
+    {
+      "kid": 1,
+      "ctr": 4294967296,
+      "encoded": "410100000000"
+    },
+    {
+      "kid": 1,
+      "ctr": 1099511627775,
+      "encoded": "41ffffffffff"
+    },
+    {
+      "kid": 1,
+      "ctr": 1099511627776,
+      "encoded": "51010000000000"
+    },
+    {
+      "kid": 1,
+      "ctr": 281474976710655,
+      "encoded": "51ffffffffffff"
+    },
+    {
+      "kid": 1,
+      "ctr": 281474976710656,
+      "encoded": "6101000000000000"
+    },
+    {
+      "kid": 1,
+      "ctr": 72057594037927935,
+      "encoded": "61ffffffffffffff"
+    },
+    {
+      "kid": 1,
+      "ctr": 72057594037927936,
+      "encoded": "710100000000000000"
+    },
+    {
+      "kid": 1,
+      "ctr": 18446744073709551615,
+      "encoded": "71ffffffffffffffff"
+    },
+    {
+      "kid": 255,
+      "ctr": 0,
+      "encoded": "08ff00"
+    },
+    {
+      "kid": 255,
+      "ctr": 1,
+      "encoded": "08ff01"
+    },
+    {
+      "kid": 255,
+      "ctr": 255,
+      "encoded": "08ffff"
+    },
+    {
+      "kid": 255,
+      "ctr": 256,
+      "encoded": "18ff0100"
+    },
+    {
+      "kid": 255,
+      "ctr": 65535,
+      "encoded": "18ffffff"
+    },
+    {
+      "kid": 255,
+      "ctr": 65536,
+      "encoded": "28ff010000"
+    },
+    {
+      "kid": 255,
+      "ctr": 16777215,
+      "encoded": "28ffffffff"
+    },
+    {
+      "kid": 255,
+      "ctr": 16777216,
+      "encoded": "38ff01000000"
+    },
+    {
+      "kid": 255,
+      "ctr": 4294967295,
+      "encoded": "38ffffffffff"
+    },
+    {
+      "kid": 255,
+      "ctr": 4294967296,
+      "encoded": "48ff0100000000"
+    },
+    {
+      "kid": 255,
+      "ctr": 1099511627775,
+      "encoded": "48ffffffffffff"
+    },
+    {
+      "kid": 255,
+      "ctr": 1099511627776,
+      "encoded": "58ff010000000000"
+    },
+    {
+      "kid": 255,
+      "ctr": 281474976710655,
+      "encoded": "58ffffffffffffff"
+    },
+    {
+      "kid": 255,
+      "ctr": 281474976710656,
+      "encoded": "68ff01000000000000"
+    },
+    {
+      "kid": 255,
+      "ctr": 72057594037927935,
+      "encoded": "68ffffffffffffffff"
+    },
+    {
+      "kid": 255,
+      "ctr": 72057594037927936,
+      "encoded": "78ff0100000000000000"
+    },
+    {
+      "kid": 255,
+      "ctr": 18446744073709551615,
+      "encoded": "78ffffffffffffffffff"
+    },
+    {
+      "kid": 256,
+      "ctr": 0,
+      "encoded": "09010000"
+    },
+    {
+      "kid": 256,
+      "ctr": 1,
+      "encoded": "09010001"
+    },
+    {
+      "kid": 256,
+      "ctr": 255,
+      "encoded": "090100ff"
+    },
+    {
+      "kid": 256,
+      "ctr": 256,
+      "encoded": "1901000100"
+    },
+    {
+      "kid": 256,
+      "ctr": 65535,
+      "encoded": "190100ffff"
+    },
+    {
+      "kid": 256,
+      "ctr": 65536,
+      "encoded": "290100010000"
+    },
+    {
+      "kid": 256,
+      "ctr": 16777215,
+      "encoded": "290100ffffff"
+    },
+    {
+      "kid": 256,
+      "ctr": 16777216,
+      "encoded": "39010001000000"
+    },
+    {
+      "kid": 256,
+      "ctr": 4294967295,
+      "encoded": "390100ffffffff"
+    },
+    {
+      "kid": 256,
+      "ctr": 4294967296,
+      "encoded": "4901000100000000"
+    },
+    {
+      "kid": 256,
+      "ctr": 1099511627775,
+      "encoded": "490100ffffffffff"
+    },
+    {
+      "kid": 256,
+      "ctr": 1099511627776,
+      "encoded": "590100010000000000"
+    },
+    {
+      "kid": 256,
+      "ctr": 281474976710655,
+      "encoded": "590100ffffffffffff"
+    },
+    {
+      "kid": 256,
+      "ctr": 281474976710656,
+      "encoded": "69010001000000000000"
+    },
+    {
+      "kid": 256,
+      "ctr": 72057594037927935,
+      "encoded": "690100ffffffffffffff"
+    },
+    {
+      "kid": 256,
+      "ctr": 72057594037927936,
+      "encoded": "7901000100000000000000"
+    },
+    {
+      "kid": 256,
+      "ctr": 18446744073709551615,
+      "encoded": "790100ffffffffffffffff"
+    },
+    {
+      "kid": 65535,
+      "ctr": 0,
+      "encoded": "09ffff00"
+    },
+    {
+      "kid": 65535,
+      "ctr": 1,
+      "encoded": "09ffff01"
+    },
+    {
+      "kid": 65535,
+      "ctr": 255,
+      "encoded": "09ffffff"
+    },
+    {
+      "kid": 65535,
+      "ctr": 256,
+      "encoded": "19ffff0100"
+    },
+    {
+      "kid": 65535,
+      "ctr": 65535,
+      "encoded": "19ffffffff"
+    },
+    {
+      "kid": 65535,
+      "ctr": 65536,
+      "encoded": "29ffff010000"
+    },
+    {
+      "kid": 65535,
+      "ctr": 16777215,
+      "encoded": "29ffffffffff"
+    },
+    {
+      "kid": 65535,
+      "ctr": 16777216,
+      "encoded": "39ffff01000000"
+    },
+    {
+      "kid": 65535,
+      "ctr": 4294967295,
+      "encoded": "39ffffffffffff"
+    },
+    {
+      "kid": 65535,
+      "ctr": 4294967296,
+      "encoded": "49ffff0100000000"
+    },
+    {
+      "kid": 65535,
+      "ctr": 1099511627775,
+      "encoded": "49ffffffffffffff"
+    },
+    {
+      "kid": 65535,
+      "ctr": 1099511627776,
+      "encoded": "59ffff010000000000"
+    },
+    {
+      "kid": 65535,
+      "ctr": 281474976710655,
+      "encoded": "59ffffffffffffffff"
+    },
+    {
+      "kid": 65535,
+      "ctr": 281474976710656,
+      "encoded": "69ffff01000000000000"
+    },
+    {
+      "kid": 65535,
+      "ctr": 72057594037927935,
+      "encoded": "69ffffffffffffffffff"
+    },
+    {
+      "kid": 65535,
+      "ctr": 72057594037927936,
+      "encoded": "79ffff0100000000000000"
+    },
+    {
+      "kid": 65535,
+      "ctr": 18446744073709551615,
+      "encoded": "79ffffffffffffffffffff"
+    },
+    {
+      "kid": 65536,
+      "ctr": 0,
+      "encoded": "0a01000000"
+    },
+    {
+      "kid": 65536,
+      "ctr": 1,
+      "encoded": "0a01000001"
+    },
+    {
+      "kid": 65536,
+      "ctr": 255,
+      "encoded": "0a010000ff"
+    },
+    {
+      "kid": 65536,
+      "ctr": 256,
+      "encoded": "1a0100000100"
+    },
+    {
+      "kid": 65536,
+      "ctr": 65535,
+      "encoded": "1a010000ffff"
+    },
+    {
+      "kid": 65536,
+      "ctr": 65536,
+      "encoded": "2a010000010000"
+    },
+    {
+      "kid": 65536,
+      "ctr": 16777215,
+      "encoded": "2a010000ffffff"
+    },
+    {
+      "kid": 65536,
+      "ctr": 16777216,
+      "encoded": "3a01000001000000"
+    },
+    {
+      "kid": 65536,
+      "ctr": 4294967295,
+      "encoded": "3a010000ffffffff"
+    },
+    {
+      "kid": 65536,
+      "ctr": 4294967296,
+      "encoded": "4a0100000100000000"
+    },
+    {
+      "kid": 65536,
+      "ctr": 1099511627775,
+      "encoded": "4a010000ffffffffff"
+    },
+    {
+      "kid": 65536,
+      "ctr": 1099511627776,
+      "encoded": "5a010000010000000000"
+    },
+    {
+      "kid": 65536,
+      "ctr": 281474976710655,
+      "encoded": "5a010000ffffffffffff"
+    },
+    {
+      "kid": 65536,
+      "ctr": 281474976710656,
+      "encoded": "6a01000001000000000000"
+    },
+    {
+      "kid": 65536,
+      "ctr": 72057594037927935,
+      "encoded": "6a010000ffffffffffffff"
+    },
+    {
+      "kid": 65536,
+      "ctr": 72057594037927936,
+      "encoded": "7a0100000100000000000000"
+    },
+    {
+      "kid": 65536,
+      "ctr": 18446744073709551615,
+      "encoded": "7a010000ffffffffffffffff"
+    },
+    {
+      "kid": 16777215,
+      "ctr": 0,
+      "encoded": "0affffff00"
+    },
+    {
+      "kid": 16777215,
+      "ctr": 1,
+      "encoded": "0affffff01"
+    },
+    {
+      "kid": 16777215,
+      "ctr": 255,
+      "encoded": "0affffffff"
+    },
+    {
+      "kid": 16777215,
+      "ctr": 256,
+      "encoded": "1affffff0100"
+    },
+    {
+      "kid": 16777215,
+      "ctr": 65535,
+      "encoded": "1affffffffff"
+    },
+    {
+      "kid": 16777215,
+      "ctr": 65536,
+      "encoded": "2affffff010000"
+    },
+    {
+      "kid": 16777215,
+      "ctr": 16777215,
+      "encoded": "2affffffffffff"
+    },
+    {
+      "kid": 16777215,
+      "ctr": 16777216,
+      "encoded": "3affffff01000000"
+    },
+    {
+      "kid": 16777215,
+      "ctr": 4294967295,
+      "encoded": "3affffffffffffff"
+    },
+    {
+      "kid": 16777215,
+      "ctr": 4294967296,
+      "encoded": "4affffff0100000000"
+    },
+    {
+      "kid": 16777215,
+      "ctr": 1099511627775,
+      "encoded": "4affffffffffffffff"
+    },
+    {
+      "kid": 16777215,
+      "ctr": 1099511627776,
+      "encoded": "5affffff010000000000"
+    },
+    {
+      "kid": 16777215,
+      "ctr": 281474976710655,
+      "encoded": "5affffffffffffffffff"
+    },
+    {
+      "kid": 16777215,
+      "ctr": 281474976710656,
+      "encoded": "6affffff01000000000000"
+    },
+    {
+      "kid": 16777215,
+      "ctr": 72057594037927935,
+      "encoded": "6affffffffffffffffffff"
+    },
+    {
+      "kid": 16777215,
+      "ctr": 72057594037927936,
+      "encoded": "7affffff0100000000000000"
+    },
+    {
+      "kid": 16777215,
+      "ctr": 18446744073709551615,
+      "encoded": "7affffffffffffffffffffff"
+    },
+    {
+      "kid": 16777216,
+      "ctr": 0,
+      "encoded": "0b0100000000"
+    },
+    {
+      "kid": 16777216,
+      "ctr": 1,
+      "encoded": "0b0100000001"
+    },
+    {
+      "kid": 16777216,
+      "ctr": 255,
+      "encoded": "0b01000000ff"
+    },
+    {
+      "kid": 16777216,
+      "ctr": 256,
+      "encoded": "1b010000000100"
+    },
+    {
+      "kid": 16777216,
+      "ctr": 65535,
+      "encoded": "1b01000000ffff"
+    },
+    {
+      "kid": 16777216,
+      "ctr": 65536,
+      "encoded": "2b01000000010000"
+    },
+    {
+      "kid": 16777216,
+      "ctr": 16777215,
+      "encoded": "2b01000000ffffff"
+    },
+    {
+      "kid": 16777216,
+      "ctr": 16777216,
+      "encoded": "3b0100000001000000"
+    },
+    {
+      "kid": 16777216,
+      "ctr": 4294967295,
+      "encoded": "3b01000000ffffffff"
+    },
+    {
+      "kid": 16777216,
+      "ctr": 4294967296,
+      "encoded": "4b010000000100000000"
+    },
+    {
+      "kid": 16777216,
+      "ctr": 1099511627775,
+      "encoded": "4b01000000ffffffffff"
+    },
+    {
+      "kid": 16777216,
+      "ctr": 1099511627776,
+      "encoded": "5b01000000010000000000"
+    },
+    {
+      "kid": 16777216,
+      "ctr": 281474976710655,
+      "encoded": "5b01000000ffffffffffff"
+    },
+    {
+      "kid": 16777216,
+      "ctr": 281474976710656,
+      "encoded": "6b0100000001000000000000"
+    },
+    {
+      "kid": 16777216,
+      "ctr": 72057594037927935,
+      "encoded": "6b01000000ffffffffffffff"
+    },
+    {
+      "kid": 16777216,
+      "ctr": 72057594037927936,
+      "encoded": "7b010000000100000000000000"
+    },
+    {
+      "kid": 16777216,
+      "ctr": 18446744073709551615,
+      "encoded": "7b01000000ffffffffffffffff"
+    },
+    {
+      "kid": 4294967295,
+      "ctr": 0,
+      "encoded": "0bffffffff00"
+    },
+    {
+      "kid": 4294967295,
+      "ctr": 1,
+      "encoded": "0bffffffff01"
+    },
+    {
+      "kid": 4294967295,
+      "ctr": 255,
+      "encoded": "0bffffffffff"
+    },
+    {
+      "kid": 4294967295,
+      "ctr": 256,
+      "encoded": "1bffffffff0100"
+    },
+    {
+      "kid": 4294967295,
+      "ctr": 65535,
+      "encoded": "1bffffffffffff"
+    },
+    {
+      "kid": 4294967295,
+      "ctr": 65536,
+      "encoded": "2bffffffff010000"
+    },
+    {
+      "kid": 4294967295,
+      "ctr": 16777215,
+      "encoded": "2bffffffffffffff"
+    },
+    {
+      "kid": 4294967295,
+      "ctr": 16777216,
+      "encoded": "3bffffffff01000000"
+    },
+    {
+      "kid": 4294967295,
+      "ctr": 4294967295,
+      "encoded": "3bffffffffffffffff"
+    },
+    {
+      "kid": 4294967295,
+      "ctr": 4294967296,
+      "encoded": "4bffffffff0100000000"
+    },
+    {
+      "kid": 4294967295,
+      "ctr": 1099511627775,
+      "encoded": "4bffffffffffffffffff"
+    },
+    {
+      "kid": 4294967295,
+      "ctr": 1099511627776,
+      "encoded": "5bffffffff010000000000"
+    },
+    {
+      "kid": 4294967295,
+      "ctr": 281474976710655,
+      "encoded": "5bffffffffffffffffffff"
+    },
+    {
+      "kid": 4294967295,
+      "ctr": 281474976710656,
+      "encoded": "6bffffffff01000000000000"
+    },
+    {
+      "kid": 4294967295,
+      "ctr": 72057594037927935,
+      "encoded": "6bffffffffffffffffffffff"
+    },
+    {
+      "kid": 4294967295,
+      "ctr": 72057594037927936,
+      "encoded": "7bffffffff0100000000000000"
+    },
+    {
+      "kid": 4294967295,
+      "ctr": 18446744073709551615,
+      "encoded": "7bffffffffffffffffffffffff"
+    },
+    {
+      "kid": 4294967296,
+      "ctr": 0,
+      "encoded": "0c010000000000"
+    },
+    {
+      "kid": 4294967296,
+      "ctr": 1,
+      "encoded": "0c010000000001"
+    },
+    {
+      "kid": 4294967296,
+      "ctr": 255,
+      "encoded": "0c0100000000ff"
+    },
+    {
+      "kid": 4294967296,
+      "ctr": 256,
+      "encoded": "1c01000000000100"
+    },
+    {
+      "kid": 4294967296,
+      "ctr": 65535,
+      "encoded": "1c0100000000ffff"
+    },
+    {
+      "kid": 4294967296,
+      "ctr": 65536,
+      "encoded": "2c0100000000010000"
+    },
+    {
+      "kid": 4294967296,
+      "ctr": 16777215,
+      "encoded": "2c0100000000ffffff"
+    },
+    {
+      "kid": 4294967296,
+      "ctr": 16777216,
+      "encoded": "3c010000000001000000"
+    },
+    {
+      "kid": 4294967296,
+      "ctr": 4294967295,
+      "encoded": "3c0100000000ffffffff"
+    },
+    {
+      "kid": 4294967296,
+      "ctr": 4294967296,
+      "encoded": "4c01000000000100000000"
+    },
+    {
+      "kid": 4294967296,
+      "ctr": 1099511627775,
+      "encoded": "4c0100000000ffffffffff"
+    },
+    {
+      "kid": 4294967296,
+      "ctr": 1099511627776,
+      "encoded": "5c0100000000010000000000"
+    },
+    {
+      "kid": 4294967296,
+      "ctr": 281474976710655,
+      "encoded": "5c0100000000ffffffffffff"
+    },
+    {
+      "kid": 4294967296,
+      "ctr": 281474976710656,
+      "encoded": "6c010000000001000000000000"
+    },
+    {
+      "kid": 4294967296,
+      "ctr": 72057594037927935,
+      "encoded": "6c0100000000ffffffffffffff"
+    },
+    {
+      "kid": 4294967296,
+      "ctr": 72057594037927936,
+      "encoded": "7c01000000000100000000000000"
+    },
+    {
+      "kid": 4294967296,
+      "ctr": 18446744073709551615,
+      "encoded": "7c0100000000ffffffffffffffff"
+    },
+    {
+      "kid": 1099511627775,
+      "ctr": 0,
+      "encoded": "0cffffffffff00"
+    },
+    {
+      "kid": 1099511627775,
+      "ctr": 1,
+      "encoded": "0cffffffffff01"
+    },
+    {
+      "kid": 1099511627775,
+      "ctr": 255,
+      "encoded": "0cffffffffffff"
+    },
+    {
+      "kid": 1099511627775,
+      "ctr": 256,
+      "encoded": "1cffffffffff0100"
+    },
+    {
+      "kid": 1099511627775,
+      "ctr": 65535,
+      "encoded": "1cffffffffffffff"
+    },
+    {
+      "kid": 1099511627775,
+      "ctr": 65536,
+      "encoded": "2cffffffffff010000"
+    },
+    {
+      "kid": 1099511627775,
+      "ctr": 16777215,
+      "encoded": "2cffffffffffffffff"
+    },
+    {
+      "kid": 1099511627775,
+      "ctr": 16777216,
+      "encoded": "3cffffffffff01000000"
+    },
+    {
+      "kid": 1099511627775,
+      "ctr": 4294967295,
+      "encoded": "3cffffffffffffffffff"
+    },
+    {
+      "kid": 1099511627775,
+      "ctr": 4294967296,
+      "encoded": "4cffffffffff0100000000"
+    },
+    {
+      "kid": 1099511627775,
+      "ctr": 1099511627775,
+      "encoded": "4cffffffffffffffffffff"
+    },
+    {
+      "kid": 1099511627775,
+      "ctr": 1099511627776,
+      "encoded": "5cffffffffff010000000000"
+    },
+    {
+      "kid": 1099511627775,
+      "ctr": 281474976710655,
+      "encoded": "5cffffffffffffffffffffff"
+    },
+    {
+      "kid": 1099511627775,
+      "ctr": 281474976710656,
+      "encoded": "6cffffffffff01000000000000"
+    },
+    {
+      "kid": 1099511627775,
+      "ctr": 72057594037927935,
+      "encoded": "6cffffffffffffffffffffffff"
+    },
+    {
+      "kid": 1099511627775,
+      "ctr": 72057594037927936,
+      "encoded": "7cffffffffff0100000000000000"
+    },
+    {
+      "kid": 1099511627775,
+      "ctr": 18446744073709551615,
+      "encoded": "7cffffffffffffffffffffffffff"
+    },
+    {
+      "kid": 1099511627776,
+      "ctr": 0,
+      "encoded": "0d01000000000000"
+    },
+    {
+      "kid": 1099511627776,
+      "ctr": 1,
+      "encoded": "0d01000000000001"
+    },
+    {
+      "kid": 1099511627776,
+      "ctr": 255,
+      "encoded": "0d010000000000ff"
+    },
+    {
+      "kid": 1099511627776,
+      "ctr": 256,
+      "encoded": "1d0100000000000100"
+    },
+    {
+      "kid": 1099511627776,
+      "ctr": 65535,
+      "encoded": "1d010000000000ffff"
+    },
+    {
+      "kid": 1099511627776,
+      "ctr": 65536,
+      "encoded": "2d010000000000010000"
+    },
+    {
+      "kid": 1099511627776,
+      "ctr": 16777215,
+      "encoded": "2d010000000000ffffff"
+    },
+    {
+      "kid": 1099511627776,
+      "ctr": 16777216,
+      "encoded": "3d01000000000001000000"
+    },
+    {
+      "kid": 1099511627776,
+      "ctr": 4294967295,
+      "encoded": "3d010000000000ffffffff"
+    },
+    {
+      "kid": 1099511627776,
+      "ctr": 4294967296,
+      "encoded": "4d0100000000000100000000"
+    },
+    {
+      "kid": 1099511627776,
+      "ctr": 1099511627775,
+      "encoded": "4d010000000000ffffffffff"
+    },
+    {
+      "kid": 1099511627776,
+      "ctr": 1099511627776,
+      "encoded": "5d010000000000010000000000"
+    },
+    {
+      "kid": 1099511627776,
+      "ctr": 281474976710655,
+      "encoded": "5d010000000000ffffffffffff"
+    },
+    {
+      "kid": 1099511627776,
+      "ctr": 281474976710656,
+      "encoded": "6d01000000000001000000000000"
+    },
+    {
+      "kid": 1099511627776,
+      "ctr": 72057594037927935,
+      "encoded": "6d010000000000ffffffffffffff"
+    },
+    {
+      "kid": 1099511627776,
+      "ctr": 72057594037927936,
+      "encoded": "7d0100000000000100000000000000"
+    },
+    {
+      "kid": 1099511627776,
+      "ctr": 18446744073709551615,
+      "encoded": "7d010000000000ffffffffffffffff"
+    },
+    {
+      "kid": 281474976710655,
+      "ctr": 0,
+      "encoded": "0dffffffffffff00"
+    },
+    {
+      "kid": 281474976710655,
+      "ctr": 1,
+      "encoded": "0dffffffffffff01"
+    },
+    {
+      "kid": 281474976710655,
+      "ctr": 255,
+      "encoded": "0dffffffffffffff"
+    },
+    {
+      "kid": 281474976710655,
+      "ctr": 256,
+      "encoded": "1dffffffffffff0100"
+    },
+    {
+      "kid": 281474976710655,
+      "ctr": 65535,
+      "encoded": "1dffffffffffffffff"
+    },
+    {
+      "kid": 281474976710655,
+      "ctr": 65536,
+      "encoded": "2dffffffffffff010000"
+    },
+    {
+      "kid": 281474976710655,
+      "ctr": 16777215,
+      "encoded": "2dffffffffffffffffff"
+    },
+    {
+      "kid": 281474976710655,
+      "ctr": 16777216,
+      "encoded": "3dffffffffffff01000000"
+    },
+    {
+      "kid": 281474976710655,
+      "ctr": 4294967295,
+      "encoded": "3dffffffffffffffffffff"
+    },
+    {
+      "kid": 281474976710655,
+      "ctr": 4294967296,
+      "encoded": "4dffffffffffff0100000000"
+    },
+    {
+      "kid": 281474976710655,
+      "ctr": 1099511627775,
+      "encoded": "4dffffffffffffffffffffff"
+    },
+    {
+      "kid": 281474976710655,
+      "ctr": 1099511627776,
+      "encoded": "5dffffffffffff010000000000"
+    },
+    {
+      "kid": 281474976710655,
+      "ctr": 281474976710655,
+      "encoded": "5dffffffffffffffffffffffff"
+    },
+    {
+      "kid": 281474976710655,
+      "ctr": 281474976710656,
+      "encoded": "6dffffffffffff01000000000000"
+    },
+    {
+      "kid": 281474976710655,
+      "ctr": 72057594037927935,
+      "encoded": "6dffffffffffffffffffffffffff"
+    },
+    {
+      "kid": 281474976710655,
+      "ctr": 72057594037927936,
+      "encoded": "7dffffffffffff0100000000000000"
+    },
+    {
+      "kid": 281474976710655,
+      "ctr": 18446744073709551615,
+      "encoded": "7dffffffffffffffffffffffffffff"
+    },
+    {
+      "kid": 281474976710656,
+      "ctr": 0,
+      "encoded": "0e0100000000000000"
+    },
+    {
+      "kid": 281474976710656,
+      "ctr": 1,
+      "encoded": "0e0100000000000001"
+    },
+    {
+      "kid": 281474976710656,
+      "ctr": 255,
+      "encoded": "0e01000000000000ff"
+    },
+    {
+      "kid": 281474976710656,
+      "ctr": 256,
+      "encoded": "1e010000000000000100"
+    },
+    {
+      "kid": 281474976710656,
+      "ctr": 65535,
+      "encoded": "1e01000000000000ffff"
+    },
+    {
+      "kid": 281474976710656,
+      "ctr": 65536,
+      "encoded": "2e01000000000000010000"
+    },
+    {
+      "kid": 281474976710656,
+      "ctr": 16777215,
+      "encoded": "2e01000000000000ffffff"
+    },
+    {
+      "kid": 281474976710656,
+      "ctr": 16777216,
+      "encoded": "3e0100000000000001000000"
+    },
+    {
+      "kid": 281474976710656,
+      "ctr": 4294967295,
+      "encoded": "3e01000000000000ffffffff"
+    },
+    {
+      "kid": 281474976710656,
+      "ctr": 4294967296,
+      "encoded": "4e010000000000000100000000"
+    },
+    {
+      "kid": 281474976710656,
+      "ctr": 1099511627775,
+      "encoded": "4e01000000000000ffffffffff"
+    },
+    {
+      "kid": 281474976710656,
+      "ctr": 1099511627776,
+      "encoded": "5e01000000000000010000000000"
+    },
+    {
+      "kid": 281474976710656,
+      "ctr": 281474976710655,
+      "encoded": "5e01000000000000ffffffffffff"
+    },
+    {
+      "kid": 281474976710656,
+      "ctr": 281474976710656,
+      "encoded": "6e0100000000000001000000000000"
+    },
+    {
+      "kid": 281474976710656,
+      "ctr": 72057594037927935,
+      "encoded": "6e01000000000000ffffffffffffff"
+    },
+    {
+      "kid": 281474976710656,
+      "ctr": 72057594037927936,
+      "encoded": "7e010000000000000100000000000000"
+    },
+    {
+      "kid": 281474976710656,
+      "ctr": 18446744073709551615,
+      "encoded": "7e01000000000000ffffffffffffffff"
+    },
+    {
+      "kid": 72057594037927935,
+      "ctr": 0,
+      "encoded": "0effffffffffffff00"
+    },
+    {
+      "kid": 72057594037927935,
+      "ctr": 1,
+      "encoded": "0effffffffffffff01"
+    },
+    {
+      "kid": 72057594037927935,
+      "ctr": 255,
+      "encoded": "0effffffffffffffff"
+    },
+    {
+      "kid": 72057594037927935,
+      "ctr": 256,
+      "encoded": "1effffffffffffff0100"
+    },
+    {
+      "kid": 72057594037927935,
+      "ctr": 65535,
+      "encoded": "1effffffffffffffffff"
+    },
+    {
+      "kid": 72057594037927935,
+      "ctr": 65536,
+      "encoded": "2effffffffffffff010000"
+    },
+    {
+      "kid": 72057594037927935,
+      "ctr": 16777215,
+      "encoded": "2effffffffffffffffffff"
+    },
+    {
+      "kid": 72057594037927935,
+      "ctr": 16777216,
+      "encoded": "3effffffffffffff01000000"
+    },
+    {
+      "kid": 72057594037927935,
+      "ctr": 4294967295,
+      "encoded": "3effffffffffffffffffffff"
+    },
+    {
+      "kid": 72057594037927935,
+      "ctr": 4294967296,
+      "encoded": "4effffffffffffff0100000000"
+    },
+    {
+      "kid": 72057594037927935,
+      "ctr": 1099511627775,
+      "encoded": "4effffffffffffffffffffffff"
+    },
+    {
+      "kid": 72057594037927935,
+      "ctr": 1099511627776,
+      "encoded": "5effffffffffffff010000000000"
+    },
+    {
+      "kid": 72057594037927935,
+      "ctr": 281474976710655,
+      "encoded": "5effffffffffffffffffffffffff"
+    },
+    {
+      "kid": 72057594037927935,
+      "ctr": 281474976710656,
+      "encoded": "6effffffffffffff01000000000000"
+    },
+    {
+      "kid": 72057594037927935,
+      "ctr": 72057594037927935,
+      "encoded": "6effffffffffffffffffffffffffff"
+    },
+    {
+      "kid": 72057594037927935,
+      "ctr": 72057594037927936,
+      "encoded": "7effffffffffffff0100000000000000"
+    },
+    {
+      "kid": 72057594037927935,
+      "ctr": 18446744073709551615,
+      "encoded": "7effffffffffffffffffffffffffffff"
+    },
+    {
+      "kid": 72057594037927936,
+      "ctr": 0,
+      "encoded": "0f010000000000000000"
+    },
+    {
+      "kid": 72057594037927936,
+      "ctr": 1,
+      "encoded": "0f010000000000000001"
+    },
+    {
+      "kid": 72057594037927936,
+      "ctr": 255,
+      "encoded": "0f0100000000000000ff"
+    },
+    {
+      "kid": 72057594037927936,
+      "ctr": 256,
+      "encoded": "1f01000000000000000100"
+    },
+    {
+      "kid": 72057594037927936,
+      "ctr": 65535,
+      "encoded": "1f0100000000000000ffff"
+    },
+    {
+      "kid": 72057594037927936,
+      "ctr": 65536,
+      "encoded": "2f0100000000000000010000"
+    },
+    {
+      "kid": 72057594037927936,
+      "ctr": 16777215,
+      "encoded": "2f0100000000000000ffffff"
+    },
+    {
+      "kid": 72057594037927936,
+      "ctr": 16777216,
+      "encoded": "3f010000000000000001000000"
+    },
+    {
+      "kid": 72057594037927936,
+      "ctr": 4294967295,
+      "encoded": "3f0100000000000000ffffffff"
+    },
+    {
+      "kid": 72057594037927936,
+      "ctr": 4294967296,
+      "encoded": "4f01000000000000000100000000"
+    },
+    {
+      "kid": 72057594037927936,
+      "ctr": 1099511627775,
+      "encoded": "4f0100000000000000ffffffffff"
+    },
+    {
+      "kid": 72057594037927936,
+      "ctr": 1099511627776,
+      "encoded": "5f0100000000000000010000000000"
+    },
+    {
+      "kid": 72057594037927936,
+      "ctr": 281474976710655,
+      "encoded": "5f0100000000000000ffffffffffff"
+    },
+    {
+      "kid": 72057594037927936,
+      "ctr": 281474976710656,
+      "encoded": "6f010000000000000001000000000000"
+    },
+    {
+      "kid": 72057594037927936,
+      "ctr": 72057594037927935,
+      "encoded": "6f0100000000000000ffffffffffffff"
+    },
+    {
+      "kid": 72057594037927936,
+      "ctr": 72057594037927936,
+      "encoded": "7f01000000000000000100000000000000"
+    },
+    {
+      "kid": 72057594037927936,
+      "ctr": 18446744073709551615,
+      "encoded": "7f0100000000000000ffffffffffffffff"
+    },
+    {
+      "kid": 18446744073709551615,
+      "ctr": 0,
+      "encoded": "0fffffffffffffffff00"
+    },
+    {
+      "kid": 18446744073709551615,
+      "ctr": 1,
+      "encoded": "0fffffffffffffffff01"
+    },
+    {
+      "kid": 18446744073709551615,
+      "ctr": 255,
+      "encoded": "0fffffffffffffffffff"
+    },
+    {
+      "kid": 18446744073709551615,
+      "ctr": 256,
+      "encoded": "1fffffffffffffffff0100"
+    },
+    {
+      "kid": 18446744073709551615,
+      "ctr": 65535,
+      "encoded": "1fffffffffffffffffffff"
+    },
+    {
+      "kid": 18446744073709551615,
+      "ctr": 65536,
+      "encoded": "2fffffffffffffffff010000"
+    },
+    {
+      "kid": 18446744073709551615,
+      "ctr": 16777215,
+      "encoded": "2fffffffffffffffffffffff"
+    },
+    {
+      "kid": 18446744073709551615,
+      "ctr": 16777216,
+      "encoded": "3fffffffffffffffff01000000"
+    },
+    {
+      "kid": 18446744073709551615,
+      "ctr": 4294967295,
+      "encoded": "3fffffffffffffffffffffffff"
+    },
+    {
+      "kid": 18446744073709551615,
+      "ctr": 4294967296,
+      "encoded": "4fffffffffffffffff0100000000"
+    },
+    {
+      "kid": 18446744073709551615,
+      "ctr": 1099511627775,
+      "encoded": "4fffffffffffffffffffffffffff"
+    },
+    {
+      "kid": 18446744073709551615,
+      "ctr": 1099511627776,
+      "encoded": "5fffffffffffffffff010000000000"
+    },
+    {
+      "kid": 18446744073709551615,
+      "ctr": 281474976710655,
+      "encoded": "5fffffffffffffffffffffffffffff"
+    },
+    {
+      "kid": 18446744073709551615,
+      "ctr": 281474976710656,
+      "encoded": "6fffffffffffffffff01000000000000"
+    },
+    {
+      "kid": 18446744073709551615,
+      "ctr": 72057594037927935,
+      "encoded": "6fffffffffffffffffffffffffffffff"
+    },
+    {
+      "kid": 18446744073709551615,
+      "ctr": 72057594037927936,
+      "encoded": "7fffffffffffffffff0100000000000000"
+    },
+    {
+      "kid": 18446744073709551615,
+      "ctr": 18446744073709551615,
+      "encoded": "7fffffffffffffffffffffffffffffffff"
+    }
+  ],
+  "aes_ctr_hmac": [
+    {
+      "cipher_suite": 1,
+      "key": "000102030405060708090a0b0c0d0e0f",
+      "aead_label": "534672616d6520312e302041455320435452204145414420000000000000000a",
+      "aead_secret": "fda0fef7af62639ae1c6440f430395f54623f9a49db659201312ed6d9999a580",
+      "enc_key": "d6a61ca11fe8397b24954cda8b9543cf",
+      "auth_key": "0a43277c91120b7c7b6584bede06fcdfe0d07f9d1c9f15fcf0cad50aaecdd585",
+      "nonce": "101112131415161718191a1b",
+      "aad": "4945544620534672616d65205747",
+      "pt": "64726166742d696574662d736672616d652d656e63",
+      "ct": "1075c7114e10c12f20a709450ef8a891e9f070d4fae7b01f558599c929fdfd"
+    },
+    {
+      "cipher_suite": 2,
+      "key": "000102030405060708090a0b0c0d0e0f",
+      "aead_label": "534672616d6520312e3020414553204354522041454144200000000000000008",
+      "aead_secret": "a0d71a69b2033a5a246eefbed19d95aee712a7639a752e5ad3a2b44c9f331caa",
+      "enc_key": "0ef75d1dd74b81e4d2252e6daa7226da",
+      "auth_key": "5584d32db18ede79fe8071a334ff31eb2ca0249a7845a61965d2ec620a50c59e",
+      "nonce": "101112131415161718191a1b",
+      "aad": "4945544620534672616d65205747",
+      "pt": "64726166742d696574662d736672616d652d656e63",
+      "ct": "f8551395579efc8dfdda575ed1a048f8b6cbf0e85653f0a514dea191e4"
+    },
+    {
+      "cipher_suite": 3,
+      "key": "000102030405060708090a0b0c0d0e0f",
+      "aead_label": "534672616d6520312e3020414553204354522041454144200000000000000004",
+      "aead_secret": "ff69640f46d50930ce38bcf5aa5f6417a5bff98a991c79da06a0be460211dd36",
+      "enc_key": "96a673a94981bd85e71fcf05c79f2a01",
+      "auth_key": "bbf3b39da1eb8ed31fc5e0b26896a070f1a43e5ad3009b4c9d6c32e77ac68fce",
+      "nonce": "101112131415161718191a1b",
+      "aad": "4945544620534672616d65205747",
+      "pt": "64726166742d696574662d736672616d652d656e63",
+      "ct": "d6455bdbe7b5e8cdda861a8e90835637c0f7990349ce9052e6"
+    }
+  ],
+  "sframe": [
+    {
+      "cipher_suite": 1,
+      "kid": 291,
+      "ctr": 17767,
+      "base_key": "000102030405060708090a0b0c0d0e0f",
+      "sframe_label": "534672616d6520312e3020",
+      "sframe_secret": "d926952ca8b7ec4a95941d1ada3a5203ceff8cceee34f574d23909eb314c40c0",
+      "sframe_key": "52cef96e29191912a6be442a9651c43a",
+      "sframe_salt": "9655c98fdad276683deb279c",
+      "metadata": "4945544620534672616d65205747",
+      "nonce": "9655c98fdad276683deb62fb",
+      "aad": "19012345674945544620534672616d65205747",
+      "pt": "64726166742d696574662d736672616d652d656e63",
+      "ct": "1901234567b6a27b2d24f1f06d49cffe6c82af5a96e0d89443a7a93a8700f96fdda3e43c"
+    },
+    {
+      "cipher_suite": 2,
+      "kid": 291,
+      "ctr": 17767,
+      "base_key": "000102030405060708090a0b0c0d0e0f",
+      "sframe_label": "534672616d6520312e3020",
+      "sframe_secret": "d926952ca8b7ec4a95941d1ada3a5203ceff8cceee34f574d23909eb314c40c0",
+      "sframe_key": "52cef96e29191912a6be442a9651c43a",
+      "sframe_salt": "9655c98fdad276683deb279c",
+      "metadata": "4945544620534672616d65205747",
+      "nonce": "9655c98fdad276683deb62fb",
+      "aad": "19012345674945544620534672616d65205747",
+      "pt": "64726166742d696574662d736672616d652d656e63",
+      "ct": "190123456728b1faac3515d5ca29f3db9c52f27789c5ec8386ff0b570853ebcf721c"
+    },
+    {
+      "cipher_suite": 3,
+      "kid": 291,
+      "ctr": 17767,
+      "base_key": "000102030405060708090a0b0c0d0e0f",
+      "sframe_label": "534672616d6520312e3020",
+      "sframe_secret": "d926952ca8b7ec4a95941d1ada3a5203ceff8cceee34f574d23909eb314c40c0",
+      "sframe_key": "52cef96e29191912a6be442a9651c43a",
+      "sframe_salt": "9655c98fdad276683deb279c",
+      "metadata": "4945544620534672616d65205747",
+      "nonce": "9655c98fdad276683deb62fb",
+      "aad": "19012345674945544620534672616d65205747",
+      "pt": "64726166742d696574662d736672616d652d656e63",
+      "ct": "190123456754719dcfbe065e1606068cb6b6b5f1a9a371e633ff088485e7"
+    },
+    {
+      "cipher_suite": 4,
+      "kid": 291,
+      "ctr": 17767,
+      "base_key": "000102030405060708090a0b0c0d0e0f",
+      "sframe_label": "534672616d6520312e3020",
+      "sframe_secret": "d926952ca8b7ec4a95941d1ada3a5203ceff8cceee34f574d23909eb314c40c0",
+      "sframe_key": "52cef96e29191912a6be442a9651c43a",
+      "sframe_salt": "9655c98fdad276683deb279c",
+      "metadata": "4945544620534672616d65205747",
+      "nonce": "9655c98fdad276683deb62fb",
+      "aad": "19012345674945544620534672616d65205747",
+      "pt": "64726166742d696574662d736672616d652d656e63",
+      "ct": "1901234567d4dfcd537dbd054dcf4bdab53bf451826843325838178391f63dc15b9475d6081b59c776a5"
+    },
+    {
+      "cipher_suite": 5,
+      "kid": 291,
+      "ctr": 17767,
+      "base_key": "000102030405060708090a0b0c0d0e0f",
+      "sframe_label": "534672616d6520312e3020",
+      "sframe_secret": "0fc3ea6de6aac97a35f194cf9bed94d4b5230f1cb45a785c9fe5dce9c188938ab6ba005bc4c0a19181599e9d1bcf7b74aca48b60bf5e254e546d809313e083a3",
+      "sframe_key": "5f3f7c1b277d9cad86b906da39702c3fcdf720902817977ae99bd10f2e5ad56a",
+      "sframe_salt": "a653f558a8018877314fb8d9",
+      "metadata": "4945544620534672616d65205747",
+      "nonce": "a653f558a8018877314ffdbe",
+      "aad": "19012345674945544620534672616d65205747",
+      "pt": "64726166742d696574662d736672616d652d656e63",
+      "ct": "19012345672f55e5feb46d118576dc715566003f4becf5252149c839aea7dd5434bf8eceb8b4d59bbfb2"
+    }
+  ]
+}

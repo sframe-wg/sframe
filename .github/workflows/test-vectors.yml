@@ -20,7 +20,20 @@ jobs:
     - name: "Checkout"
       uses: actions/checkout@v2
 
-    - name: "Build Reference Implementation"
+    - name: "Build reference implementation"
       run: |
         cd reference-implementation
         cargo test
+
+    - name: "Verify JSON test vectors"
+      run: |
+        cd reference-implementation
+        cargo run --example test_vectors verify <../test-vectors/test-vectors.json
+
+    - name: "Verify that Markdown test vectors are unmodified"
+      run: |
+        ./make_test_vectors.sh
+        if [[ `git status --porcelain` ]]
+        then 
+          exit 1
+        fi

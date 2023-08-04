@@ -14,11 +14,11 @@
 //!
 //! let mut send = SFrameContext::new(cipher_suite);
 //! send.add_send_key(kid, base_key);
-//! let ciphertext = send.encrypt(kid, metadata, plaintext).unwrap();
+//! let (ciphertext, _vals) = send.encrypt(kid, metadata, plaintext).unwrap();
 //!
 //! let mut recv = SFrameContext::new(cipher_suite);
 //! recv.add_recv_key(kid, base_key);
-//! let decrypted = recv.decrypt(metadata, &ciphertext).unwrap();
+//! let (decrypted, _vals) = recv.decrypt(metadata, &ciphertext).unwrap();
 //! assert_eq!(plaintext, decrypted.as_slice());
 //! ```
 //!
@@ -36,7 +36,7 @@ pub mod header;
 /// Cipher agility layer
 pub mod cipher;
 
-pub use crate::cipher::{new_cipher, Cipher, CipherSuite};
+pub use crate::cipher::{new_cipher, Cipher, CipherSuite, SFrameIntermediateValues};
 pub use crate::header::{Counter, Header, KeyId};
 use std::collections::HashMap;
 
@@ -85,16 +85,16 @@ impl SFrameContext {
         ctr: Counter,
         metadata: &[u8],
         plaintext: &[u8],
-    ) -> Result<Vec<u8>> {
+    ) -> Result<(Vec<u8>, SFrameIntermediateValues)> {
         let ctx = self.send_keys.get_mut(&kid).unwrap();
         let header = Header::new(kid, ctr);
 
-        let raw_ciphertext = ctx.cipher.encrypt(&header, metadata, plaintext)?;
+        let (raw_ciphertext, vals) = ctx.cipher.encrypt(&header, metadata, plaintext)?;
 
         let mut ciphertext = Vec::new();
         ciphertext.extend_from_slice(header.as_slice());
         ciphertext.extend_from_slice(raw_ciphertext.as_slice());
-        Ok(ciphertext)
+        Ok((ciphertext, vals))
     }
 }
 
@@ -113,10 +113,19 @@ pub trait SFrameContextMethods {
     fn cipher(&self, kid: KeyId) -> &dyn Cipher;
 
     /// Encrypt with the specified key.  Panics if the KID value is unknown.
-    fn encrypt(&mut self, kid: KeyId, metadata: &[u8], plaintext: &[u8]) -> Result<Vec<u8>>;
+    fn encrypt(
+        &mut self,
+        kid: KeyId,
+        metadata: &[u8],
+        plaintext: &[u8],
+    ) -> Result<(Vec<u8>, SFrameIntermediateValues)>;
 
     /// Decrypt with the specified key.  Panics if the KID value is unknown.
-    fn decrypt(&self, metadata: &[u8], ciphertext: &[u8]) -> Result<Vec<u8>>;
+    fn decrypt(
+        &self,
+        metadata: &[u8],
+        ciphertext: &[u8],
+    ) -> Result<(Vec<u8>, SFrameIntermediateValues)>;
 }
 
 impl SFrameContextMethods for SFrameContext {
@@ -165,7 +174,12 @@ impl SFrameContextMethods for SFrameContext {
             .unwrap()
     }
 
-    fn encrypt(&mut self, kid: KeyId, metadata: &[u8], plaintext: &[u8]) -> Result<Vec<u8>> {
+    fn encrypt(
+        &mut self,
+        kid: KeyId,
+        metadata: &[u8],
+        plaintext: &[u8],
+    ) -> Result<(Vec<u8>, SFrameIntermediateValues)> {
         let ctx = self.send_keys.get_mut(&kid).ok_or(Error::NoContext)?;
         let ctr = ctx.next_counter;
         ctx.next_counter.0 += 1;
@@ -173,7 +187,11 @@ impl SFrameContextMethods for SFrameContext {
         self.encrypt_raw(kid, ctr, metadata, plaintext)
     }
 
-    fn decrypt(&self, metadata: &[u8], ciphertext: &[u8]) -> Result<Vec<u8>> {
+    fn decrypt(
+        &self,
+        metadata: &[u8],
+        ciphertext: &[u8],
+    ) -> Result<(Vec<u8>, SFrameIntermediateValues)> {
         let (header, raw_ciphertext) = Header::parse(ciphertext)?;
 
         let ctx = self.recv_keys.get(&header.kid).ok_or(Error::NoContext)?;
@@ -199,7 +217,7 @@ mod test {
         recv.add_recv_key(kid, base_key).unwrap();
 
         // Verify that an SFrame ciphertext has the proper form
-        let ciphertext = send.encrypt(kid, metadata, plaintext).unwrap();
+        let (ciphertext, _vals) = send.encrypt(kid, metadata, plaintext).unwrap();
 
         let header = Header::new(kid, Counter(0)).as_slice().to_vec();
         assert_eq!(header, &ciphertext[..header.len()]);
@@ -209,7 +227,7 @@ mod test {
         );
 
         // Verify that the receiver can decrypt the ciphertext
-        let decrypted = recv.decrypt(metadata, &ciphertext).unwrap();
+        let (decrypted, _vals) = recv.decrypt(metadata, &ciphertext).unwrap();
         assert_eq!(&decrypted, plaintext);
     }
 

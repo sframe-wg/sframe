@@ -32,7 +32,7 @@ jobs:
 
     - name: "Verify that Markdown test vectors are unmodified"
       run: |
-        ./make-test-vectors.sh
+        ./make_test_vectors.sh
         if [[ `git status --porcelain` ]]
         then 
           exit 1

@@ -576,7 +576,8 @@ def compute_tag(auth_key, nonce, aad, ct):
 
 def AEAD.Encrypt(key, nonce, aad, pt):
   enc_key, auth_key = derive_subkeys(key)
-  ct = AES-CTR.Encrypt(enc_key, nonce, pt)
+  iv = nonce + 0x00000000 # append four zero bytes
+  ct = AES-CTR.Encrypt(enc_key, iv, pt)
   tag = compute_tag(auth_key, nonce, aad, ct)
   return ct + tag
 
@@ -588,7 +589,8 @@ def AEAD.Decrypt(key, nonce, aad, ct):
   if !constant_time_equal(tag, candidate_tag):
     raise Exception("Authentication Failure")
 
-  return AES-CTR.Decrypt(enc_key, nonce, inner_ct)
+  iv = nonce + 0x00000000 # append four zero bytes
+  return AES-CTR.Decrypt(enc_key, iv, inner_ct)
 ~~~~~
 
 # Key Management

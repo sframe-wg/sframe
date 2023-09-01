@@ -219,7 +219,8 @@ mod sframe {
         kid: u64,
         ctr: u64,
         base_key: String,
-        sframe_label: String,
+        sframe_key_label: String,
+        sframe_salt_label: String,
         sframe_secret: String,
         sframe_key: String,
         sframe_salt: String,
@@ -249,7 +250,8 @@ mod sframe {
                 kid: kid.0,
                 ctr: ctr.0,
                 base_key: hex::encode(base_key),
-                sframe_label: hex::encode(cipher.sframe_label()),
+                sframe_key_label: hex::encode(cipher.sframe_key_label()),
+                sframe_salt_label: hex::encode(cipher.sframe_salt_label()),
                 sframe_secret: hex::encode(cipher.sframe_secret()),
                 sframe_key: hex::encode(cipher.sframe_key()),
                 sframe_salt: hex::encode(cipher.sframe_salt()),
@@ -298,7 +300,8 @@ mod sframe {
                 kid,
                 ctr,
                 base_key,
-                sframe_label,
+                sframe_key_label,
+                sframe_salt_label,
                 sframe_secret,
                 sframe_key,
                 sframe_salt,
@@ -315,7 +318,8 @@ cipher_suite: 0x{cipher_suite:04x}
 kid: 0x{kid:016x}
 ctr: 0x{ctr:016x}
 base_key: {base_key}
-sframe_label: {sframe_label}
+sframe_key_label: {sframe_key_label}
+sframe_salt_label: {sframe_salt_label}
 sframe_secret: {sframe_secret}
 sframe_key: {sframe_key}
 sframe_salt: {sframe_salt}

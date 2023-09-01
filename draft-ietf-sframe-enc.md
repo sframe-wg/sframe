@@ -1305,7 +1305,8 @@ For each case, we provide:
 * `kid`: A KID value
 * `ctr`: A CTR value
 * `base_key`: The `base_key` input to the `derive_key_salt` algorithm
-* `sframe_label`: The `sframe_label` variable in the `derive_key_salt` algorithm
+* `sframe_key_label`: The label used to derive `sframe_key` in the `derive_key_salt` algorithm
+* `sframe_salt_label`: The label used to derive `sframe_salt` in the `derive_key_salt` algorithm
 * `sframe_secret`: The `sframe_secret` variable in the `derive_key_salt` algorithm
 * `sframe_key`: The `sframe_key` value produced by the `derive_key_salt` algorithm
 * `sframe_salt`: The `sframe_salt` value produced by the `derive_key_salt` algorithm

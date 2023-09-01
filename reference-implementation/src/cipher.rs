@@ -28,8 +28,11 @@ fn xor_eq(a: &mut [u8], b: &[u8]) {
 }
 
 struct CipherImpl<A: Aead> {
-    /// The prefix of the label value used as a info in HKDF
-    pub sframe_label: Vec<u8>,
+    /// The label used as info in key derivation
+    pub sframe_key_label: Vec<u8>,
+
+    /// The label used as info in salt derivation
+    pub sframe_salt_label: Vec<u8>,
 
     /// The `aead_secret` value used as an HKDF PRK
     pub sframe_secret: Vec<u8>,
@@ -44,16 +47,17 @@ struct CipherImpl<A: Aead> {
 
 impl<A: Aead> CipherImpl<A> {
     pub fn new<D: Digest>(kid: KeyId, base_key: &[u8]) -> Self {
+        static KEY_LABEL: &[u8] = b"SFrame 1.0 Secret key ";
+        static SALT_LABEL: &[u8] = b"SFrame 1.0 Secret salt ";
+
         let (sframe_secret, h) = Hkdf::<D, SimpleHmac<D>>::extract(None, base_key);
 
-        let sframe_label = b"SFrame 1.0 ";
-
-        let sframe_key_label = [sframe_label.as_ref(), b"key ", &kid.0.to_be_bytes()].concat();
+        let kid_bytes = kid.0.to_be_bytes();
+        let sframe_key_label = [KEY_LABEL, &kid_bytes].concat();
+        let sframe_salt_label = [SALT_LABEL, &kid_bytes].concat();
 
         let mut sframe_key: Key<A> = Default::default();
         h.expand(&sframe_key_label, &mut sframe_key).unwrap();
-
-        let sframe_salt_label = [sframe_label.as_ref(), b"salt ", &kid.0.to_be_bytes()].concat();
 
         let mut sframe_salt: Nonce<A> = Default::default();
         h.expand(&sframe_salt_label, &mut sframe_salt).unwrap();
@@ -61,7 +65,8 @@ impl<A: Aead> CipherImpl<A> {
         let aead = A::new(&sframe_key);
 
         Self {
-            sframe_label: sframe_label.to_vec(),
+            sframe_key_label,
+            sframe_salt_label,
             sframe_secret: sframe_secret.to_vec(),
             sframe_key,
             sframe_salt,
@@ -106,8 +111,11 @@ impl SFrameIntermediateValues {
 /// header, and metadata values, and the resulting AEAD encryption/decryption.  (Key derivation is
 /// handled by the implementation struct.)
 pub trait Cipher {
-    /// The label value used as a salt in HKDF
-    fn sframe_label(&self) -> Vec<u8>;
+    /// The label used as info in key derivation
+    fn sframe_key_label(&self) -> Vec<u8>;
+
+    /// The label used as info in salt derivation
+    fn sframe_salt_label(&self) -> Vec<u8>;
 
     /// The `aead_secret` value used as an HKDF PRK
     fn sframe_secret(&self) -> Vec<u8>;
@@ -140,8 +148,12 @@ pub trait Cipher {
 }
 
 impl<A: Aead> Cipher for CipherImpl<A> {
-    fn sframe_label(&self) -> Vec<u8> {
-        self.sframe_label.clone()
+    fn sframe_key_label(&self) -> Vec<u8> {
+        self.sframe_key_label.clone()
+    }
+
+    fn sframe_salt_label(&self) -> Vec<u8> {
+        self.sframe_salt_label.clone()
     }
 
     fn sframe_secret(&self) -> Vec<u8> {

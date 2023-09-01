@@ -244,9 +244,9 @@ The SFrame header is a variable-length structure described in detail in
 are determined by the AEAD algorithm in use.
 
 ~~~ aasvg
-   +-+---+-+----+--------------------+---------------------+<-+
-   |R|LEN|X|KLEN|       Key ID       |       Counter       |  |
-+->+-+---+-+----+--------------------+---------------------+  |
+   +-+----+-+----+--------------------+--------------------+<-+
+   |K|KLEN|C|CLEN|       Key ID       |      Counter       |  |
++->+-+----+-+----+--------------------+--------------------+  |
 |  |                                                       |  |
 |  |                                                       |  |
 |  |                                                       |  |
@@ -281,28 +281,20 @@ Applications MUST ensure that each (KID, CTR) combination is used for exactly
 one encryption operation. A typical approach to achieving this gaurantee is
 outlined in {{header-value-uniqueness}}.
 
-Both the counter and the key id are encoded as integers in network (big-endian)
-byte order, in a variable length format to decrease the overhead.  The length of
-each field is up to 8 bytes and is represented in 3 bits in the SFrame header:
-000 represents a length of 1, 001 a length of 2, etc.
-
-The first byte in the SFrame header has a fixed format and contains the header
-metadata:
-
 ~~~~~ aasvg
+   Config Byte
+        |
+ .-----' '-----.
+|               |
  0 1 2 3 4 5 6 7
-+-+-+-+-+-+-+-+-+
-|R| LEN |X|  K  |
-+-+-+-+-+-+-+-+-+
++-+-+-+-+-+-+-+-+------------+------------+
+|X|  K  |Y|  C  |   KID...   |   CTR...   |
++-+-+-+-+-+-+-+-+------------+------------+
 ~~~~~
-{: title="SFrame header metadata"}
+{: #fig-sframe-header title="SFrame header"}
 
-Reserved (R, 1 bit):
-: This field MUST be set to zero on sending, and MUST be ignored by receivers.
-
-Counter Length (LEN, 3 bits):
-: This field indicates the length of the CTR field in bytes, minus one (the
-range of possible values is thus 1-8).
+The SFrame Header has the overall structure shown in {{fig-sframe-header}}.  The
+first byte is a "config byte", with the following fields:
 
 Extended Key Id Flag (X, 1 bit):
 : Indicates if the key field contains the key id or the key length.
@@ -311,28 +303,61 @@ Key or Key Length (K, 3 bits):
 : This field contains the key id (KID) if the X flag is set to 0, or the key
 length (KLEN) if set to 1.
 
-If X flag is 0, then the KID is in the range of 0-7 and the counter (CTR) is
-found in the next LEN bytes:
+Extended Counter Flag (Y, 1 bit):
+: Indicates if the key field contains the key id or the key length.
+
+Counter or Counter Length (C, 3 bits):
+: This field contains the key id (KID) if the X flag is set to 0, or the key
+length (KLEN) if set to 1.
+
+The Key ID and Counter fields are encoded as compact unsigned integers in
+network (big-endian) byte order.  If the value of one of these fields is in the
+range 0-7, then the value is carried in the corresponding bits of the config
+byte (K or C) and the corresponding flag (X or Y) is set to zero.  Otherwise,
+the value is MUST be encoded with the minimum number of bytes required and
+appended after the configuration byte, with the Key ID first and Counter second.
+The header field (K or C) is set to the number of bytes in the encoded value,
+minus one.  The value 000 represents a length of 1, 001 a length of 2, etc.
+This allows a 3-bit length field to represent the value lengths 1-8.
+
+The SFrame header can thus take one of the four forms shown in
+{{fig-sframe-header-cases}}, depending on which of the X and Y flags are set.
 
 ~~~~~ aasvg
- 0 1 2 3 4 5 6 7
-+-+-----+-+-----+---------------------------------+
-|R|LEN  |0| KID |    CTR... (length=LEN)          |
-+-+-----+-+-----+---------------------------------+
-~~~~~
-{: title="SFrame header with short KID" }
+KID < 8, CTR < 8:
++-+-----+-+-----+
+|0| KID |0| CTR |
++-+-----+-+-----+
 
-If X flag is 1 then KLEN is the length of the key (KID) in bytes, minus one
-(the range of possible lengths is thus 1-8). The KID is encoded in
-the KLEN bytes following the metadata byte, and the counter (CTR) is encoded
-in the next LEN bytes:
+KID < 8, CTR >= 8:
++-+-----+-+-----+------------------------+
+|0| KID |1|CLEN |  CTR... (length=CLEN)  |
++-+-----+-+-----+------------------------+
 
-~~~~~ aasvg
- 0 1 2 3 4 5 6 7
-+-+-----+-+-----+---------------------------+---------------------------+
-|R|LEN  |1|KLEN |   KID... (length=KLEN)    |    CTR... (length=LEN)    |
-+-+-----+-+-----+---------------------------+---------------------------+
+KID >= 8, CTR < 8:
++-+-----+-+-----+------------------------+
+|1|KLEN |0| CTR |  KID... (length=KLEN)  |
++-+-----+-+-----+------------------------+
+
+KID >= 8, CTR >= 8:
++-+-----+-+-----+------------------------+------------------------+
+|1|KLEN |1|CLEN |  KID... (length=KLEN)  |  CTR... (length=CLEN)  |
++-+-----+-+-----+------------------------+------------------------+
 ~~~~~
+{: #fig-sframe-header-cases title="Forms of Encoded SFrame Header" }
+
+In ABNF {{!RFC5234}}, the form of the SFrame Header is represented by the rules
+shown in {{fig-header-abnf}}, where the presence and size of the KeyID and
+Counter fields are determined by the Config octet.
+
+~~~~~ abnf
+Config = OCTET
+UInt64 = 1*7OCTET
+KeyID = UInt64
+Counter = UInt64
+SFrameHeader = Config [KeyID] [Counter]
+~~~~~
+{: #fig-header-abnf }
 
 ## Encryption Schema
 

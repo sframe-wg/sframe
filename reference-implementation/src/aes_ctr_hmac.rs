@@ -8,7 +8,7 @@ use ctr::Ctr32BE;
 use digest::{Output, Update};
 use hmac::{Mac, SimpleHmac};
 use std::ops::Add;
-use typenum::{uint::UInt, Sum};
+use typenum::Sum;
 
 pub use crate::cipher::Digest;
 
@@ -86,13 +86,13 @@ where
 // The constraint of KeySize/OutputSize to UInt is necessary because Add is only implemented on
 // that specific type.  The constraint is not an issue in practice because all of the required
 // ciphers use lengths of that type.
-impl<C, D, T, UK, BK, UD, BD> KeySizeUser for AesCtrHmac<C, D, T>
+impl<C, D, T> KeySizeUser for AesCtrHmac<C, D, T>
 where
-    C: Cipher<KeySize = UInt<UK, BK>>,
-    D: Digest<OutputSize = UInt<UD, BD>>,
+    C: Cipher,
+    D: Digest,
     T: ArrayLength<u8>,
-    UInt<UK, BK>: Add<UInt<UD, BD>>,
-    <UInt<UK, BK> as Add<UInt<UD, BD>>>::Output: ArrayLength<u8>,
+    C::KeySize: Add<D::OutputSize>,
+    <C::KeySize as Add<D::OutputSize>>::Output: ArrayLength<u8>,
 {
     type KeySize = Sum<C::KeySize, D::OutputSize>;
 }

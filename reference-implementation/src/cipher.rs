@@ -13,6 +13,36 @@ use hkdf::Hkdf;
 use hmac::SimpleHmac;
 use sha2::{Sha256, Sha512};
 
+/// An SFrame cipher suite
+#[derive(PartialEq, Eq, Hash, Debug, Copy, Clone)]
+pub struct CipherSuite(pub u16);
+
+impl CipherSuite {
+    /// AES-128-CTR with HMAC-SHA-256, with a 10-byte tag
+    pub const AES_128_CTR_HMAC_SHA_256_80: CipherSuite = CipherSuite(0x0001);
+
+    /// AES-128-CTR with HMAC-SHA-256, with an 8-byte tag
+    pub const AES_128_CTR_HMAC_SHA_256_64: CipherSuite = CipherSuite(0x0002);
+
+    /// AES-128-CTR with HMAC-SHA-256, with an 4-byte tag
+    pub const AES_128_CTR_HMAC_SHA_256_32: CipherSuite = CipherSuite(0x0003);
+
+    /// AES-128-GCM, with a full 16-byte tag
+    pub const AES_128_GCM_SHA_256: CipherSuite = CipherSuite(0x0004);
+
+    /// AES-256-GCM, with a full 16-byte tag
+    pub const AES_256_GCM_SHA_512: CipherSuite = CipherSuite(0x0005);
+}
+
+/// A list of all available ciphersuites
+pub const ALL_CIPHER_SUITES: [CipherSuite; 5] = [
+    CipherSuite::AES_128_CTR_HMAC_SHA_256_80,
+    CipherSuite::AES_128_CTR_HMAC_SHA_256_64,
+    CipherSuite::AES_128_CTR_HMAC_SHA_256_32,
+    CipherSuite::AES_128_GCM_SHA_256,
+    CipherSuite::AES_256_GCM_SHA_512,
+];
+
 /// A convenience trait summarizing all of the salient aspects of an AEAD cipher.
 pub trait Aead: aead::Aead + AeadCore + KeyInit + KeySizeUser {}
 impl<T> Aead for T where T: aead::Aead + AeadCore + KeyInit + KeySizeUser {}
@@ -28,6 +58,8 @@ fn xor_eq(a: &mut [u8], b: &[u8]) {
 }
 
 struct CipherImpl<A: Aead> {
+    aead: A,
+
     /// The label used as info in key derivation
     pub sframe_key_label: Vec<u8>,
 
@@ -42,19 +74,19 @@ struct CipherImpl<A: Aead> {
 
     /// The derived AEAD encryption salt
     pub sframe_salt: Nonce<A>,
-    aead: A,
 }
 
 impl<A: Aead> CipherImpl<A> {
-    pub fn new<D: Digest>(kid: KeyId, base_key: &[u8]) -> Self {
+    pub fn new<D: Digest>(cipher_suite: CipherSuite, kid: KeyId, base_key: &[u8]) -> Self {
         static KEY_LABEL: &[u8] = b"SFrame 1.0 Secret key ";
         static SALT_LABEL: &[u8] = b"SFrame 1.0 Secret salt ";
 
         let (sframe_secret, h) = Hkdf::<D, SimpleHmac<D>>::extract(None, base_key);
 
         let kid_bytes = kid.0.to_be_bytes();
-        let sframe_key_label = [KEY_LABEL, &kid_bytes].concat();
-        let sframe_salt_label = [SALT_LABEL, &kid_bytes].concat();
+        let cipher_suite_bytes = cipher_suite.0.to_be_bytes();
+        let sframe_key_label = [KEY_LABEL, &kid_bytes, &cipher_suite_bytes].concat();
+        let sframe_salt_label = [SALT_LABEL, &kid_bytes, &cipher_suite_bytes].concat();
 
         let mut sframe_key: Key<A> = Default::default();
         h.expand(&sframe_key_label, &mut sframe_key).unwrap();
@@ -65,12 +97,12 @@ impl<A: Aead> CipherImpl<A> {
         let aead = A::new(&sframe_key);
 
         Self {
+            aead,
             sframe_key_label,
             sframe_salt_label,
             sframe_secret: sframe_secret.to_vec(),
             sframe_key,
             sframe_salt,
-            aead,
         }
     }
 
@@ -209,36 +241,6 @@ impl<A: Aead> Cipher for CipherImpl<A> {
     }
 }
 
-/// An SFrame cipher suite
-#[derive(PartialEq, Eq, Hash, Debug, Copy, Clone)]
-pub struct CipherSuite(pub u16);
-
-impl CipherSuite {
-    /// AES-128-CTR with HMAC-SHA-256, with a 10-byte tag
-    pub const AES_128_CTR_HMAC_SHA_256_80: CipherSuite = CipherSuite(0x0001);
-
-    /// AES-128-CTR with HMAC-SHA-256, with an 8-byte tag
-    pub const AES_128_CTR_HMAC_SHA_256_64: CipherSuite = CipherSuite(0x0002);
-
-    /// AES-128-CTR with HMAC-SHA-256, with an 4-byte tag
-    pub const AES_128_CTR_HMAC_SHA_256_32: CipherSuite = CipherSuite(0x0003);
-
-    /// AES-128-GCM, with a full 16-byte tag
-    pub const AES_128_GCM_SHA_256: CipherSuite = CipherSuite(0x0004);
-
-    /// AES-256-GCM, with a full 16-byte tag
-    pub const AES_256_GCM_SHA_512: CipherSuite = CipherSuite(0x0005);
-}
-
-/// A list of all available ciphersuites
-pub const ALL_CIPHER_SUITES: [CipherSuite; 5] = [
-    CipherSuite::AES_128_CTR_HMAC_SHA_256_80,
-    CipherSuite::AES_128_CTR_HMAC_SHA_256_64,
-    CipherSuite::AES_128_CTR_HMAC_SHA_256_32,
-    CipherSuite::AES_128_GCM_SHA_256,
-    CipherSuite::AES_256_GCM_SHA_512,
-];
-
 type Aes128CtrHmacSha256_80 = CipherImpl<AesCtrHmac<Aes128, Sha256, U10>>;
 type Aes128CtrHmacSha256_64 = CipherImpl<AesCtrHmac<Aes128, Sha256, U8>>;
 type Aes128CtrHmacSha256_32 = CipherImpl<AesCtrHmac<Aes128, Sha256, U4>>;
@@ -249,17 +251,21 @@ type Aes256GcmSha512 = CipherImpl<Aes256Gcm>;
 /// derived from the `base_key` and `kid`.
 pub fn new_cipher(cipher_suite: CipherSuite, kid: KeyId, base_key: &[u8]) -> Box<dyn Cipher> {
     match cipher_suite {
-        CipherSuite::AES_128_CTR_HMAC_SHA_256_80 => {
-            Box::new(Aes128CtrHmacSha256_80::new::<Sha256>(kid, base_key))
+        CipherSuite::AES_128_CTR_HMAC_SHA_256_80 => Box::new(
+            Aes128CtrHmacSha256_80::new::<Sha256>(cipher_suite, kid, base_key),
+        ),
+        CipherSuite::AES_128_CTR_HMAC_SHA_256_64 => Box::new(
+            Aes128CtrHmacSha256_64::new::<Sha256>(cipher_suite, kid, base_key),
+        ),
+        CipherSuite::AES_128_CTR_HMAC_SHA_256_32 => Box::new(
+            Aes128CtrHmacSha256_32::new::<Sha256>(cipher_suite, kid, base_key),
+        ),
+        CipherSuite::AES_128_GCM_SHA_256 => {
+            Box::new(Aes128GcmSha256::new::<Sha256>(cipher_suite, kid, base_key))
         }
-        CipherSuite::AES_128_CTR_HMAC_SHA_256_64 => {
-            Box::new(Aes128CtrHmacSha256_64::new::<Sha256>(kid, base_key))
+        CipherSuite::AES_256_GCM_SHA_512 => {
+            Box::new(Aes256GcmSha512::new::<Sha512>(cipher_suite, kid, base_key))
         }
-        CipherSuite::AES_128_CTR_HMAC_SHA_256_32 => {
-            Box::new(Aes128CtrHmacSha256_32::new::<Sha256>(kid, base_key))
-        }
-        CipherSuite::AES_128_GCM_SHA_256 => Box::new(Aes128GcmSha256::new::<Sha256>(kid, base_key)),
-        CipherSuite::AES_256_GCM_SHA_512 => Box::new(Aes256GcmSha512::new::<Sha512>(kid, base_key)),
         _ => unreachable!(),
     }
 }

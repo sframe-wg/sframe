@@ -843,7 +843,7 @@ can observe the SFrame header may learn, for example, which parties are sending
 SFrame payloads (from KID values) and at what rates (from CTR values).  In cases
 where SFrame is used for end-to-end security on top of hop-by-hop protections
 (e.g., running over SRTP as described in {{sframe-over-rtp}}), the hop-by-hop security
-mechanisms will typically protect the SFrame header against network attackers.
+mechanisms provide confidentiality protection of the SFrame header between hops.
 
 ## No Per-Sender Authentication
 

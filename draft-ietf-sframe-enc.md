@@ -712,7 +712,7 @@ KID = (context << (S + E)) + (sender_index << E) + (epoch % (1 << E))
 Once an SFrame stack has been provisioned with the `sframe_epoch_secret` for an
 epoch, it can compute the required KID values on demand (as well as the
 resulting SFrame keys/nonces derived from the `base_key` and KID), as it needs
-to encrypt/decrypt for a given member.
+to encrypt or decrypt for a given member.
 
 ~~~ aasvg
   ...

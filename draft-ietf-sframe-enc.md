@@ -1047,7 +1047,7 @@ In the below calculations, we make conservative assumptions about SFrame
 overhead, so that the overhead amounts we compute here are likely to be an upper
 bound on those seen in practice.
 
-| Field           | Bytes | Explanataion                                      |
+| Field           | Bytes | Explanation                                       |
 |:----------------|------:|:--------------------------------------------------|
 | Fixed header    | 1     | Fixed                                             |
 | Key ID (KID)    | 2     | >255 senders; or MLS epoch (E=4) and >16 senders  |

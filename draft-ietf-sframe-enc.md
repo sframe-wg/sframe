@@ -609,13 +609,12 @@ framework, as described in {{key-management-framework}}.
 
 If the participants in a call have a pre-existing E2E-secure channel, they can
 use it to distribute SFrame keys.  Each client participating in a call generates
-a fresh encryption key. The client then uses
-the E2E-secure channel to send their encryption key to
-the other participants.
+a fresh `base_key` value that it will use to encrypt media. The client then uses
+the E2E-secure channel to send their encryption key to the other participants.
 
 In this scheme, it is assumed that receivers have a signal outside of SFrame for
 which client has sent a given frame (e.g., an RTP SSRC).  SFrame KID
-values are then used to distinguish between versions of the sender's key.
+values are then used to distinguish between versions of the sender's `base_key`.
 
 Key IDs in this scheme have two parts, a "key generation" and a "ratchet step".
 Both are unsigned integers that begin at zero.  The key generation increments
@@ -623,9 +622,9 @@ each time the sender distributes a new key to receivers.  The "ratchet step" is
 incremented each time the sender ratchets their key forward for forward secrecy:
 
 ~~~~~ pseudocode
-sender_base_key[i+1] = HKDF-Expand(
-                         HKDF-Extract("", sender_base_key[i]),
-                         "SFrame 1.0 Ratchet", CipherSuite.Nh)
+base_key[i+1] = HKDF-Expand(
+                  HKDF-Extract("", base_key[i]),
+                  "SFrame 1.0 Ratchet", CipherSuite.Nh)
 ~~~~~
 
 For compactness, we do not send the whole ratchet step.  Instead, we send only
@@ -713,8 +712,9 @@ KID = (context << (S + E)) + (sender_index << E) + (epoch % (1 << E))
 {: #mls-kid title="Structure of a KID for an MLS Sender" }
 
 Once an SFrame stack has been provisioned with the `sframe_epoch_secret` for an
-epoch, it can compute the required KIDs and `sender_base_key` values on demand,
-as it needs to encrypt/decrypt for a given member.
+epoch, it can compute the required KID values on demand (as well as the
+resulting SFrame keys/nonces derived from the `base_key` and KID), as it needs
+to encrypt or decrypt for a given member.
 
 ~~~ aasvg
   ...

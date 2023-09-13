@@ -244,9 +244,9 @@ The SFrame header is a variable-length structure described in detail in
 are determined by the AEAD algorithm in use.
 
 ~~~ aasvg
-   +-+---+-+----+--------------------+---------------------+<-+
-   |R|LEN|X|KLEN|       Key ID       |       Counter       |  |
-+->+-+---+-+----+--------------------+---------------------+  |
+   +-+----+-+----+--------------------+--------------------+<-+
+   |K|KLEN|C|CLEN|       Key ID       |      Counter       |  |
++->+-+----+-+----+--------------------+--------------------+  |
 |  |                                                       |  |
 |  |                                                       |  |
 |  |                                                       |  |
@@ -281,58 +281,70 @@ Applications MUST ensure that each (KID, CTR) combination is used for exactly
 one encryption operation. A typical approach to achieving this gaurantee is
 outlined in {{header-value-uniqueness}}.
 
-Both the counter and the key id are encoded as integers in network (big-endian)
-byte order, in a variable length format to decrease the overhead.  The length of
-each field is up to 8 bytes and is represented in 3 bits in the SFrame header:
-000 represents a length of 1, 001 a length of 2, etc.
-
-The first byte in the SFrame header has a fixed format and contains the header
-metadata:
-
 ~~~~~ aasvg
+   Config Byte
+        |
+ .-----' '-----.
+|               |
  0 1 2 3 4 5 6 7
-+-+-+-+-+-+-+-+-+
-|R| LEN |X|  K  |
-+-+-+-+-+-+-+-+-+
++-+-+-+-+-+-+-+-+------------+------------+
+|X|  K  |Y|  C  |   KID...   |   CTR...   |
++-+-+-+-+-+-+-+-+------------+------------+
 ~~~~~
-{: title="SFrame header metadata"}
+{: #fig-sframe-header title="SFrame header"}
 
-Reserved (R, 1 bit):
-: This field MUST be set to zero on sending, and MUST be ignored by receivers.
-
-Counter Length (LEN, 3 bits):
-: This field indicates the length of the CTR field in bytes, minus one (the
-range of possible values is thus 1-8).
+The SFrame Header has the overall structure shown in {{fig-sframe-header}}.  The
+first byte is a "config byte", with the following fields:
 
 Extended Key Id Flag (X, 1 bit):
-: Indicates if the key field contains the key id or the key length.
+: Indicates if the K field contains the key id or the key id length.
 
 Key or Key Length (K, 3 bits):
-: This field contains the key id (KID) if the X flag is set to 0, or the key
-length (KLEN) if set to 1.
+: This field contains the key id (KID) if the X flag is set to 0, or the key id
+length if set to 1.
 
-If X flag is 0, then the KID is in the range of 0-7 and the counter (CTR) is
-found in the next LEN bytes:
+Extended Counter Flag (Y, 1 bit):
+: Indicates if the C field contains the counter or the counter length.
+
+Counter or Counter Length (C, 3 bits):
+: This field contains the counter (CTR) if the Y flag is set to 0, or the counter
+length if set to 1.
+
+The Key ID and Counter fields are encoded as compact unsigned integers in
+network (big-endian) byte order.  If the value of one of these fields is in the
+range 0-7, then the value is carried in the corresponding bits of the config
+byte (K or C) and the corresponding flag (X or Y) is set to zero.  Otherwise,
+the value MUST be encoded with the minimum number of bytes required and
+appended after the configuration byte, with the Key ID first and Counter second.
+The header field (K or C) is set to the number of bytes in the encoded value,
+minus one.  The value 000 represents a length of 1, 001 a length of 2, etc.
+This allows a 3-bit length field to represent the value lengths 1-8.
+
+The SFrame header can thus take one of the four forms shown in
+{{fig-sframe-header-cases}}, depending on which of the X and Y flags are set.
 
 ~~~~~ aasvg
- 0 1 2 3 4 5 6 7
-+-+-----+-+-----+---------------------------------+
-|R|LEN  |0| KID |    CTR... (length=LEN)          |
-+-+-----+-+-----+---------------------------------+
-~~~~~
-{: title="SFrame header with short KID" }
+KID < 8, CTR < 8:
++-+-----+-+-----+
+|0| KID |0| CTR |
++-+-----+-+-----+
 
-If X flag is 1 then KLEN is the length of the key (KID) in bytes, minus one
-(the range of possible lengths is thus 1-8). The KID is encoded in
-the KLEN bytes following the metadata byte, and the counter (CTR) is encoded
-in the next LEN bytes:
+KID < 8, CTR >= 8:
++-+-----+-+-----+------------------------+
+|0| KID |1|CLEN |  CTR... (length=CLEN)  |
++-+-----+-+-----+------------------------+
 
-~~~~~ aasvg
- 0 1 2 3 4 5 6 7
-+-+-----+-+-----+---------------------------+---------------------------+
-|R|LEN  |1|KLEN |   KID... (length=KLEN)    |    CTR... (length=LEN)    |
-+-+-----+-+-----+---------------------------+---------------------------+
+KID >= 8, CTR < 8:
++-+-----+-+-----+------------------------+
+|1|KLEN |0| CTR |  KID... (length=KLEN)  |
++-+-----+-+-----+------------------------+
+
+KID >= 8, CTR >= 8:
++-+-----+-+-----+------------------------+------------------------+
+|1|KLEN |1|CLEN |  KID... (length=KLEN)  |  CTR... (length=CLEN)  |
++-+-----+-+-----+------------------------+------------------------+
 ~~~~~
+{: #fig-sframe-header-cases title="Forms of Encoded SFrame Header" }
 
 ## Encryption Schema
 
@@ -578,7 +590,8 @@ def compute_tag(auth_key, nonce, aad, ct):
 
 def AEAD.Encrypt(key, nonce, aad, pt):
   enc_key, auth_key = derive_subkeys(key)
-  ct = AES-CTR.Encrypt(enc_key, nonce, pt)
+  iv = nonce + 0x00000000 # append four zero bytes
+  ct = AES-CTR.Encrypt(enc_key, iv, pt)
   tag = compute_tag(auth_key, nonce, aad, ct)
   return ct + tag
 
@@ -590,7 +603,8 @@ def AEAD.Decrypt(key, nonce, aad, ct):
   if !constant_time_equal(tag, candidate_tag):
     raise Exception("Authentication Failure")
 
-  return AES-CTR.Decrypt(enc_key, nonce, inner_ct)
+  iv = nonce + 0x00000000 # append four zero bytes
+  return AES-CTR.Decrypt(enc_key, iv, inner_ct)
 ~~~~~
 
 # Key Management
@@ -609,13 +623,12 @@ framework, as described in {{key-management-framework}}.
 
 If the participants in a call have a pre-existing E2E-secure channel, they can
 use it to distribute SFrame keys.  Each client participating in a call generates
-a fresh encryption key. The client then uses
-the E2E-secure channel to send their encryption key to
-the other participants.
+a fresh `base_key` value that it will use to encrypt media. The client then uses
+the E2E-secure channel to send their encryption key to the other participants.
 
 In this scheme, it is assumed that receivers have a signal outside of SFrame for
 which client has sent a given frame (e.g., an RTP SSRC).  SFrame KID
-values are then used to distinguish between versions of the sender's key.
+values are then used to distinguish between versions of the sender's `base_key`.
 
 Key IDs in this scheme have two parts, a "key generation" and a "ratchet step".
 Both are unsigned integers that begin at zero.  The key generation increments
@@ -623,9 +636,9 @@ each time the sender distributes a new key to receivers.  The "ratchet step" is
 incremented each time the sender ratchets their key forward for forward secrecy:
 
 ~~~~~ pseudocode
-sender_base_key[i+1] = HKDF-Expand(
-                         HKDF-Extract("", sender_base_key[i]),
-                         "SFrame 1.0 Ratchet", CipherSuite.Nh)
+base_key[i+1] = HKDF-Expand(
+                  HKDF-Extract("", base_key[i]),
+                  "SFrame 1.0 Ratchet", CipherSuite.Nh)
 ~~~~~
 
 For compactness, we do not send the whole ratchet step.  Instead, we send only
@@ -713,8 +726,9 @@ KID = (context << (S + E)) + (sender_index << E) + (epoch % (1 << E))
 {: #mls-kid title="Structure of a KID for an MLS Sender" }
 
 Once an SFrame stack has been provisioned with the `sframe_epoch_secret` for an
-epoch, it can compute the required KIDs and `sender_base_key` values on demand,
-as it needs to encrypt/decrypt for a given member.
+epoch, it can compute the required KID values on demand (as well as the
+resulting SFrame keys/nonces derived from the `base_key` and KID), as it needs
+to encrypt or decrypt for a given member.
 
 ~~~ aasvg
   ...
@@ -1047,7 +1061,7 @@ In the below calculations, we make conservative assumptions about SFrame
 overhead, so that the overhead amounts we compute here are likely to be an upper
 bound on those seen in practice.
 
-| Field           | Bytes | Explanataion                                      |
+| Field           | Bytes | Explanation                                       |
 |:----------------|------:|:--------------------------------------------------|
 | Fixed header    | 1     | Fixed                                             |
 | Key ID (KID)    | 2     | >255 senders; or MLS epoch (E=4) and >16 senders  |

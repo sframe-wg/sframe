@@ -297,24 +297,24 @@ The SFrame Header has the overall structure shown in {{fig-sframe-header}}.  The
 first byte is a "config byte", with the following fields:
 
 Extended Key Id Flag (X, 1 bit):
-: Indicates if the key field contains the key id or the key length.
+: Indicates if the K field contains the key id or the key id length.
 
 Key or Key Length (K, 3 bits):
-: This field contains the key id (KID) if the X flag is set to 0, or the key
-length (KLEN) if set to 1.
+: This field contains the key id (KID) if the X flag is set to 0, or the key id
+length if set to 1.
 
 Extended Counter Flag (Y, 1 bit):
-: Indicates if the key field contains the key id or the key length.
+: Indicates if the C field contains the counter or the counter length.
 
 Counter or Counter Length (C, 3 bits):
-: This field contains the key id (KID) if the X flag is set to 0, or the key
-length (KLEN) if set to 1.
+: This field contains the counter (CTR) if the Y flag is set to 0, or the counter
+length if set to 1.
 
 The Key ID and Counter fields are encoded as compact unsigned integers in
 network (big-endian) byte order.  If the value of one of these fields is in the
 range 0-7, then the value is carried in the corresponding bits of the config
 byte (K or C) and the corresponding flag (X or Y) is set to zero.  Otherwise,
-the value is MUST be encoded with the minimum number of bytes required and
+the value MUST be encoded with the minimum number of bytes required and
 appended after the configuration byte, with the Key ID first and Counter second.
 The header field (K or C) is set to the number of bytes in the encoded value,
 minus one.  The value 000 represents a length of 1, 001 a length of 2, etc.

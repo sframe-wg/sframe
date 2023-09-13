@@ -396,19 +396,16 @@ using HKDF {{!RFC5869}} as follows:
 ~~~~~
 def derive_key_salt(KID, base_key):
   sframe_secret = HKDF-Extract("", base_key)
-  sframe_key = HKDF-Expand(sframe_secret,
-                           "SFrame 1.0 Secret key " + KID + cipher_suite,
-                           AEAD.Nk)
-  sframe_salt = HKDF-Expand(sframe_secret,
-                            "SFrame 1.0 Secret salt " + KID + cipher_suite,
-                            AEAD.Nn)
+  info = "SFrame 1.0 Secret key " + KID + cipher_suite
+  sframe_key = HKDF-Expand(sframe_secret, info, AEAD.Nk)
+  sframe_salt = HKDF-Expand(sframe_secret, info, AEAD.Nn)
   return sframe_key, sframe_salt
 ~~~~~
 
 In the derivation of `sframe_secret`:
 * The `+` operator represents concatenation of byte strings.
 * The KID value is encoded as an 8-byte big-endian integer, not the compressed
-  form used in the SFrame header).
+  form used in the SFrame header.
 * The `cipher_suite` value is a 2-byte big-endian integer representing the
   cipher suite in use (see {{sframe-cipher-suites}}).
 

@@ -346,19 +346,6 @@ KID >= 8, CTR >= 8:
 ~~~~~
 {: #fig-sframe-header-cases title="Forms of Encoded SFrame Header" }
 
-In ABNF {{!RFC5234}}, the form of the SFrame Header is represented by the rules
-shown in {{fig-header-abnf}}, where the presence and size of the KeyID and
-Counter fields are determined by the Config octet.
-
-~~~~~ abnf
-Config = OCTET
-UInt64 = 1*7OCTET
-KeyID = UInt64
-Counter = UInt64
-SFrameHeader = Config [KeyID] [Counter]
-~~~~~
-{: #fig-header-abnf }
-
 ## Encryption Schema
 
 SFrame encryption uses an AEAD encryption algorithm and hash function defined by

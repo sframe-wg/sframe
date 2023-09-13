@@ -550,16 +550,16 @@ using the authenticated counter mode of AES together with HMAC for
 authentication.  We use an encrypt-then-MAC approach, as in SRTP {{?RFC3711}}.
 
 Before encryption or decryption, encryption and authentication subkeys are
-derived from the single AEAD key.  The overall length of the AEAD key is `Nk +
-Nh`, where `Nk` represents the key size for the AES block cipher in use and `Nh`
+derived from the single AEAD key.  The overall length of the AEAD key is `Nka +
+Nh`, where `Nka` represents the key size for the AES block cipher in use and `Nh`
 represents the output size of the hash function  (as in {{iana-cipher-suites}}).
-The encryption subkey comprises the first `Nk` bytes and the authentication
+The encryption subkey comprises the first `Nka` bytes and the authentication
 subkey comprises the remaining `Nh` bytes.
 
 ~~~~~
 def derive_subkeys(sframe_key):
-  enc_key = sframe_key[..Nk]
-  auth_key = sframe_key[Nk..]
+  enc_key = sframe_key[..Nka]
+  auth_key = sframe_key[Nka..]
   return enc_key, auth_key
 ~~~~~
 

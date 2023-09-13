@@ -408,14 +408,18 @@ using HKDF {{!RFC5869}} as follows:
 ~~~~~
 def derive_key_salt(KID, base_key):
   sframe_secret = HKDF-Extract("", base_key)
-  sframe_key = HKDF-Expand(sframe_secret, "SFrame 1.0 Secret key " + KID, AEAD.Nk)
-  sframe_salt = HKDF-Expand(sframe_secret, "SFrame 1.0 Secret salt " + KID, AEAD.Nn)
+  info = "SFrame 1.0 Secret key " + KID + cipher_suite
+  sframe_key = HKDF-Expand(sframe_secret, info, AEAD.Nk)
+  sframe_salt = HKDF-Expand(sframe_secret, info, AEAD.Nn)
   return sframe_key, sframe_salt
 ~~~~~
 
-In the derivation of `sframe_secret`, the `+` operator represents concatenation
-of byte strings and the KID value is encoded as an 8-byte big-endian integer
-(not the compressed form used in the SFrame header).
+In the derivation of `sframe_secret`:
+* The `+` operator represents concatenation of byte strings.
+* The KID value is encoded as an 8-byte big-endian integer, not the compressed
+  form used in the SFrame header.
+* The `cipher_suite` value is a 2-byte big-endian integer representing the
+  cipher suite in use (see {{sframe-cipher-suites}}).
 
 The hash function used for HKDF is determined by the cipher suite in use.
 
@@ -531,9 +535,9 @@ This document defines the following cipher suites, with the constants defined in
 
 | Name                          | Nh | Nk | Nn | Nt |
 |:------------------------------|:---|----|:---|:---|
-| `AES_128_CTR_HMAC_SHA256_80`  | 32 | 16 | 12 | 10 |
-| `AES_128_CTR_HMAC_SHA256_64`  | 32 | 16 | 12 |  8 |
-| `AES_128_CTR_HMAC_SHA256_32`  | 32 | 16 | 12 |  4 |
+| `AES_128_CTR_HMAC_SHA256_80`  | 32 | 48 | 12 | 10 |
+| `AES_128_CTR_HMAC_SHA256_64`  | 32 | 48 | 12 |  8 |
+| `AES_128_CTR_HMAC_SHA256_32`  | 32 | 48 | 12 |  4 |
 | `AES_128_GCM_SHA256_128`      | 32 | 16 | 12 | 16 |
 | `AES_256_GCM_SHA512_128`      | 64 | 32 | 12 | 16 |
 {: #cipher-suite-constants title="SFrame cipher suite constants" }
@@ -558,18 +562,16 @@ using the authenticated counter mode of AES together with HMAC for
 authentication.  We use an encrypt-then-MAC approach, as in SRTP {{?RFC3711}}.
 
 Before encryption or decryption, encryption and authentication subkeys are
-derived from the single AEAD key using HKDF.  The subkeys are derived as
-follows, where `Nk` represents the key size for the AES block cipher in use,
-`Nh` represents the output size of the hash function, and `Nt` represents the
-size of a tag for the cipher in bytes (as in {{iana-cipher-suites}}):
+derived from the single AEAD key.  The overall length of the AEAD key is `Nka +
+Nh`, where `Nka` represents the key size for the AES block cipher in use and `Nh`
+represents the output size of the hash function  (as in {{iana-cipher-suites}}).
+The encryption subkey comprises the first `Nka` bytes and the authentication
+subkey comprises the remaining `Nh` bytes.
 
 ~~~~~
 def derive_subkeys(sframe_key):
-  tag_len = encode_big_endian(Nt, 8)
-  aead_label = "SFrame 1.0 AES CTR AEAD " + tag_len
-  aead_secret = HKDF-Extract(aead_label, sframe_key)
-  enc_key = HKDF-Expand(aead_secret, "enc", Nk)
-  auth_key = HKDF-Expand(aead_secret, "auth", Nh)
+  enc_key = sframe_key[..Nka]
+  auth_key = sframe_key[Nka..]
   return enc_key, auth_key
 ~~~~~
 
@@ -1291,8 +1293,6 @@ For each case, we provide:
 * `cipher_suite`: The index of the cipher suite in use (see
   {{sframe-cipher-suites}})
 * `key`: The `key` input to encryption/decryption
-* `aead_label`: The `aead_label` variable in the `derive_subkeys()` algorithm
-* `aead_secret`: The `aead_secret` variable in the `derive_subkeys()` algorithm
 * `enc_key`: The encryption subkey produced by the `derive_subkeys()` algorithm
 * `auth_key`: The encryption subkey produced by the `derive_subkeys()` algorithm
 * `nonce`: The `nonce` input to encryption/decryption

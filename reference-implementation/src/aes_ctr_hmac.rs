@@ -6,8 +6,9 @@ use core::marker::PhantomData;
 use crypto_common::{Iv, Key};
 use ctr::Ctr32BE;
 use digest::{Output, Update};
-use hkdf::Hkdf;
 use hmac::{Mac, SimpleHmac};
+use std::ops::Add;
+use typenum::Sum;
 
 pub use crate::cipher::Digest;
 
@@ -16,19 +17,14 @@ pub trait Cipher: BlockEncryptMut + BlockCipher<BlockSize = U16> + KeySizeUser +
 impl<T> Cipher for T where T: BlockEncryptMut + BlockCipher<BlockSize = U16> + KeySizeUser + KeyInit {}
 
 /// An AEAD algorithm constructed from AES-CTR and HMAC, according to the SFrame specification.
-/// This is a basic encrypt-then-MAC construction, with a specific HKDF-based key derivation.
+/// This is a basic encrypt-then-MAC construction, with a specific selection of encryption and
+/// authentication sub-keys.
 pub struct AesCtrHmac<C, D, T>
 where
     C: Cipher,
     D: Digest,
     T: ArrayLength<u8>,
 {
-    /// The `aead_label` value used as salt in HKDF
-    pub aead_label: Vec<u8>,
-
-    /// The `aead_secret` value used as an HKDF PRK
-    pub aead_secret: Output<D>,
-
     /// The derived encryption subkey
     pub enc_key: Key<C>,
 
@@ -87,13 +83,18 @@ where
     type CiphertextOverhead = T;
 }
 
+// The constraint of KeySize/OutputSize to UInt is necessary because Add is only implemented on
+// that specific type.  The constraint is not an issue in practice because all of the required
+// ciphers use lengths of that type.
 impl<C, D, T> KeySizeUser for AesCtrHmac<C, D, T>
 where
     C: Cipher,
     D: Digest,
     T: ArrayLength<u8>,
+    C::KeySize: Add<D::OutputSize>,
+    <C::KeySize as Add<D::OutputSize>>::Output: ArrayLength<u8>,
 {
-    type KeySize = C::KeySize;
+    type KeySize = Sum<C::KeySize, D::OutputSize>;
 }
 
 impl<C, D, T> KeyInit for AesCtrHmac<C, D, T>
@@ -101,22 +102,14 @@ where
     C: Cipher,
     D: Digest,
     T: ArrayLength<u8>,
+    AesCtrHmac<C, D, T>: KeySizeUser,
 {
     fn new(key: &Key<Self>) -> Self {
-        let mut aead_label = b"SFrame 1.0 AES CTR AEAD ".to_vec();
-        aead_label.extend_from_slice(&T::to_u64().to_be_bytes());
-
-        let (aead_secret, h) = Hkdf::<D, SimpleHmac<D>>::extract(Some(&aead_label), key);
-
-        let mut enc_key: Key<C> = Default::default();
-        h.expand(b"enc", &mut enc_key).unwrap();
-
-        let mut auth_key: Output<D> = Default::default();
-        h.expand(b"auth", &mut auth_key).unwrap();
+        let (enc, auth) = key.split_at(C::key_size());
+        let enc_key = Key::<C>::clone_from_slice(enc);
+        let auth_key = Output::<D>::clone_from_slice(auth);
 
         Self {
-            aead_label,
-            aead_secret,
             enc_key,
             auth_key,
             _marker: PhantomData,
@@ -129,6 +122,7 @@ where
     C: Cipher,
     D: Digest,
     T: ArrayLength<u8>,
+    AesCtrHmac<C, D, T>: KeySizeUser,
 {
     fn encrypt<'msg, 'aad>(
         &self,
@@ -188,8 +182,12 @@ mod test {
         C: Cipher + KeySizeUser<KeySize = U16>,
         D: Digest,
         T: ArrayLength<u8>,
+        AesCtrHmac<C, D, T>: KeySizeUser + KeyInit,
     {
-        let key: Key<AesCtrHmac<C, D, T>> = hex!("000102030405060708090a0b0c0d0e0f").into();
+        let key = hex!("000102030405060708090a0b0c0d0e0f"
+                       "101112131415161718191a1b1c1d1e1f"
+                       "202122232425262728292a2b2c2d2e2f");
+        let key = Key::<AesCtrHmac<C, D, T>>::clone_from_slice(&key);
         let nonce: Nonce<AesCtrHmac<C, D, T>> = hex!("101112131415161718191a1b").into();
         let msg = b"Never gonna give you up";
         let aad = b"Never gonna let you down";

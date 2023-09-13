@@ -75,8 +75,6 @@ mod aes_ctr_hmac {
     pub struct TestVector {
         cipher_suite: u16,
         key: String,
-        aead_label: String,
-        aead_secret: String,
         enc_key: String,
         auth_key: String,
         nonce: String,
@@ -91,6 +89,7 @@ mod aes_ctr_hmac {
             C: Cipher + KeySizeUser<KeySize = U16>,
             D: Digest,
             T: ArrayLength<u8>,
+            AesCtrHmac<C, D, T>: KeySizeUser + KeyInit,
         {
             let cipher_suite = match T::to_usize() {
                 10 => CipherSuite::AES_128_CTR_HMAC_SHA_256_80,
@@ -99,7 +98,10 @@ mod aes_ctr_hmac {
                 _ => unreachable!(),
             };
 
-            let key: Key<AesCtrHmac<C, D, T>> = hex!("000102030405060708090a0b0c0d0e0f").into();
+            let key = hex!("000102030405060708090a0b0c0d0e0f"
+                           "101112131415161718191a1b1c1d1e1f"
+                           "202122232425262728292a2b2c2d2e2f");
+            let key = Key::<AesCtrHmac<C, D, T>>::clone_from_slice(&key);
             let nonce: Nonce<AesCtrHmac<C, D, T>> = hex!("101112131415161718191a1b").into();
             let aad = b"IETF SFrame WG";
             let pt = b"draft-ietf-sframe-enc";
@@ -110,8 +112,6 @@ mod aes_ctr_hmac {
             Self {
                 cipher_suite: cipher_suite.0,
                 key: hex::encode(key),
-                aead_label: hex::encode(cipher.aead_label),
-                aead_secret: hex::encode(cipher.aead_secret),
                 enc_key: hex::encode(cipher.enc_key),
                 auth_key: hex::encode(cipher.auth_key),
                 nonce: hex::encode(nonce),
@@ -134,6 +134,7 @@ mod aes_ctr_hmac {
             C: Cipher + KeySizeUser<KeySize = U16>,
             D: Digest,
             T: ArrayLength<u8>,
+            AesCtrHmac<C, D, T>: KeySizeUser + KeyInit,
         {
             let key = hex::decode(self.key.clone()).unwrap();
             let nonce = hex::decode(self.nonce.clone()).unwrap();
@@ -180,8 +181,6 @@ mod aes_ctr_hmac {
             let TestVector {
                 cipher_suite,
                 key,
-                aead_label,
-                aead_secret,
                 enc_key,
                 auth_key,
                 nonce,
@@ -194,8 +193,6 @@ mod aes_ctr_hmac {
                 "~~~
 cipher_suite: 0x{cipher_suite:04x}
 key: {key}
-aead_label: {aead_label}
-aead_secret: {aead_secret}
 enc_key: {enc_key}
 auth_key: {auth_key}
 nonce: {nonce}

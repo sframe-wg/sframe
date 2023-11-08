@@ -126,7 +126,7 @@ other protocol.
 SFrame is designed to be a suitable E2EE protection scheme for conference call
 media in a broad range of scenarios, as outlined by the following goals:
 
-1. Provide an secure E2EE mechanism for audio and video in conference calls
+1. Provide a secure E2EE mechanism for audio and video in conference calls
    that can be used with arbitrary SFU servers.
 
 2. Decouple media encryption from key management to allow SFrame to be used
@@ -170,7 +170,7 @@ media frames (per-frame) or individual transport-level media payloads
 (per-packet).
 
 For example, {{media-stack}} shows a typical media sender stack that takes media
-in from some source, encodes it into frames, divides those frames into media
+from some source, encodes it into frames, divides those frames into media
 packets, and then sends those payloads in SRTP packets. The receiver stack
 performs the reverse operations, reassembling frames from SRTP packets and
 decoding.  Arrows indicate two different ways that SFrame protection could be
@@ -278,7 +278,7 @@ derived:
 * A counter (CTR) that is used to construct the IV for the encryption
 
 Applications MUST ensure that each (KID, CTR) combination is used for exactly
-one encryption operation. A typical approach to achieving this gaurantee is
+one encryption operation. A typical approach to achieving this guarantee is
 outlined in {{header-value-uniqueness}}.
 
 ~~~~~ aasvg
@@ -415,9 +415,12 @@ def derive_key_salt(KID, base_key):
 ~~~~~
 
 In the derivation of `sframe_secret`:
+
 * The `+` operator represents concatenation of byte strings.
+
 * The KID value is encoded as an 8-byte big-endian integer, not the compressed
   form used in the SFrame header.
+
 * The `cipher_suite` value is a 2-byte big-endian integer representing the
   cipher suite in use (see {{sframe-cipher-suites}}).
 

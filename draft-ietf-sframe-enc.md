@@ -301,14 +301,14 @@ Extended Key Id Flag (X, 1 bit):
 
 Key or Key Length (K, 3 bits):
 : This field contains the key id (KID) if the X flag is set to 0, or the key id
-length if set to 1.
+length, minus one, if set to 1.
 
 Extended Counter Flag (Y, 1 bit):
 : Indicates if the C field contains the counter or the counter length.
 
 Counter or Counter Length (C, 3 bits):
 : This field contains the counter (CTR) if the Y flag is set to 0, or the counter
-length if set to 1.
+length, minus one, if set to 1.
 
 The Key ID and Counter fields are encoded as compact unsigned integers in
 network (big-endian) byte order.  If the value of one of these fields is in the

@@ -40,5 +40,5 @@ $ ./make-test-vectors.sh
 ## Implementations
 
 * [Cisco SFrame (C++, draft-00)](https://github.com/cisco/sframe)
-* [`sframe` crate (Rust, "draft-latest")](https://docs.rs/sframe/latest/sframe/)
+* [`sframe` crate (Rust, draft-03)](https://docs.rs/sframe/latest/sframe/)
 * [SFrame.js (JavaScript, version unclear)](https://github.com/medooze/sframe)

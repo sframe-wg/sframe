@@ -677,6 +677,15 @@ If a new participant joins mid-call, they will need to receive from each sender
 sender. Evicting a participant requires each sender to send a fresh sender key
 to all receivers.
 
+It is up to the application to decide when sender keys are updated.  A sender
+key may be updated by sending a new `base_key` (updating the key generation) or
+by hashing the current `base_key` (updating the ratchet step).  Ratcheting the
+key forward is useful when adding new receivers to an SFrame-based interaction,
+since it assures that the new receivers can't decrypt any media encrypted before
+they were added.  If a sender wishes to assure the opposite property when
+removing a receiver (i.e., ensuring that the receiver can't decrypt media after
+they are removed), then the sender will need to distribute a new sender key.
+
 ## MLS
 
 The Messaging Layer Security (MLS) protocol provides group authenticated key

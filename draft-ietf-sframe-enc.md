@@ -493,6 +493,8 @@ header ----+------------------>| AAD
 ~~~~~
 {: title="Encryption flow" }
 
+[[ TODO: Text about obeying AEAD limits ]]
+
 ### Decryption
 
 Before decrypting, a client needs to assemble a full SFrame ciphertext. When
@@ -521,7 +523,8 @@ def decrypt(metadata, sframe_ciphertext):
 
 If a ciphertext fails to decrypt because there is no key available for the KID
 in the SFrame header, the client MAY buffer the ciphertext and retry decryption
-once a key with that KID is received.
+once a key with that KID is received.  If a ciphertext fails to decrypt for any
+other reason, the client MUST discard the ciphertext.
 
 ## Cipher Suites
 
@@ -872,6 +875,64 @@ tag if the short ones are proved insecure.
 The handling of replay is out of the scope of this document. However, senders
 MUST reject requests to encrypt multiple times with the same key and nonce,
 since several AEAD algorithms fail badly in such cases (see, e.g., {{Section 5.1.1 of RFC5116}}).
+
+## Risks due to Short Tags
+
+The SFrame ciphersuites based on AES-CTR allow for the use of short
+authentication tags, which bring a higher risk that an attacker will be
+able to cause an SFrame receiver to accept an SFrame ciphertext of the
+attacker's choosing.
+
+Assuming that the authentication properties of the ciphersuite are robust, the
+only attack that an attacker can mount is an attempt to find an acceptable
+(ciphertext, tag) combination through brute force.  Such a brute-force attack
+will have an expected sucess rate of the following form:
+
+```
+attacker_success_rate = attempts_per_second / 2^(8*Nt)
+```
+
+For example, a gigabit ethernet connection is able to transmit roughly 2^20
+packets per second.  If an attacker saturated such a link with guesses against a
+32-bit authentication tag (`Nt=4`), then the attacker would succeed on average
+roughly once every 2^12 seconds, or about once an hour.
+
+In a typical SFrame usage in a real-time media application, there are a few
+factors that mitigate this risk:
+
+* Receivers only accept SFrame ciphertexts over HBH-secure channels (e.g., SRTP
+  security associations or QUIC connections).  So only an entity that is part of
+  such a channel can mount the above attack.
+
+* The expected packet rate for a media stream is very predictable (and typically
+  far lower than the above example).  On the one hand, attacks at this rate will
+  succeed even less often than the high-rate attack described above.  On the
+  other hand, the application may use an elevated packet arrival rate as a
+  signal of a brute-force attack.  This latter approach is common in other
+  settings, e.g., brute-forcing of passwords.
+
+* Media applications typically do not provide feedback to media senders as to
+  which media packets failed to decrypt.  When media quality feedback
+  mechanisms are used, decryption failures will typically appear as packet
+  losses, but only at an aggregate level.
+
+* Anti-replay mechanisms (see {{replay}}) prevent the attacker from re-using
+  legitimate ciphertexts.  Since the attacker is limited in their ability to
+  synthesize new legitimate (ciphertexts, tag) pairs (e.g., limited to flipping
+  bits in AES-CTR or AES-GCM ciphertexts), they can basically only cause the
+  media decoder to decode random data.
+
+In summary, with proper mitigations, short tags allow an attacker to send random
+data to a media stream at a very low rate, using an attack that is
+straightforward to recognize and neutralize.  At best, the attacker can trigger
+a denial-of-service condition, which they likely could have done anyway simply
+by sending meaningless packets, without regard for whether they pass the
+authentication check.
+
+Nonetheless, applications that make use of short tags need to put in place the
+mitigations discussed above.  In many cases, it is simpler to use full-size tags
+and tolerate slightly higher bandwidth usage rather than add the additional
+defenses necessary to safely use short tags.
 
 # IANA Considerations
 

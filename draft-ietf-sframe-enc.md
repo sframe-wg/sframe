@@ -45,6 +45,33 @@ author:
     organization: Apple
     email: youenn@apple.com
 
+contributor:
+ -
+    ins: F. Jacobs
+    name: Frederic Jacobs
+    organization: Apple
+    email: frederic.jacobs@apple.com
+ -
+    ins: M. Mularczyk
+    name: Marta Mularczyk
+    organization: Amazon
+    email: mulmarta@amazon.com
+ -
+    ins: S. Nandakumar
+    name: Suhas Nandakumar
+    organization: Cisco
+    email: snandaku@cisco.com
+ -
+    ins: T. Rigaux
+    name: Tomas Rigaux
+    organization: Cisco
+    email: trigaux@cisco.com
+ -
+    ins: R. Robert
+    name: Raphael Robert
+    organization: Phoenix R&D
+    email: ietf@raphaelrobert.com
+
 informative:
   TestVectors:
     title: "SFrame Test Vectors"

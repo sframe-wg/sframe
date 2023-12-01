@@ -615,6 +615,10 @@ calls to the CTR encrypt function and HMAC.  The resulting MAC value is truncate
 to a number of bytes `Nt` fixed by the cipher suite.
 
 ~~~~~
+def truncate(tag, n):
+  # Take the first `n` bytes of `tag`
+  return tag[..n]
+
 def compute_tag(auth_key, nonce, aad, ct):
   aad_len = encode_big_endian(len(aad), 8)
   ct_len = encode_big_endian(len(ct), 8)

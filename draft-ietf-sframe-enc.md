@@ -130,9 +130,6 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
 BCP 14 {{!RFC2119}} {{!RFC8174}} when, and only when, they appear in all
 capitals, as shown here.
 
-IV:
-: Initialization Vector
-
 MAC:
 : Message Authentication Code
 
@@ -258,7 +255,7 @@ the parties in the conference.  Keys for SFrame might be distributed over an
 existing E2E-secure channel (see {{sender-keys}}), or derived from an E2E-secure
 shared secret (see {{mls}}).  The key management system MUST ensure that each
 key used for encrypting media is used by exactly one media sender, in order to
-avoid reuse of IVs.
+avoid reuse of nonces.
 
 ## SFrame Ciphertext
 
@@ -304,7 +301,7 @@ The SFrame header specifies two values from which encryption parameters are
 derived:
 
 * A Key ID (KID) that determines which encryption key should be used
-* A counter (CTR) that is used to construct the IV for the encryption
+* A counter (CTR) that is used to construct the nonce for the encryption
 
 Applications MUST ensure that each (KID, CTR) combination is used for exactly
 one SFrame encryption operation. A typical approach to achieving this guarantee is
@@ -628,8 +625,8 @@ def compute_tag(auth_key, nonce, aad, ct):
 
 def AEAD.Encrypt(key, nonce, aad, pt):
   enc_key, auth_key = derive_subkeys(key)
-  iv = nonce + 0x00000000 # append four zero bytes
-  ct = AES-CTR.Encrypt(enc_key, iv, pt)
+  initial_counter = nonce + 0x00000000 # append four zero bytes
+  ct = AES-CTR.Encrypt(enc_key, initial_counter, pt)
   tag = compute_tag(auth_key, nonce, aad, ct)
   return ct + tag
 
@@ -641,8 +638,8 @@ def AEAD.Decrypt(key, nonce, aad, ct):
   if !constant_time_equal(tag, candidate_tag):
     raise Exception("Authentication Failure")
 
-  iv = nonce + 0x00000000 # append four zero bytes
-  return AES-CTR.Decrypt(enc_key, iv, inner_ct)
+  initial_counter = nonce + 0x00000000 # append four zero bytes
+  return AES-CTR.Decrypt(enc_key, initial_counter, inner_ct)
 ~~~~~
 
 # Key Management

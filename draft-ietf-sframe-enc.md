@@ -408,9 +408,13 @@ using HKDF {{!RFC5869}} as follows:
 ~~~~~
 def derive_key_salt(KID, base_key):
   sframe_secret = HKDF-Extract("", base_key)
-  info = "SFrame 1.0 Secret key " + KID + cipher_suite
+
+  sframe_key_label = "SFrame 1.0 Secret key " + KID + cipher_suite
   sframe_key = HKDF-Expand(sframe_secret, info, AEAD.Nk)
+
+  sframe_salt_label = "SFrame 1.0 Secret salt " + KID + cipher_suite
   sframe_salt = HKDF-Expand(sframe_secret, info, AEAD.Nn)
+
   return sframe_key, sframe_salt
 ~~~~~
 

@@ -512,7 +512,7 @@ the encrypted frame, and the CTR field is used to construct the nonce.
 
 ~~~~~
 def decrypt(metadata, sframe_ciphertext):
-  KID, CTR, ciphertext = parse_ciphertext(sframe_ciphertext)
+  KID, CTR, header, ciphertext = parse_ciphertext(sframe_ciphertext)
 
   sframe_key, sframe_salt = key_store[KID]
 

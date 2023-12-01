@@ -302,15 +302,15 @@ Extended Key Id Flag (X, 1 bit):
 : Indicates if the K field contains the key id or the Key ID length.
 
 Key or Key Length (K, 3 bits):
-: This field contains the Key ID (KID) if the X flag is set to 0, or the Key ID
-length if set to 1.
+: This field contains the Key ID (KID) if the X flag is set to 0, or the key id
+length, minus one, if set to 1.
 
 Extended Counter Flag (Y, 1 bit):
 : Indicates if the C field contains the counter or the counter length.
 
 Counter or Counter Length (C, 3 bits):
 : This field contains the counter (CTR) if the Y flag is set to 0, or the counter
-length if set to 1.
+length, minus one, if set to 1.
 
 The Key ID and Counter fields are encoded as compact unsigned integers in
 network (big-endian) byte order.  If the value of one of these fields is in the
@@ -411,9 +411,13 @@ using HKDF {{!RFC5869}} as follows:
 ~~~~~
 def derive_key_salt(KID, base_key):
   sframe_secret = HKDF-Extract("", base_key)
-  info = "SFrame 1.0 Secret key " + KID + cipher_suite
+
+  sframe_key_label = "SFrame 1.0 Secret key " + KID + cipher_suite
   sframe_key = HKDF-Expand(sframe_secret, info, AEAD.Nk)
+
+  sframe_salt_label = "SFrame 1.0 Secret salt " + KID + cipher_suite
   sframe_salt = HKDF-Expand(sframe_secret, info, AEAD.Nn)
+
   return sframe_key, sframe_salt
 ~~~~~
 
@@ -512,7 +516,7 @@ decryption procedure is as follows:
 
 ~~~~~
 def decrypt(metadata, sframe_ciphertext):
-  KID, CTR, ciphertext = parse_ciphertext(sframe_ciphertext)
+  KID, CTR, header, ciphertext = parse_ciphertext(sframe_ciphertext)
 
   sframe_key, sframe_salt = key_store[KID]
 
@@ -680,6 +684,15 @@ If a new participant joins in the middle of a session, they will need to receive
 from each sender (a) the current sender key for that sender and (b) the current
 KID value for the sender. Evicting a participant requires each sender to send
 a fresh sender key to all receivers.
+
+It is up to the application to decide when sender keys are updated.  A sender
+key may be updated by sending a new `base_key` (updating the key generation) or
+by hashing the current `base_key` (updating the ratchet step).  Ratcheting the
+key forward is useful when adding new receivers to an SFrame-based interaction,
+since it assures that the new receivers can't decrypt any media encrypted before
+they were added.  If a sender wishes to assure the opposite property when
+removing a receiver (i.e., ensuring that the receiver can't decrypt media after
+they are removed), then the sender will need to distribute a new sender key.
 
 ## MLS
 

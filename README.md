@@ -36,3 +36,11 @@ should be updated accordingly, and used to generate new test vectors.
 ```sh
 $ ./make-test-vectors.sh
 ```
+
+## Implementations
+
+* [Cisco SFrame](https://github.com/cisco/sframe) (C++, draft-00)
+* [`sframe` crate](https://docs.rs/sframe/latest/sframe/)  (Rust, draft-03)
+* [`secure-frame-ts`](https://github.com/goto-opensource/secure-frame-ts) (TypeScript, draft-00)
+* [SFrame.js](https://github.com/medooze/sframe) (JavaScript, version unclear)
+* [`sframe-go`](https://github.com/chris-wood/sframe-go) (Go, draft-04)

@@ -268,8 +268,8 @@ When SFrame is applied per-packet, the payload of each packet will be an SFrame
 ciphertext.  When SFrame is applied per-frame, the SFrame ciphertext
 representing an encrypted frame will span several packets, with the header
 appearing in the first packet and the authentication tag in the last packet.
-It is the responsibility of the application to ensure that these packets are
-arranged in the correct sequence in order for decryption to succeed.
+It is the responsibility of the application to reassemble an encrypted frame from
+individual packets, accounting for packet loss and reordering as necessary.
 
 ## SFrame Header
 
@@ -508,7 +508,7 @@ the ciphertext to SFrame for decryption.
 
 The KID field in the SFrame header is used to find the right key and salt for
 the encrypted frame, and the CTR field is used to construct the nonce. The SFrame
-decrypt procedure is below.
+decryption procedure is as follows:
 
 ~~~~~
 def decrypt(metadata, sframe_ciphertext):
@@ -817,8 +817,8 @@ one SFrame encrypted frame with an incrementing frame counter.
 
 ## Video Key Frames
 
-Forward and Post-Compromise Security requires that the E2EE keys (base keys) are updated
-anytime a participant joins/leave the call.
+Forward Security and Post-Compromise Security requires that the E2EE keys (base keys) 
+are updated any time a participant joins or leaves the call.
 
 The key exchange happens asynchronously and on a different path than the SFU signaling
 and media. So it may happen that when a new participant joins the call and the

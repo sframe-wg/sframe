@@ -553,7 +553,10 @@ def decrypt(metadata, sframe_ciphertext):
 
 If a ciphertext fails to decrypt because there is no key available for the KID
 in the SFrame header, the client MAY buffer the ciphertext and retry decryption
-once a key with that KID is received.
+once a key with that KID is received.  If a ciphertext fails to decrypt for any
+other reason, the client MUST discard the ciphertext. Invalid ciphertexts SHOULD be
+discarded in a way that is indistinguishable (to an external observer) from having
+processed a valid ciphertext.
 
 ## Cipher Suites
 
@@ -858,7 +861,7 @@ one SFrame encrypted frame with an incrementing frame counter.
 
 ## Video Key Frames
 
-Forward Security and Post-Compromise Security requires that the E2EE keys (base keys) 
+Forward Security and Post-Compromise Security require that the E2EE keys (base keys)
 are updated any time a participant joins or leaves the call.
 
 The key exchange happens asynchronously and on a different path than the SFU signaling
@@ -917,6 +920,62 @@ tag if the short ones are deemed insecure.
 The handling of replay is out of the scope of this document. However, senders
 MUST reject requests to encrypt multiple times with the same key and nonce,
 since several AEAD algorithms fail badly in such cases (see, e.g., {{Section 5.1.1 of RFC5116}}).
+
+## Risks due to Short Tags
+
+The SFrame ciphersuites based on AES-CTR allow for the use of short
+authentication tags, which bring a higher risk that an attacker will be
+able to cause an SFrame receiver to accept an SFrame ciphertext of the
+attacker's choosing.
+
+Assuming that the authentication properties of the ciphersuite are robust, the
+only attack that an attacker can mount is an attempt to find an acceptable
+(ciphertext, tag) combination through brute force.  Such a brute-force attack
+will have an expected sucess rate of the following form:
+
+```
+attacker_success_rate = attempts_per_second / 2^(8*Nt)
+```
+
+For example, a gigabit ethernet connection is able to transmit roughly 2^20
+packets per second.  If an attacker saturated such a link with guesses against a
+32-bit authentication tag (`Nt=4`), then the attacker would succeed on average
+roughly once every 2^12 seconds, or about once an hour.
+
+In a typical SFrame usage in a real-time media application, there are a few
+approaches to mitigating this risk:
+
+* Receivers only accept SFrame ciphertexts over HBH-secure channels (e.g., SRTP
+  security associations or QUIC connections).  So only an entity that is part of
+  such a channel can mount the above attack.
+
+* The expected packet rate for a media stream is very predictable (and typically
+  far lower than the above example).  On the one hand, attacks at this rate will
+  succeed even less often than the high-rate attack described above.  On the
+  other hand, the application may use an elevated packet arrival rate as a
+  signal of a brute-force attack.  This latter approach is common in other
+  settings, e.g., mitigating brute-force attacks on passwords.
+
+* Media applications typically do not provide feedback to media senders as to
+  which media packets failed to decrypt.  When media quality feedback
+  mechanisms are used, decryption failures will typically appear as packet
+  losses, but only at an aggregate level.
+
+* Anti-replay mechanisms (see {{replay}}) prevent the attacker from re-using
+  valid ciphertexts (either observed or guessed by the attacker).  A receiver
+  applying anti-replay controls will only accept one valid plaintext per CTR
+  value.  Since the CTR value is covered by SFrame authentication, an attacker
+  has to do a fresh search for a valid tag for every forged ciphertext, even if
+  the encrypted content is unchanged.  In other words, when the above brute
+  force attack succeeds, it only allows the attacker to send a single SFrame
+  ciphertext; the ciphertext cannot be reused because either it will have the
+  same CTR value and be discarded as a replay, or else it will have a different
+  CTR value its tag will no longer be valid.
+
+Nonetheless, without these mitigations, an application that makes use of short
+tags will be at heightened risk of forgery attacks.  In many cases, it is
+simpler to use full-size tags and tolerate slightly higher bandwidth usage
+rather than add the additional defenses necessary to safely use short tags.
 
 # IANA Considerations
 

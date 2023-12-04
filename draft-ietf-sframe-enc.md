@@ -45,6 +45,33 @@ author:
     organization: Apple
     email: youenn@apple.com
 
+contributor:
+ -
+    ins: F. Jacobs
+    name: Frederic Jacobs
+    organization: Apple
+    email: frederic.jacobs@apple.com
+ -
+    ins: M. Mularczyk
+    name: Marta Mularczyk
+    organization: Amazon
+    email: mulmarta@amazon.com
+ -
+    ins: S. Nandakumar
+    name: Suhas Nandakumar
+    organization: Cisco
+    email: snandaku@cisco.com
+ -
+    ins: T. Rigaux
+    name: Tomas Rigaux
+    organization: Cisco
+    email: trigaux@cisco.com
+ -
+    ins: R. Robert
+    name: Raphael Robert
+    organization: Phoenix R&D
+    email: ietf@raphaelrobert.com
+
 informative:
   TestVectors:
     title: "SFrame Test Vectors"
@@ -78,11 +105,11 @@ decrypted by the SFU. In order for the SFU to work properly, though, it usually
 needs to be able to access RTP metadata and RTCP feedback messages, which is not
 possible if all RTP/RTCP traffic is end-to-end encrypted.
 
-As such, two layers of encryptions and authentication are required:
+As such, two layers of encryption and authentication are required:
 
   1. Hop-by-hop (HBH) encryption of media, metadata, and feedback messages
      between the the endpoints and SFU
-  2. End-to-end (E2E) encryption of media between the endpoints
+  2. End-to-end (E2E) encryption (E2EE) of media between the endpoints
 
 The Secure Real-Time Protocol (SRTP) is already widely used for HBH encryption
 {{?RFC3711}}. The SRTP "double encryption" scheme defines a way to do E2E
@@ -90,7 +117,7 @@ encryption in SRTP {{?RFC8723}}. Unfortunately, this scheme has poor efficiency
 and high complexity, and its entanglement with RTP makes it unworkable in
 several realistic SFU scenarios.
 
-This document proposes a new end-to-end encryption mechanism known as SFrame,
+This document proposes a new E2EE protection scheme known as SFrame,
 specifically designed to work in group conference calls with SFUs. SFrame is a
 general encryption framing that can be used to protect media payloads, agnostic
 of transport.
@@ -102,9 +129,6 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
 "OPTIONAL" in this document are to be interpreted as described in
 BCP 14 {{!RFC2119}} {{!RFC8174}} when, and only when, they appear in all
 capitals, as shown here.
-
-IV:
-: Initialization Vector
 
 MAC:
 : Message Authentication Code
@@ -150,15 +174,15 @@ media in a broad range of scenarios, as outlined by the following goals:
 
 # SFrame
 
-This document defines an encryption mechanism that provides effective end-to-end
-encryption, is simple to implement, has no dependencies on RTP, and minimizes
-encryption bandwidth overhead. Because SFrame can encrypt a full frame, rather
-than individual packets, bandwidth overhead can be reduced by adding encryption
-overhead only once per media frame, instead of once per packet.
+This document defines an encryption mechanism that provides effective E2EE,
+is simple to implement, has no dependencies on RTP, and minimizes
+encryption bandwidth overhead. This section describes how the mechanism
+works, including details of how applications utilize SFrame for media protection,
+as well as the actual mechanics of E2EE for protecting media.
 
 ## Application Context
 
-SFrame is a general encryption framing, intended to be used as an E2E encryption
+SFrame is a general encryption framing, intended to be used as an E2EE
 layer over an underlying HBH-encrypted transport such as SRTP or QUIC
 {{RFC3711}}{{?I-D.ietf-moq-transport}}.
 
@@ -231,7 +255,7 @@ the parties in the conference.  Keys for SFrame might be distributed over an
 existing E2E-secure channel (see {{sender-keys}}), or derived from an E2E-secure
 shared secret (see {{mls}}).  The key management system MUST ensure that each
 key used for encrypting media is used by exactly one media sender, in order to
-avoid reuse of IVs.
+avoid reuse of nonces.
 
 ## SFrame Ciphertext
 
@@ -268,6 +292,8 @@ When SFrame is applied per-packet, the payload of each packet will be an SFrame
 ciphertext.  When SFrame is applied per-frame, the SFrame ciphertext
 representing an encrypted frame will span several packets, with the header
 appearing in the first packet and the authentication tag in the last packet.
+It is the responsibility of the application to reassemble an encrypted frame from
+individual packets, accounting for packet loss and reordering as necessary.
 
 ## SFrame Header
 
@@ -275,10 +301,10 @@ The SFrame header specifies two values from which encryption parameters are
 derived:
 
 * A Key ID (KID) that determines which encryption key should be used
-* A counter (CTR) that is used to construct the IV for the encryption
+* A counter (CTR) that is used to construct the nonce for the encryption
 
 Applications MUST ensure that each (KID, CTR) combination is used for exactly
-one encryption operation. A typical approach to achieving this guarantee is
+one SFrame encryption operation. A typical approach to achieving this guarantee is
 outlined in {{header-value-uniqueness}}.
 
 ~~~~~ aasvg
@@ -297,10 +323,10 @@ The SFrame Header has the overall structure shown in {{fig-sframe-header}}.  The
 first byte is a "config byte", with the following fields:
 
 Extended Key Id Flag (X, 1 bit):
-: Indicates if the K field contains the key id or the key id length.
+: Indicates if the K field contains the key id or the Key ID length.
 
 Key or Key Length (K, 3 bits):
-: This field contains the key id (KID) if the X flag is set to 0, or the key id
+: This field contains the Key ID (KID) if the X flag is set to 0, or the key id
 length, minus one, if set to 1.
 
 Extended Counter Flag (Y, 1 bit):
@@ -371,11 +397,12 @@ Each SFrame encryption or decryption operation is premised on a single secret
 header.
 
 The sender and receivers need to agree on which key should be used for a given
-KID.  The process for provisioning keys and their KID values is beyond the scope
-of this specification, but its security properties will bound the assurances
-that SFrame provides.  For example, if SFrame is used to provide E2E security
-against intermediary media nodes, then SFrame keys need to be negotiated in a
-way that does not make them accessible to these intermediaries.
+KID.  Moreover, senders and receivers need to agree on whether keys will be used
+for encryption or decryption only. The process for provisioning keys and their KID
+values is beyond the scope of this specification, but its security properties will
+bound the assurances that SFrame provides.  For example, if SFrame is used to
+provide E2E security against intermediary media nodes, then SFrame keys need to
+be negotiated in a way that does not make them accessible to these intermediaries.
 
 For each known KID value, the client stores the corresponding symmetric key
 `base_key`.  For keys that can be used for encryption, the client also stores
@@ -408,9 +435,13 @@ using HKDF {{!RFC5869}} as follows:
 ~~~~~
 def derive_key_salt(KID, base_key):
   sframe_secret = HKDF-Extract("", base_key)
-  info = "SFrame 1.0 Secret key " + KID + cipher_suite
+
+  sframe_key_label = "SFrame 1.0 Secret key " + KID + cipher_suite
   sframe_key = HKDF-Expand(sframe_secret, info, AEAD.Nk)
+
+  sframe_salt_label = "SFrame 1.0 Secret salt " + KID + cipher_suite
   sframe_salt = HKDF-Expand(sframe_secret, info, AEAD.Nn)
+
   return sframe_key, sframe_salt
 ~~~~~
 
@@ -495,7 +526,7 @@ header ----+------------------>| AAD
 
 ### Decryption
 
-Before decrypting, a client needs to assemble a full SFrame ciphertext. When
+Before decrypting, a receiver needs to assemble a full SFrame ciphertext. When
 an SFrame ciphertext may be fragmented into multiple parts for transport (e.g.,
 a whole encrypted frame sent in multiple SRTP packets), the receiving client
 collects all the fragments of the ciphertext, using an appropriate sequencing
@@ -504,11 +535,12 @@ available, the client reassembles them into the SFrame ciphertext, then passes
 the ciphertext to SFrame for decryption.
 
 The KID field in the SFrame header is used to find the right key and salt for
-the encrypted frame, and the CTR field is used to construct the nonce.
+the encrypted frame, and the CTR field is used to construct the nonce. The SFrame
+decryption procedure is as follows:
 
 ~~~~~
 def decrypt(metadata, sframe_ciphertext):
-  KID, CTR, ciphertext = parse_ciphertext(sframe_ciphertext)
+  KID, CTR, header, ciphertext = parse_ciphertext(sframe_ciphertext)
 
   sframe_key, sframe_salt = key_store[KID]
 
@@ -586,6 +618,10 @@ calls to the CTR encrypt function and HMAC.  The resulting MAC value is truncate
 to a number of bytes `Nt` fixed by the cipher suite.
 
 ~~~~~
+def truncate(tag, n):
+  # Take the first `n` bytes of `tag`
+  return tag[..n]
+
 def compute_tag(auth_key, nonce, aad, ct):
   aad_len = encode_big_endian(len(aad), 8)
   ct_len = encode_big_endian(len(ct), 8)
@@ -596,8 +632,8 @@ def compute_tag(auth_key, nonce, aad, ct):
 
 def AEAD.Encrypt(key, nonce, aad, pt):
   enc_key, auth_key = derive_subkeys(key)
-  iv = nonce + 0x00000000 # append four zero bytes
-  ct = AES-CTR.Encrypt(enc_key, iv, pt)
+  initial_counter = nonce + 0x00000000 # append four zero bytes
+  ct = AES-CTR.Encrypt(enc_key, initial_counter, pt)
   tag = compute_tag(auth_key, nonce, aad, ct)
   return ct + tag
 
@@ -609,8 +645,8 @@ def AEAD.Decrypt(key, nonce, aad, ct):
   if !constant_time_equal(tag, candidate_tag):
     raise Exception("Authentication Failure")
 
-  iv = nonce + 0x00000000 # append four zero bytes
-  return AES-CTR.Decrypt(enc_key, iv, inner_ct)
+  initial_counter = nonce + 0x00000000 # append four zero bytes
+  return AES-CTR.Decrypt(enc_key, initial_counter, inner_ct)
 ~~~~~
 
 # Key Management
@@ -675,10 +711,19 @@ sender with a new KID computes the new key as above.  The old key may be kept
 for some time to allow for out-of-order delivery, but should be deleted
 promptly.
 
-If a new participant joins mid-call, they will need to receive from each sender
-(a) the current sender key for that sender and (b) the current KID value for the
-sender. Evicting a participant requires each sender to send a fresh sender key
-to all receivers.
+If a new participant joins in the middle of a session, they will need to receive
+from each sender (a) the current sender key for that sender and (b) the current
+KID value for the sender. Evicting a participant requires each sender to send
+a fresh sender key to all receivers.
+
+It is up to the application to decide when sender keys are updated.  A sender
+key may be updated by sending a new `base_key` (updating the key generation) or
+by hashing the current `base_key` (updating the ratchet step).  Ratcheting the
+key forward is useful when adding new receivers to an SFrame-based interaction,
+since it assures that the new receivers can't decrypt any media encrypted before
+they were added.  If a sender wishes to assure the opposite property when
+removing a receiver (i.e., ensuring that the receiver can't decrypt media after
+they are removed), then the sender will need to distribute a new sender key.
 
 ## MLS
 
@@ -816,8 +861,8 @@ one SFrame encrypted frame with an incrementing frame counter.
 
 ## Video Key Frames
 
-Forward and Post-Compromise Security requires that the e2ee keys are updated
-anytime a participant joins/leave the call.
+Forward Security and Post-Compromise Security requires that the E2EE keys (base keys) 
+are updated any time a participant joins or leaves the call.
 
 The key exchange happens asynchronously and on a different path than the SFU signaling
 and media. So it may happen that when a new participant joins the call and the
@@ -861,14 +906,14 @@ receiver also has the keys required to encrypt packets for the sender.
 ## Key Management
 
 Key exchange mechanism is out of scope of this document, however every client
-SHOULD change their keys when new clients joins or leaves the call for "Forward
-Secrecy" and "Post Compromise Security".
+SHOULD change their keys when new clients joins or leaves the call for forward
+secrecy and post compromise security.
 
 ## Authentication tag length
 
 The cipher suites defined in this draft use short authentication tags for
 encryption, however it can easily support other ciphers with full authentication
-tag if the short ones are proved insecure.
+tag if the short ones are deemed insecure.
 
 ## Replay
 
@@ -982,7 +1027,7 @@ order for SFrame to operate securely.
 ## Header Value Uniqueness
 
 Applications MUST ensure that each (KID, CTR) combination is used for exactly
-one encryption operation. Typically this is done by assigning each sender a KID
+one SFrame encryption operation. Typically this is done by assigning each sender a KID
 or set of KIDs, then having each sender use the CTR field as a monotonic counter,
 incrementing for each plaintext that is encrypted. Note that in addition to its
 simplicity, this scheme minimizes overhead by keeping CTR values as small as
@@ -993,8 +1038,8 @@ possible.
 It is up to the application to provision SFrame with a mapping of KID values to
 `base_key` values and the resulting keys and salts.  More importantly, the
 application specifies which KID values are used for which purposes (e.g., by
-which senders).  An applications KID assignment strategy MUST be structured to
-assure the non-reuse properties discussed above.
+which senders).  An application's KID assignment strategy MUST be structured to
+assure the non-reuse properties discussed in {{header-value-uniqueness}}.
 
 It is also up to the application to define a rotation schedule for keys.  For
 example, one application might have an ephemeral group for every call and keep
@@ -1025,11 +1070,21 @@ apply time or counter based anti-replay mitigations.
 The `metadata` input to SFrame operations is pure application-specified data. As
 such, it is up to the application to define what information should go in the
 `metadata` input and ensure that it is provided to the encryption and decryption
-functions at the appropriate points.  A receiver SHOULD NOT use SFrame-authenticated
-metadata until after the SFrame decrypt function has authenticated it.
+functions at the appropriate points.  A receiver MUST NOT use SFrame-authenticated
+metadata until after the SFrame decrypt function has authenticated it, unless
+the purpose of such usage is to prepare an SFrame ciphertext for SFrame
+decryption.  Essentially, metadata may be used "upstream of SFrame" in a
+processing pipeline, but only to prepare for SFrame decryption.
 
-Note: The `metadata` input is a feature at risk, and needs more confirmation that it
-is useful and/or needed.
+For example, consider an application where SFrame is used to encrypt audio
+frames that are sent over SRTP, with some application data included in the RTP
+header extension. Suppose the application also includes this application data in
+the SFrame metadata, so that the SFU is allowed to read, but not modify the
+application data.  A receiver can use the application data in the RTP header
+extension as part of the standard SRTP decryption process, since this is
+required to recover the SFrame ciphertext carried in the SRTP payload.  However,
+the receiver MUST NOT use the application data for other purposes before SFrame
+decryption has authenticated the application data.
 
 --- back
 

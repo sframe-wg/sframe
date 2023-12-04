@@ -976,7 +976,7 @@ For example, consider an application where SFrame is used to encrypt audio
 frames that are sent over SRTP, with some application data included in the RTP
 header extension. Suppose the application also includes this application data in
 the SFrame metadata, so that the SFU is allowed to read, but not modify the
-application data.  A receiver MAY use the application data in the RTP header
+application data.  A receiver can use the application data in the RTP header
 extension as part of the standard SRTP decryption process, since this is
 required to recover the SFrame ciphertext carried in the SRTP payload.  However,
 the receiver MUST NOT use the application data for other purposes before SFrame

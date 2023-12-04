@@ -898,7 +898,7 @@ packets per second.  If an attacker saturated such a link with guesses against a
 roughly once every 2^12 seconds, or about once an hour.
 
 In a typical SFrame usage in a real-time media application, there are a few
-factors that mitigate this risk:
+approaches to mitigating this risk:
 
 * Receivers only accept SFrame ciphertexts over HBH-secure channels (e.g., SRTP
   security associations or QUIC connections).  So only an entity that is part of
@@ -922,15 +922,15 @@ factors that mitigate this risk:
   value.  Since the CTR value is covered by SFrame authentication, an attacker
   has to do a fresh search for a valid tag for every forged ciphertext, even if
   the encrypted content is unchanged.  In other words, when the above brute
-  force attacke succeeds, it only allows the attacker to send a single SFrame
+  force attack succeeds, it only allows the attacker to send a single SFrame
   ciphertext; the ciphertext cannot be reused because either it will have the
   same CTR value and be discarded as a replay, or else it will have a different
   CTR value its tag will no longer be valid.
 
-Nonetheless, applications that make use of short tags need to put these
-mitigations in place.  In many cases, it is simpler to use full-size tags and
-tolerate slightly higher bandwidth usage rather than add the additional defenses
-necessary to safely use short tags.
+Nonetheless, without these mitigations, an application that makes use of short
+tags will be at heightened risk of forgery attacks.  In many cases, it is
+simpler to use full-size tags and tolerate slightly higher bandwidth usage
+rather than add the additional defenses necessary to safely use short tags.
 
 # IANA Considerations
 

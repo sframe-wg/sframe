@@ -524,7 +524,9 @@ def decrypt(metadata, sframe_ciphertext):
 If a ciphertext fails to decrypt because there is no key available for the KID
 in the SFrame header, the client MAY buffer the ciphertext and retry decryption
 once a key with that KID is received.  If a ciphertext fails to decrypt for any
-other reason, the client MUST discard the ciphertext.
+other reason, the client MUST discard the ciphertext. Invalid ciphertexts SHOULD be
+discarded in a way that is indistinguishable (to an external observer) from having 
+processed a valid ciphertext.
 
 ## Cipher Suites
 

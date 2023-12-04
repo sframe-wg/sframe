@@ -493,8 +493,6 @@ header ----+------------------>| AAD
 ~~~~~
 {: title="Encryption flow" }
 
-[[ TODO: Text about obeying AEAD limits ]]
-
 ### Decryption
 
 Before decrypting, a client needs to assemble a full SFrame ciphertext. When

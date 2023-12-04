@@ -1011,11 +1011,21 @@ apply time or counter based anti-replay mitigations.
 The `metadata` input to SFrame operations is pure application-specified data. As
 such, it is up to the application to define what information should go in the
 `metadata` input and ensure that it is provided to the encryption and decryption
-functions at the appropriate points.  A receiver SHOULD NOT use SFrame-authenticated
-metadata until after the SFrame decrypt function has authenticated it.
+functions at the appropriate points.  A receiver MUST NOT use SFrame-authenticated
+metadata until after the SFrame decrypt function has authenticated it, unless
+the purpose of such usage is to prepare an SFrame ciphertext for SFrame
+decryption.  Essentially, metadata may be used "upstream of SFrame" in a
+processing pipeline, but only to prepare for SFrame decryption.
 
-Note: The `metadata` input is a feature at risk, and needs more confirmation that it
-is useful and/or needed.
+For example, consider an application where SFrame is used to encrypt audio
+frames that are sent over SRTP, with some application data included in the RTP
+header extension. Suppose the application also includes this application data in
+the SFrame metadata, so that the SFU is allowed to read, but not modify the
+application data.  A receiver can use the application data in the RTP header
+extension as part of the standard SRTP decryption process, since this is
+required to recover the SFrame ciphertext carried in the SRTP payload.  However,
+the receiver MUST NOT use the application data for other purposes before SFrame
+decryption has authenticated the application data.
 
 --- back
 

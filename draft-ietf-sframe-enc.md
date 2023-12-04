@@ -861,7 +861,7 @@ one SFrame encrypted frame with an incrementing frame counter.
 
 ## Video Key Frames
 
-Forward Security and Post-Compromise Security requires that the E2EE keys (base keys) 
+Forward Security and Post-Compromise Security require that the E2EE keys (base keys)
 are updated any time a participant joins or leaves the call.
 
 The key exchange happens asynchronously and on a different path than the SFU signaling

@@ -525,7 +525,7 @@ If a ciphertext fails to decrypt because there is no key available for the KID
 in the SFrame header, the client MAY buffer the ciphertext and retry decryption
 once a key with that KID is received.  If a ciphertext fails to decrypt for any
 other reason, the client MUST discard the ciphertext. Invalid ciphertexts SHOULD be
-discarded in a way that is indistinguishable (to an external observer) from having 
+discarded in a way that is indistinguishable (to an external observer) from having
 processed a valid ciphertext.
 
 ## Cipher Suites
@@ -911,7 +911,7 @@ factors that mitigate this risk:
   succeed even less often than the high-rate attack described above.  On the
   other hand, the application may use an elevated packet arrival rate as a
   signal of a brute-force attack.  This latter approach is common in other
-  settings, e.g., brute-forcing of passwords.
+  settings, e.g., mitigating brute-force attacks on passwords.
 
 * Media applications typically do not provide feedback to media senders as to
   which media packets failed to decrypt.  When media quality feedback
@@ -919,22 +919,20 @@ factors that mitigate this risk:
   losses, but only at an aggregate level.
 
 * Anti-replay mechanisms (see {{replay}}) prevent the attacker from re-using
-  legitimate ciphertexts.  Since the attacker is limited in their ability to
-  synthesize new legitimate (ciphertexts, tag) pairs (e.g., limited to flipping
-  bits in AES-CTR or AES-GCM ciphertexts), they can basically only cause the
-  media decoder to decode random data.
+  valid ciphertexts (either observed or guessed by the attacker).  A receiver
+  applying anti-replay controls will only accept one valid plaintext per CTR
+  value.  Since the CTR value is covered by SFrame authentication, an attacker
+  has to do a fresh search for a valid tag for every forged ciphertext, even if
+  the encrypted content is unchanged.  In other words, when the above brute
+  force attacke succeeds, it only allows the attacker to send a single SFrame
+  ciphertext; the ciphertext cannot be reused because either it will have the
+  same CTR value and be discarded as a replay, or else it will have a different
+  CTR value its tag will no longer be valid.
 
-In summary, with proper mitigations, short tags allow an attacker to send random
-data to a media stream at a very low rate, using an attack that is
-straightforward to recognize and neutralize.  At best, the attacker can trigger
-a denial-of-service condition, which they likely could have done anyway simply
-by sending meaningless packets, without regard for whether they pass the
-authentication check.
-
-Nonetheless, applications that make use of short tags need to put in place the
-mitigations discussed above.  In many cases, it is simpler to use full-size tags
-and tolerate slightly higher bandwidth usage rather than add the additional
-defenses necessary to safely use short tags.
+Nonetheless, applications that make use of short tags need to put these
+mitigations in place.  In many cases, it is simpler to use full-size tags and
+tolerate slightly higher bandwidth usage rather than add the additional defenses
+necessary to safely use short tags.
 
 # IANA Considerations
 

@@ -758,7 +758,7 @@ counter to roll over, removing an old epoch when a new epoch with the same E
 lower bits is introduced.
 
 Let `S` be the number of bits required to encode a member index in the group,
-i.e., the smallest value such that `group_size` < (1 << S)`.  The sender index
+i.e., the smallest value such that `group_size <= (1 << S)`.  The sender index
 is encoded in the `S` bits above the epoch.  The remaining `64 - S - E` bits of
 the KID value are a `context` value chosen by the sender (context value `0` will
 produce the shortest encoded KID).
@@ -810,21 +810,21 @@ Epoch 17 +--+-- index=33 --> KID = 0x211
   ...
 ~~~~~
 {: #mls-evolution title="An example sequence of KIDs for an MLS-based SFrame
-session.  We assume that the group has 64 members, S=6." }
+session (E=4; S=6 or 64 group members)" }
 
 # Media Considerations
 
 ## Selective Forwarding Units
 
-Selective Forwarding Units (SFUs) (e.g., those described in {{Section 3.7 of ?RFC7667}})
-receive the media streams from each participant and select which ones should be
-forwarded to each of the other participants.  There are several approaches about
-how to do this stream selection but in general, in order to do so, the SFU needs
-to access metadata associated to each frame and modify the RTP information of
-the incoming packets when they are transmitted to the received participants.
+Selective Forwarding Units (SFUs) (e.g., those described in {{Section 3.7 of
+?RFC7667}}) receive the media streams from each participant and select which
+ones should be forwarded to each of the other participants.  There are several
+approaches for stream selection, but in general, the SFU needs to access
+metadata associated to each frame and modify the RTP information of the incoming
+packets when they are transmitted to the received participants.
 
-This section describes how this normal SFU modes of operation interacts with the
-E2EE provided by SFrame
+This section describes how this normal SFU modes of operation interact with the
+E2EE provided by SFrame.
 
 ### LastN and RTP stream reuse
 

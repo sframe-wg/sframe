@@ -855,9 +855,8 @@ frame encryptor and assigned an unique counter for each.
 
 In both temporal and spatial scalability, the SFU may choose to drop layers in
 order to match a certain bitrate or forward specific media sizes or frames per
-second. In order to support it, the sender MUST encode each spatial layer of a
-given picture in a different frame. That is, an RTP frame may contain more than
-one SFrame encrypted frame with an incrementing frame counter.
+second. In order to support the SFU selectively removing layers, the sender MUST
+encode each layer in a different frame.
 
 ## Video Key Frames
 

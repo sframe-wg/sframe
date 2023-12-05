@@ -36,8 +36,10 @@ pub mod header;
 /// Cipher agility layer
 pub mod cipher;
 
-pub use crate::cipher::{new_cipher, Cipher, CipherSuite, SFrameIntermediateValues};
-pub use crate::header::{Counter, Header, KeyId};
+pub use crate::{
+    cipher::{new_cipher, Cipher, CipherSuite, SFrameIntermediateValues},
+    header::{Counter, Header, KeyId},
+};
 use std::collections::HashMap;
 
 /// Errors that can result from SFrame operations
@@ -233,7 +235,7 @@ mod test {
 
     #[test]
     fn round_trip() {
-        for cipher_suite in ALL_CIPHER_SUITES.clone().into_iter() {
+        for &cipher_suite in &ALL_CIPHER_SUITES {
             round_trip_one(cipher_suite);
         }
     }

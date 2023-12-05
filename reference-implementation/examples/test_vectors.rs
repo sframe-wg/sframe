@@ -1,4 +1,5 @@
 mod header {
+    use super::Hex;
     use itertools::Itertools;
     use serde::{Deserialize, Serialize};
     use sframe_reference::header::*;
@@ -7,13 +8,13 @@ mod header {
     pub struct TestVector {
         kid: u64,
         ctr: u64,
-        encoded: String,
+        encoded: Hex,
     }
 
     impl TestVector {
         fn new(kid: u64, ctr: u64) -> Self {
             let header = Header::new(KeyId(kid), Counter(ctr));
-            let encoded = hex::encode(header.as_slice());
+            let encoded = Hex::from(header.as_slice());
             Self { kid, ctr, encoded }
         }
 
@@ -34,12 +35,10 @@ mod header {
         }
 
         pub fn verify(&self) -> bool {
-            let encoded_vec = hex::decode(self.encoded.clone()).unwrap();
-
             let encoded = Header::new(KeyId(self.kid), Counter(self.ctr));
-            let encode_pass = encoded.as_slice() == encoded_vec;
+            let encode_pass = self.encoded == encoded.as_slice();
 
-            let (decoded, _) = Header::parse(&encoded_vec).unwrap();
+            let (decoded, _) = Header::parse(&self.encoded).unwrap();
             let decode_pass = (decoded.kid.0 == self.kid) && (decoded.ctr.0 == self.ctr);
 
             encode_pass && decode_pass
@@ -61,26 +60,28 @@ header: {encoded}
 }
 
 mod aes_ctr_hmac {
+    use super::Hex;
     use aead::{Aead, Key, KeyInit, KeySizeUser, Nonce, Payload};
     use aes::Aes128;
-    use cipher::consts::{U10, U16, U4, U8};
-    use cipher::ArrayLength;
+    use cipher::{
+        consts::{U10, U16, U4, U8},
+        ArrayLength,
+    };
     use hex_literal::hex;
     use serde::{Deserialize, Serialize};
-    use sframe_reference::aes_ctr_hmac::*;
-    use sframe_reference::cipher::CipherSuite;
+    use sframe_reference::{aes_ctr_hmac::*, cipher::CipherSuite};
     use sha2::Sha256;
 
     #[derive(Serialize, Deserialize)]
     pub struct TestVector {
         cipher_suite: u16,
-        key: String,
-        enc_key: String,
-        auth_key: String,
-        nonce: String,
-        aad: String,
-        pt: String,
-        ct: String,
+        key: Hex,
+        enc_key: Hex,
+        auth_key: Hex,
+        nonce: Hex,
+        aad: Hex,
+        pt: Hex,
+        ct: Hex,
     }
 
     impl TestVector {
@@ -111,13 +112,13 @@ mod aes_ctr_hmac {
 
             Self {
                 cipher_suite: cipher_suite.0,
-                key: hex::encode(key),
-                enc_key: hex::encode(cipher.enc_key),
-                auth_key: hex::encode(cipher.auth_key),
-                nonce: hex::encode(nonce),
-                aad: hex::encode(aad),
-                pt: hex::encode(pt),
-                ct: hex::encode(ct),
+                key: Hex::from(key),
+                enc_key: Hex::from(cipher.enc_key),
+                auth_key: Hex::from(cipher.auth_key),
+                nonce: Hex::from(nonce),
+                aad: Hex::from(aad),
+                pt: Hex::from(pt),
+                ct: Hex::from(ct),
             }
         }
 
@@ -136,30 +137,24 @@ mod aes_ctr_hmac {
             T: ArrayLength<u8>,
             AesCtrHmac<C, D, T>: KeySizeUser + KeyInit,
         {
-            let key = hex::decode(self.key.clone()).unwrap();
-            let nonce = hex::decode(self.nonce.clone()).unwrap();
-            let aad = hex::decode(self.aad.clone()).unwrap();
-            let pt = hex::decode(self.pt.clone()).unwrap();
-            let ct = hex::decode(self.ct.clone()).unwrap();
-
-            let key = Key::<AesCtrHmac<C, D, T>>::from_slice(&key);
-            let nonce = Nonce::<AesCtrHmac<C, D, T>>::from_slice(&nonce);
+            let key = Key::<AesCtrHmac<C, D, T>>::from_slice(&self.key);
+            let nonce = Nonce::<AesCtrHmac<C, D, T>>::from_slice(&self.nonce);
 
             let cipher = AesCtrHmac::<C, D, T>::new(&key);
 
             let payload = Payload {
-                msg: &pt,
-                aad: &aad,
+                msg: &self.pt,
+                aad: &self.aad,
             };
             let encrypted = cipher.encrypt(&nonce, payload).unwrap();
-            let encrypt_pass = encrypted == ct;
+            let encrypt_pass = self.ct == encrypted;
 
             let payload = Payload {
-                msg: &ct,
-                aad: &aad,
+                msg: &self.ct,
+                aad: &self.aad,
             };
             let decrypted = cipher.decrypt(&nonce, payload).unwrap();
-            let decrypt_pass = decrypted == pt;
+            let decrypt_pass = self.pt == decrypted;
 
             encrypt_pass && decrypt_pass
         }
@@ -206,6 +201,7 @@ ct: {ct}
 }
 
 mod sframe {
+    use super::Hex;
     use hex_literal::hex;
     use serde::{Deserialize, Serialize};
     use sframe_reference::*;
@@ -215,17 +211,17 @@ mod sframe {
         cipher_suite: u16,
         kid: u64,
         ctr: u64,
-        base_key: String,
-        sframe_key_label: String,
-        sframe_salt_label: String,
-        sframe_secret: String,
-        sframe_key: String,
-        sframe_salt: String,
-        metadata: String,
-        nonce: String,
-        aad: String,
-        pt: String,
-        ct: String,
+        base_key: Hex,
+        sframe_key_label: Hex,
+        sframe_salt_label: Hex,
+        sframe_secret: Hex,
+        sframe_key: Hex,
+        sframe_salt: Hex,
+        metadata: Hex,
+        nonce: Hex,
+        aad: Hex,
+        pt: Hex,
+        ct: Hex,
     }
 
     impl TestVector {
@@ -246,17 +242,17 @@ mod sframe {
                 cipher_suite: cipher_suite.0,
                 kid: kid.0,
                 ctr: ctr.0,
-                base_key: hex::encode(base_key),
-                sframe_key_label: hex::encode(cipher.sframe_key_label()),
-                sframe_salt_label: hex::encode(cipher.sframe_salt_label()),
-                sframe_secret: hex::encode(cipher.sframe_secret()),
-                sframe_key: hex::encode(cipher.sframe_key()),
-                sframe_salt: hex::encode(cipher.sframe_salt()),
-                metadata: hex::encode(metadata),
-                nonce: hex::encode(vals.nonce),
-                aad: hex::encode(vals.aad),
-                pt: hex::encode(pt),
-                ct: hex::encode(ct),
+                base_key: Hex::from(base_key),
+                sframe_key_label: Hex::from(cipher.sframe_key_label()),
+                sframe_salt_label: Hex::from(cipher.sframe_salt_label()),
+                sframe_secret: Hex::from(cipher.sframe_secret()),
+                sframe_key: Hex::from(cipher.sframe_key()),
+                sframe_salt: Hex::from(cipher.sframe_salt()),
+                metadata: Hex::from(metadata),
+                nonce: Hex::from(vals.nonce),
+                aad: Hex::from(vals.aad),
+                pt: Hex::from(pt),
+                ct: Hex::from(ct),
             }
         }
 
@@ -271,20 +267,16 @@ mod sframe {
             let cipher_suite = CipherSuite(self.cipher_suite);
             let kid = KeyId(self.kid);
             let ctr = Counter(self.ctr);
-            let base_key = hex::decode(self.base_key.clone()).unwrap();
-            let metadata = hex::decode(self.metadata.clone()).unwrap();
-            let pt = hex::decode(self.pt.clone()).unwrap();
-            let ct = hex::decode(self.ct.clone()).unwrap();
 
             let mut ctx = SFrameContext::new(cipher_suite);
-            ctx.add_send_key(kid, &base_key).unwrap();
-            let (encrypted, _) = ctx.encrypt_raw(kid, ctr, &metadata, &pt).unwrap();
-            let encrypt_pass = encrypted == ct;
+            ctx.add_send_key(kid, &self.base_key).unwrap();
+            let (encrypted, _) = ctx.encrypt_raw(kid, ctr, &self.metadata, &self.pt).unwrap();
+            let encrypt_pass = self.ct == encrypted;
 
             let mut ctx = SFrameContext::new(cipher_suite);
-            ctx.add_recv_key(kid, &base_key).unwrap();
-            let (decrypted, _) = ctx.decrypt(&metadata, &ct).unwrap();
-            let decrypt_pass = decrypted == pt;
+            ctx.add_recv_key(kid, &self.base_key).unwrap();
+            let (decrypted, _) = ctx.decrypt(&self.metadata, &self.ct).unwrap();
+            let decrypt_pass = self.pt == decrypted;
 
             encrypt_pass && decrypt_pass
         }
@@ -331,8 +323,63 @@ ct: {ct}
     }
 }
 
+use std::fmt::Display;
+
 use clap::{Parser, Subcommand, ValueEnum};
 use serde::{Deserialize, Serialize};
+
+struct Hex(Vec<u8>);
+
+impl Display for Hex {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        for (i, c) in self.0.chunks(8).enumerate() {
+            if i % 3 == 0 {
+                if i > 0 {
+                    f.write_str("\n    ")?;
+                }
+            } else {
+                f.write_str(" ")?;
+            }
+            f.write_str(&hex::encode(c))?;
+        }
+        Ok(())
+    }
+}
+
+impl<T: AsRef<[u8]>> From<T> for Hex {
+    fn from(value: T) -> Self {
+        Hex(Vec::from(value.as_ref()))
+    }
+}
+
+impl Serialize for Hex {
+    fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        serializer.serialize_str(&hex::encode(&self.0))
+    }
+}
+
+impl<'de> Deserialize<'de> for Hex {
+    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        Ok(Self(
+            hex::decode(<String as Deserialize<'de>>::deserialize(deserializer)?)
+                .expect("invalid hex"),
+            // TODO: this should map to an error, but we can't instantiation `D::Error`.
+        ))
+    }
+}
+
+impl std::ops::Deref for Hex {
+    type Target = [u8];
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl<T: AsRef<[u8]>> PartialEq<T> for Hex {
+    fn eq(&self, other: &T) -> bool {
+        &self.0 == other.as_ref()
+    }
+}
 
 #[derive(Copy, Clone, ValueEnum)]
 enum TestVectorType {

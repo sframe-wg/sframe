@@ -908,12 +908,6 @@ Key exchange mechanism is out of scope of this document, however every client
 SHOULD change their keys when new clients joins or leaves the call for forward
 secrecy and post compromise security.
 
-## Authentication tag length
-
-The cipher suites defined in this draft use short authentication tags for
-encryption, however it can easily support other ciphers with full authentication
-tag if the short ones are deemed insecure.
-
 ## Replay
 
 The handling of replay is out of the scope of this document. However, senders

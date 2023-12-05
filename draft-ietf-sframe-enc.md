@@ -1154,7 +1154,7 @@ trait SFrameContextMethods {
   fn decrypt(&self, metadata: &[u8], ciphertext: &[u8]) -> Vec<u8>;
 }
 ~~~
-{: #rust-api title="An example SFrame API" }
+{: #rust-api title="An Example SFrame API" }
 
 # Overhead Analysis
 

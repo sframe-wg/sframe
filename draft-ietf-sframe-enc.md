@@ -488,41 +488,45 @@ before packetizing it, the necessary media metadata will be moved out of the
 encoded frame buffer, to be sent in some channel visible to the SFU (e.g., an
 RTP header extension).
 
-~~~ aasvg
-
-   +----------------+  +---------------+
-   |    metadata    |  |               |
-   +-------+--------+  |               |
-           |           |   plaintext   |
-           |           |               |
-           |           |               |
-           |           +-------+-------+
-           |                   |
-header ----+------------------>| AAD
-+-----+                        |
-|  S  |                        |
-+-----+                        |
-| KID +--+--> sframe_key ----->| Key
-|     |  |                     |
-|     |  +--> sframe_salt --+  |
-+-----+                     |  |
-| CTR +---------------------+->| Nonce
-|     |                        |
-|     |                        |
-+-----+                        |
-   |                       AEAD.Encrypt
-   |                           |
-   |     +---------------+     |
-   +---->| SFrame Header |     |
-         +---------------+     |
-         |               |     |
-         |               |<----+
-         |   ciphertext  |
-         |               |
-         |               |
-         +---------------+
+~~~~~ aasvg
+                                  +---------------+
+                                  |               |
+                                  |               |
+                                  |   plaintext   |
+                                  |               |
+                                  |               |
+                                  +-------+-------+
+                                          |
+        .- +-----+                        |
+       |   |     +--+--> sframe_key ----->| Key
+Header |   | KID |  |                     |
+       |   |     |  +--> sframe_salt --+  |
+    +--+   +-----+                     |  |
+    |  |   |     +---------------------+->| Nonce
+    |  |   | CTR |                        |
+    |  |   |     |                        |
+    |   '- +-----+                        |
+    |                                     |
+    |          +----------------+         |
+    |          |    metadata    |         |
+    |          +-------+--------+         |
+    |                  |                  |
+    +------------------+----------------->| AAD
+    |                                     |
+    |                                AEAD.Encrypt
+    |                                     |
+    |               SFrame Ciphertext     |
+    |               +---------------+     |
+    +-------------->| SFrame Header |     |
+                    +---------------+     |
+                    |               |     |
+                    |               |<----+
+                    |   ciphertext  |
+                    |               |
+                    |               |
+                    +---------------+
 ~~~~~
-{: title="Encryption flow" }
+{: title="Encrypting an SFrame Ciphertext" }
 
 ### Decryption
 
@@ -557,6 +561,47 @@ once a key with that KID is received.  If a ciphertext fails to decrypt for any
 other reason, the client MUST discard the ciphertext. Invalid ciphertexts SHOULD be
 discarded in a way that is indistinguishable (to an external observer) from having
 processed a valid ciphertext.
+
+~~~~~ aasvg
+                    SFrame Ciphertext
+                    +---------------+
+    +---------------| SFrame Header |
+    |               +---------------+
+    |               |               |
+    |               |               |-----+
+    |               |   ciphertext  |     |
+    |               |               |     |
+    |               |               |     |
+    |               +---------------+     |
+    |                                     |
+    |   .- +-----+                        |
+    |  |   |     +--+--> sframe_key ----->| Key
+    |  |   | KID |  |                     |
+    |  |   |     |  +--> sframe_salt --+  |
+    +->+   +-----+                     |  |
+    |  |   |     +---------------------+->| Nonce
+    |  |   | CTR |                        |
+    |  |   |     |                        |
+    |   '- +-----+                        |
+    |                                     |
+    |          +----------------+         |
+    |          |    metadata    |         |
+    |          +-------+--------+         |
+    |                  |                  |
+    +------------------+----------------->| AAD
+                                          |
+                                     AEAD.Decrypt
+                                          |
+                                          V
+                                  +---------------+
+                                  |               |
+                                  |               |
+                                  |   plaintext   |
+                                  |               |
+                                  |               |
+                                  +---------------+
+~~~~~
+{: title="Decrypting an SFrame Ciphertext" }
 
 ## Cipher Suites
 

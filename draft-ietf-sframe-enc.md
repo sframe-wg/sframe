@@ -1149,7 +1149,8 @@ trait SFrameContextMethods {
   fn create(cipher_suite: CipherSuite) -> Self;
   fn add_send_key(&self, kid: KeyId, base_key: &[u8]);
   fn add_recv_key(&self, kid: KeyId, base_key: &[u8]);
-  fn encrypt(&mut self, kid: KeyId, metadata: &[u8], plaintext: &[u8]) -> Vec<u8>;
+  fn encrypt(&mut self, kid: KeyId, metadata: &[u8],
+             plaintext: &[u8]) -> Vec<u8>;
   fn decrypt(&self, metadata: &[u8], ciphertext: &[u8]) -> Vec<u8>;
 }
 ~~~

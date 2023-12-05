@@ -728,14 +728,14 @@ they are removed), then the sender will need to distribute a new sender key.
 ## MLS
 
 The Messaging Layer Security (MLS) protocol provides group authenticated key
-exchange {{?I-D.ietf-mls-architecture}} {{?I-D.ietf-mls-protocol}}.  In
+exchange {{?MLS-ARCH=I-D.ietf-mls-architecture}} {{?MLS-PROTO=RFC9420}}.  In
 principle, it could be used to instantiate the sender key scheme above, but it
 can also be used more efficiently directly.
 
 MLS creates a linear sequence of keys, each of which is shared among the members
 of a group at a given point in time.  When a member joins or leaves the group, a
 new key is produced that is known only to the augmented or reduced group.  Each
-step in the lifetime of the group is know as an "epoch", and each member of the
+step in the lifetime of the group is known as an "epoch", and each member of the
 group is assigned an "index" that is constant for the time they are in the
 group.
 
@@ -758,7 +758,7 @@ counter to roll over, removing an old epoch when a new epoch with the same E
 lower bits is introduced.
 
 Let `S` be the number of bits required to encode a member index in the group,
-i.e., the smallest value such that `group_size` < (1 << S)`.  The sender index
+i.e., the smallest value such that `group_size <= (1 << S)`.  The sender index
 is encoded in the `S` bits above the epoch.  The remaining `64 - S - E` bits of
 the KID value are a `context` value chosen by the sender (context value `0` will
 produce the shortest encoded KID).
@@ -810,21 +810,21 @@ Epoch 17 +--+-- index=33 --> KID = 0x211
   ...
 ~~~~~
 {: #mls-evolution title="An example sequence of KIDs for an MLS-based SFrame
-session.  We assume that the group has 64 members, S=6." }
+session (E=4; S=6, allowing for 64 group members)" }
 
 # Media Considerations
 
 ## Selective Forwarding Units
 
-Selective Forwarding Units (SFUs) (e.g., those described in {{Section 3.7 of ?RFC7667}})
-receive the media streams from each participant and select which ones should be
-forwarded to each of the other participants.  There are several approaches about
-how to do this stream selection but in general, in order to do so, the SFU needs
-to access metadata associated to each frame and modify the RTP information of
-the incoming packets when they are transmitted to the received participants.
+Selective Forwarding Units (SFUs) (e.g., those described in {{Section 3.7 of
+?RFC7667}}) receive the media streams from each participant and select which
+ones should be forwarded to each of the other participants.  There are several
+approaches for stream selection, but in general, the SFU needs to access
+metadata associated to each frame and modify the RTP information of the incoming
+packets when they are transmitted to the received participants.
 
-This section describes how this normal SFU modes of operation interacts with the
-E2EE provided by SFrame
+This section describes how this normal SFU modes of operation interact with the
+E2EE provided by SFrame.
 
 ### LastN and RTP stream reuse
 
@@ -855,9 +855,8 @@ frame encryptor and assigned an unique counter for each.
 
 In both temporal and spatial scalability, the SFU may choose to drop layers in
 order to match a certain bitrate or forward specific media sizes or frames per
-second. In order to support it, the sender MUST encode each spatial layer of a
-given picture in a different frame. That is, an RTP frame may contain more than
-one SFrame encrypted frame with an incrementing frame counter.
+second. In order to support the SFU selectively removing layers, the sender MUST
+encapsulate each layer in a different SFrame ciphertext.
 
 ## Video Key Frames
 
@@ -866,23 +865,23 @@ are updated any time a participant joins or leaves the call.
 
 The key exchange happens asynchronously and on a different path than the SFU signaling
 and media. So it may happen that when a new participant joins the call and the
-SFU side requests a key frame, the sender generates the e2ee encrypted frame
+SFU side requests a key frame, the sender generates the E2EE frame
 with a key not known by the receiver, so it will be discarded. When the sender
 updates his sending key with the new key, it will send it in a non-key frame, so
 the receiver will be able to decrypt it, but not decode it.
 
-Receiver will re-request an key frame then, but due to sender and SFU policies,
-that new key frame could take some time to be generated.
+The new Receiver will then re-request a key frame, but due to sender and SFU
+policies, that new key frame could take some time to be generated.
 
-If the sender sends a key frame when the new e2ee key is in use, the time
+If the sender sends a key frame after the new E2EE key is in use, the time
 required for the new participant to display the video is minimized.
 
 ## Partial Decoding
 
-Some codes support partial decoding, where it can decrypt individual packets
-without waiting for the full frame to arrive, with SFrame this won't be possible
-because the decoder will not access the packets until the entire frame has
-arrived and was decrypted.
+Some codecs support partial decoding, where individual packets can be decoded
+without waiting for the full frame to arrive.  When SFrame is applied per-frame,
+this won't be possible because the decoder cannot access data until an entire
+frame has arrived and has been decrypted.
 
 # Security Considerations
 
@@ -908,12 +907,6 @@ receiver also has the keys required to encrypt packets for the sender.
 Key exchange mechanism is out of scope of this document, however every client
 SHOULD change their keys when new clients joins or leaves the call for forward
 secrecy and post compromise security.
-
-## Authentication tag length
-
-The cipher suites defined in this draft use short authentication tags for
-encryption, however it can easily support other ciphers with full authentication
-tag if the short ones are deemed insecure.
 
 ## Replay
 
@@ -1026,10 +1019,10 @@ order for SFrame to operate securely.
 
 ## Header Value Uniqueness
 
-Applications MUST ensure that each (KID, CTR) combination is used for exactly
-one SFrame encryption operation. Typically this is done by assigning each sender a KID
-or set of KIDs, then having each sender use the CTR field as a monotonic counter,
-incrementing for each plaintext that is encrypted. Note that in addition to its
+Applications MUST ensure that each (KID, CTR) combination is used for at most
+one SFrame encryption operation. Typically this is done by assigning each sender
+a KID or set of KIDs, then having each sender use the CTR field as a monotonic
+counter, incrementing for each plaintext that is encrypted. In addition to its
 simplicity, this scheme minimizes overhead by keeping CTR values as small as
 possible.
 
@@ -1152,11 +1145,12 @@ trait SFrameContextMethods {
   fn create(cipher_suite: CipherSuite) -> Self;
   fn add_send_key(&self, kid: KeyId, base_key: &[u8]);
   fn add_recv_key(&self, kid: KeyId, base_key: &[u8]);
-  fn encrypt(&mut self, kid: KeyId, metadata: &[u8], plaintext: &[u8]) -> Vec<u8>;
+  fn encrypt(&mut self, kid: KeyId, metadata: &[u8],
+             plaintext: &[u8]) -> Vec<u8>;
   fn decrypt(&self, metadata: &[u8], ciphertext: &[u8]) -> Vec<u8>;
 }
 ~~~
-{: #rust-api title="An example SFrame API" }
+{: #rust-api title="An Example SFrame API" }
 
 # Overhead Analysis
 

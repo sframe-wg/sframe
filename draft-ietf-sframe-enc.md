@@ -1064,12 +1064,13 @@ order for SFrame to operate securely.
 
 ## Header Value Uniqueness
 
-Applications MUST ensure that each (KID, CTR) combination is used for at most
-one SFrame encryption operation. Typically this is done by assigning each sender
-a KID or set of KIDs, then having each sender use the CTR field as a monotonic
-counter, incrementing for each plaintext that is encrypted. In addition to its
-simplicity, this scheme minimizes overhead by keeping CTR values as small as
-possible.
+Applications MUST ensure that each (`base_key`, KID, CTR) combination is used
+for at most one SFrame encryption operation. This ensures that the (key, nonce)
+pairs used by the underlying AEAD algorithm are never reused. Typically this is
+done by assigning each sender a KID or set of KIDs, then having each sender use
+the CTR field as a monotonic counter, incrementing for each plaintext that is
+encrypted. In addition to its simplicity, this scheme minimizes overhead by
+keeping CTR values as small as possible.
 
 ## Key Management Framework
 

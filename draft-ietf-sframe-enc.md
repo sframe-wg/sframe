@@ -810,7 +810,7 @@ Epoch 17 +--+-- index=33 --> KID = 0x211
   ...
 ~~~~~
 {: #mls-evolution title="An example sequence of KIDs for an MLS-based SFrame
-session (E=4; S=6 or 64 group members)" }
+session (E=4; S=6, allowing for 64 group members)" }
 
 # Media Considerations
 
@@ -856,7 +856,7 @@ frame encryptor and assigned an unique counter for each.
 In both temporal and spatial scalability, the SFU may choose to drop layers in
 order to match a certain bitrate or forward specific media sizes or frames per
 second. In order to support the SFU selectively removing layers, the sender MUST
-encode each layer in a different frame.
+encapsulate each layer in a different SFrame ciphertext.
 
 ## Video Key Frames
 
@@ -879,9 +879,9 @@ required for the new participant to display the video is minimized.
 ## Partial Decoding
 
 Some codecs support partial decoding, where individual packets can be decoded
-without waiting for the full frame to arrive.  With SFrame this won't be
-possible because the decoder cannot access data until an entire frame has
-arrived and has been decrypted.
+without waiting for the full frame to arrive.  When SFrame is applied per-frame,
+this won't be possible because the decoder cannot access data until an entire
+frame has arrived and has been decrypted.
 
 # Security Considerations
 
@@ -1025,10 +1025,6 @@ a KID or set of KIDs, then having each sender use the CTR field as a monotonic
 counter, incrementing for each plaintext that is encrypted. In addition to its
 simplicity, this scheme minimizes overhead by keeping CTR values as small as
 possible.
-
-Note that this uniqueness requirement applies to the full values of KID and CTR.
-Encoded values are truncated and so might be repeated as the state of senders
-and receivers change.
 
 ## Key Management Framework
 

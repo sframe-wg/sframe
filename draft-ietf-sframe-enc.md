@@ -878,10 +878,10 @@ required for the new participant to display the video is minimized.
 
 ## Partial Decoding
 
-Some codes support partial decoding, where it can decrypt individual packets
-without waiting for the full frame to arrive, with SFrame this won't be possible
-because the decoder will not access the packets until the entire frame has
-arrived and was decrypted.
+Some codecs support partial decoding, where individual packets can be decoded
+without waiting for the full frame to arrive.  With SFrame this won't be
+possible because the decoder cannot access data until an entire frame has
+arrived and has been decrypted.
 
 # Security Considerations
 

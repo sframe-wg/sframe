@@ -1019,12 +1019,16 @@ order for SFrame to operate securely.
 
 ## Header Value Uniqueness
 
-Applications MUST ensure that each (KID, CTR) combination is used for exactly
-one SFrame encryption operation. Typically this is done by assigning each sender a KID
-or set of KIDs, then having each sender use the CTR field as a monotonic counter,
-incrementing for each plaintext that is encrypted. Note that in addition to its
+Applications MUST ensure that each (KID, CTR) combination is used for at most
+one SFrame encryption operation. Typically this is done by assigning each sender
+a KID or set of KIDs, then having each sender use the CTR field as a monotonic
+counter, incrementing for each plaintext that is encrypted. In addition to its
 simplicity, this scheme minimizes overhead by keeping CTR values as small as
 possible.
+
+Note that this uniqueness requirement applies to the full values of KID and CTR.
+Encoded values are truncated and so might be repeated as the state of senders
+and receivers change.
 
 ## Key Management Framework
 

@@ -865,15 +865,15 @@ are updated any time a participant joins or leaves the call.
 
 The key exchange happens asynchronously and on a different path than the SFU signaling
 and media. So it may happen that when a new participant joins the call and the
-SFU side requests a key frame, the sender generates the e2ee encrypted frame
+SFU side requests a key frame, the sender generates the E2EE frame
 with a key not known by the receiver, so it will be discarded. When the sender
 updates his sending key with the new key, it will send it in a non-key frame, so
 the receiver will be able to decrypt it, but not decode it.
 
-Receiver will re-request an key frame then, but due to sender and SFU policies,
-that new key frame could take some time to be generated.
+The new Receiver will then re-request a key frame, but due to sender and SFU
+policies, that new key frame could take some time to be generated.
 
-If the sender sends a key frame when the new e2ee key is in use, the time
+If the sender sends a key frame after the new E2EE key is in use, the time
 required for the new participant to display the video is minimized.
 
 ## Partial Decoding

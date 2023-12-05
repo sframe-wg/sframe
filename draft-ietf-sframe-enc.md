@@ -515,6 +515,7 @@ Header |   | KID |  |                     |
     |                                     |
     |                                AEAD.Encrypt
     |                                     |
+    |               SFrame Ciphertext     |
     |               +---------------+     |
     +-------------->| SFrame Header |     |
                     +---------------+     |
@@ -525,7 +526,7 @@ Header |   | KID |  |                     |
                     |               |
                     +---------------+
 ~~~~~
-{: title="Encryption flow" }
+{: title="Encrypting an SFrame Ciphertext" }
 
 ### Decryption
 
@@ -562,6 +563,7 @@ discarded in a way that is indistinguishable (to an external observer) from havi
 processed a valid ciphertext.
 
 ~~~~~ aasvg
+                    SFrame Ciphertext
                     +---------------+
     +---------------| SFrame Header |
     |               +---------------+
@@ -599,7 +601,7 @@ processed a valid ciphertext.
                                   |               |
                                   +---------------+
 ~~~~~
-{: title="Decryption flow" }
+{: title="Decrypting an SFrame Ciphertext" }
 
 ## Cipher Suites
 

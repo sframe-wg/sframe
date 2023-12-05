@@ -773,7 +773,7 @@ they are removed), then the sender will need to distribute a new sender key.
 ## MLS
 
 The Messaging Layer Security (MLS) protocol provides group authenticated key
-exchange {{?MLS-ARCH=I-D.ietf-mls-architecture}} {{?MLS-PROTO=RFC9420}}.  In
+exchange {{?MLS-ARCH=I-D.ietf-mls-architecture}} {{!MLS-PROTO=RFC9420}}.  In
 principle, it could be used to instantiate the sender key scheme above, but it
 can also be used more efficiently directly.
 

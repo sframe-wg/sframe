@@ -728,14 +728,14 @@ they are removed), then the sender will need to distribute a new sender key.
 ## MLS
 
 The Messaging Layer Security (MLS) protocol provides group authenticated key
-exchange {{?I-D.ietf-mls-architecture}} {{?I-D.ietf-mls-protocol}}.  In
+exchange {{?MLS-ARCH=I-D.ietf-mls-architecture}} {{?MLS-PROTO=RFC9420}}.  In
 principle, it could be used to instantiate the sender key scheme above, but it
 can also be used more efficiently directly.
 
 MLS creates a linear sequence of keys, each of which is shared among the members
 of a group at a given point in time.  When a member joins or leaves the group, a
 new key is produced that is known only to the augmented or reduced group.  Each
-step in the lifetime of the group is know as an "epoch", and each member of the
+step in the lifetime of the group is known as an "epoch", and each member of the
 group is assigned an "index" that is constant for the time they are in the
 group.
 

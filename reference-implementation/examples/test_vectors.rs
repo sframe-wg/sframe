@@ -52,7 +52,7 @@ mod header {
                 "~~~
 kid: 0x{kid:016x}
 ctr: 0x{ctr:016x}
-header: {encoded}
+header: {encoded:8}
 ~~~"
             )
         }
@@ -187,13 +187,13 @@ mod aes_ctr_hmac {
             format!(
                 "~~~
 cipher_suite: 0x{cipher_suite:04x}
-key: {key}
-enc_key: {enc_key}
-auth_key: {auth_key}
-nonce: {nonce}
-aad: {aad}
-pt: {pt}
-ct: {ct}
+key: {key:5}
+enc_key: {enc_key:9}
+auth_key: {auth_key:10}
+nonce: {nonce:7}
+aad: {aad:5}
+pt: {pt:4}
+ct: {ct:4}
 ~~~"
             )
         }
@@ -306,41 +306,49 @@ mod sframe {
 cipher_suite: 0x{cipher_suite:04x}
 kid: 0x{kid:016x}
 ctr: 0x{ctr:016x}
-base_key: {base_key}
-sframe_key_label: {sframe_key_label}
-sframe_salt_label: {sframe_salt_label}
-sframe_secret: {sframe_secret}
-sframe_key: {sframe_key}
-sframe_salt: {sframe_salt}
-metadata: {metadata}
-nonce: {nonce}
-aad: {aad}
-pt: {pt}
-ct: {ct}
+base_key: {base_key:10}
+sframe_key_label: {sframe_key_label:18}
+sframe_salt_label: {sframe_salt_label:19}
+sframe_secret: {sframe_secret:15}
+sframe_key: {sframe_key:12}
+sframe_salt: {sframe_salt:13}
+metadata: {metadata:10}
+nonce: {nonce:7}
+aad: {aad:5}
+pt: {pt:4}
+ct: {ct:4}
 ~~~"
             )
         }
     }
 }
 
-use std::fmt::Display;
-
 use clap::{Parser, Subcommand, ValueEnum};
 use serde::{Deserialize, Serialize};
+use std::fmt::Display;
 
+/// Type Hex encapsulates a byte string that will serialize as a single hex string in JSON, or as a
+/// chunked, line-wrapped, and padded hex string in Markdown.
 struct Hex(Vec<u8>);
 
 impl Display for Hex {
+    // Divide the hex string into 16-byte chunks, each on its own line, and aligned to make space
+    // for a field name.  We abuse the "width" formatting parameter to specify how much each line
+    // after the first should be indented.
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        for (i, c) in self.0.chunks(8).enumerate() {
-            if i % 3 == 0 {
-                if i > 0 {
-                    f.write_str("\n    ")?;
-                }
-            } else {
-                f.write_str(" ")?;
+        const SIZE: usize = 16;
+
+        let n_chunks = (self.0.len() + (SIZE - 1)) / SIZE;
+        for (i, c) in self.0.chunks(SIZE).enumerate() {
+            if i > 0 {
+                f.pad("")?;
             }
+
             f.write_str(&hex::encode(c))?;
+
+            if i < n_chunks - 1 {
+                f.write_str("\n")?;
+            }
         }
         Ok(())
     }

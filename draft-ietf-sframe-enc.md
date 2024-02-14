@@ -623,7 +623,7 @@ This document defines the following cipher suites, with the constants defined in
 {{encryption-schema}}:
 
 | Name                          | Nh | Nka | Nk | Nn | Nt |
-|:------------------------------|:---|-----|----|:---|:---|
+|:------------------------------|:---|:----|:---|:---|:---|
 | `AES_128_CTR_HMAC_SHA256_80`  | 32 | 16  | 48 | 12 | 10 |
 | `AES_128_CTR_HMAC_SHA256_64`  | 32 | 16  | 48 | 12 |  8 |
 | `AES_128_CTR_HMAC_SHA256_32`  | 32 | 16  | 48 | 12 |  4 |

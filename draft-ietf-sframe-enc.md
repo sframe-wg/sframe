@@ -376,7 +376,7 @@ KID >= 8, CTR >= 8:
 
 SFrame encryption uses an AEAD encryption algorithm and hash function defined by
 the cipher suite in use (see {{cipher-suites}}).  We will refer to the following
-aspects of the AEAD algorithm below:
+aspects of the AEAD and the hash algorithm below:
 
 * `AEAD.Encrypt` and `AEAD.Decrypt` - The encryption and decryption functions
   for the AEAD.  We follow the convention of RFC 5116 {{!RFC5116}} and consider
@@ -389,6 +389,12 @@ aspects of the AEAD algorithm below:
 
 * `AEAD.Nt` - The overhead in bytes of the encryption algorithm (typically the
   size of a "tag" that is added to the plaintext)
+
+* `AEAD.Nka` - For cipher suites using the compound AEAD described in
+  {{aes-ctr-with-sha2}}, the size in bytes of a key for the underlying AES-CTR
+  algorithm
+
+* `Hash.Nh` - The size in bytes of the output of the hash function
 
 ### Key Selection
 
@@ -616,13 +622,13 @@ primitives:
 This document defines the following cipher suites, with the constants defined in
 {{encryption-schema}}:
 
-| Name                          | Nh | Nk | Nn | Nt |
-|:------------------------------|:---|----|:---|:---|
-| `AES_128_CTR_HMAC_SHA256_80`  | 32 | 48 | 12 | 10 |
-| `AES_128_CTR_HMAC_SHA256_64`  | 32 | 48 | 12 |  8 |
-| `AES_128_CTR_HMAC_SHA256_32`  | 32 | 48 | 12 |  4 |
-| `AES_128_GCM_SHA256_128`      | 32 | 16 | 12 | 16 |
-| `AES_256_GCM_SHA512_128`      | 64 | 32 | 12 | 16 |
+| Name                          | Nh | Nka | Nk | Nn | Nt |
+|:------------------------------|:---|:----|:---|:---|:---|
+| `AES_128_CTR_HMAC_SHA256_80`  | 32 | 16  | 48 | 12 | 10 |
+| `AES_128_CTR_HMAC_SHA256_64`  | 32 | 16  | 48 | 12 |  8 |
+| `AES_128_CTR_HMAC_SHA256_32`  | 32 | 16  | 48 | 12 |  4 |
+| `AES_128_GCM_SHA256_128`      | 32 | n/a | 16 | 12 | 16 |
+| `AES_256_GCM_SHA512_128`      | 64 | n/a | 32 | 12 | 16 |
 {: #cipher-suite-constants title="SFrame cipher suite constants" }
 
 Numeric identifiers for these cipher suites are defined in the IANA registry
@@ -921,6 +927,11 @@ policies, that new key frame could take some time to be generated.
 If the sender sends a key frame after the new E2EE key is in use, the time
 required for the new participant to display the video is minimized.
 
+Note that this issue does not arise for media streams that do not have
+dependencies among frames, e.g., audio streams.  In these streams, each frame is
+independently decodeable, so there is never a need to process two frames
+together which might be on two sides of a key rotation.
+
 ## Partial Decoding
 
 Some codecs support partial decoding, where individual packets can be decoded
@@ -1046,6 +1057,7 @@ Initial contents:
 
 | Value           | Name                          | Reference |
 |:----------------|:------------------------------|:----------|
+| 0x0000          | Reserved                      | RFC XXXX  |
 | 0x0001          | `AES_128_CTR_HMAC_SHA256_80`  | RFC XXXX  |
 | 0x0002          | `AES_128_CTR_HMAC_SHA256_64`  | RFC XXXX  |
 | 0x0003          | `AES_128_CTR_HMAC_SHA256_32`  | RFC XXXX  |
@@ -1061,6 +1073,19 @@ encryption and decryption operations, and how SFrame ciphertexts are delivered
 from sender to receiver (including any fragmentation and reassembly).  In this
 section, we lay out additional requirements that an integration must meet in
 order for SFrame to operate securely.
+
+In general, an application using SFrame is responsible for configuring SFrame.
+The application must first define when SFrame is applied at all.  When SFrame is
+applied, the application must define which cipher suite is to be used.  If new
+versions of SFrame are defined in the future, it will be up to the application
+to determine which version should be used.
+
+This division of responsibilities is similar to the way other media parameters
+(e.g., codecs) are typically handled in media applications, in the sense that
+they are set up in some signaling protocol, and then not described in the media.
+Applications might find it useful to extend the protocols used for negotiating
+other media parameters (e.g., SDP {{?RFC4566}}) to also negotiate parameters for
+SFrame.
 
 ## Header Value Uniqueness
 

@@ -1,0 +1,4082 @@
+{
+  "magic": "E!vIA5L86J2I",
+  "timestamp": "2022-10-16T01:06:46.348042+00:00",
+  "repo": "sframe-wg/sframe",
+  "labels": [
+    {
+      "name": "bug",
+      "description": "Something isn't working",
+      "color": "d73a4a"
+    },
+    {
+      "name": "documentation",
+      "description": "Improvements or additions to documentation",
+      "color": "0075ca"
+    },
+    {
+      "name": "duplicate",
+      "description": "This issue or pull request already exists",
+      "color": "cfd3d7"
+    },
+    {
+      "name": "enhancement",
+      "description": "New feature or request",
+      "color": "a2eeef"
+    },
+    {
+      "name": "good first issue",
+      "description": "Good for newcomers",
+      "color": "7057ff"
+    },
+    {
+      "name": "help wanted",
+      "description": "Extra attention is needed",
+      "color": "008672"
+    },
+    {
+      "name": "invalid",
+      "description": "This doesn't seem right",
+      "color": "e4e669"
+    },
+    {
+      "name": "question",
+      "description": "Further information is requested",
+      "color": "d876e3"
+    },
+    {
+      "name": "wontfix",
+      "description": "This will not be worked on",
+      "color": "ffffff"
+    },
+    {
+      "name": "Waiting for input",
+      "description": "",
+      "color": "1D76DB"
+    }
+  ],
+  "issues": [
+    {
+      "number": 1,
+      "id": "MDU6SXNzdWU2MDE0ODkyNjA=",
+      "title": "Add authentication section",
+      "url": "https://github.com/sframe-wg/sframe/issues/1",
+      "state": "CLOSED",
+      "author": "eomara",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Add a section for authentication. The idea is to use digital signature but not for every frame as it will be very expensive, instead send it every N packets, and the signature will be calcualted as the following\r\nS = Sign (H(H(p1), H(p2), H(p3))\r\nwhere H(Pi) is the hash of the packet i. \r\n\r\nTo handle signature verification with packet loss, when the signature is sent, it will also send the list of hashes it used, and the recipient should only use them for the missing packets.\r\n\r\nEx:\r\nUser A sends a signature for the lash 5 packets Sign(H(H(p1),....,H(p5)), they will also send H(p1), ..,H(p5)\r\nUser B, got only P1, P2, P3 and P5. So when the signature is received it will use H(P4) from UserA\r\n\r\nI think this can be sent over the datachannel \r\n\r\n",
+      "createdAt": "2020-04-16T21:21:01Z",
+      "updatedAt": "2020-04-30T08:36:16Z",
+      "closedAt": "2020-04-30T08:36:16Z",
+      "comments": []
+    },
+    {
+      "number": 2,
+      "id": "MDU6SXNzdWU2MDE1NDM4NzE=",
+      "title": "Add references for generic payload header extension",
+      "url": "https://github.com/sframe-wg/sframe/issues/2",
+      "state": "OPEN",
+      "author": "murillo128",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "> The SFrame payload is constructed by a generic packetizer that splits the E2E encrypted media frame into one or more RTP packet and add the SFrame header to the beginning of the first packet and auth tag to the end of the last packet.\r\n\r\nAre the generic payload header extensions already  specified somewhere else that we can refer too?",
+      "createdAt": "2020-04-16T22:21:43Z",
+      "updatedAt": "2020-04-22T19:42:50Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "eomara",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Keep it open for now, will have a separate draft for the generic header ext",
+          "createdAt": "2020-04-22T19:42:50Z",
+          "updatedAt": "2020-04-22T19:42:50Z"
+        }
+      ]
+    },
+    {
+      "number": 3,
+      "id": "MDU6SXNzdWU2MDE1NTM4MTQ=",
+      "title": "Add section for key management and key derivation",
+      "url": "https://github.com/sframe-wg/sframe/issues/3",
+      "state": "CLOSED",
+      "author": "murillo128",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Currently the only reference to keying is the following:\r\n\r\n> E2E encryption keys are exchanged between the endpoints out-of-bands using a secure channel E2E keys should be changed whenever endpoints joins or leaves the call Similar to SRTP, three keys are derived from the E2E master key 1- Salt key 2- Encryption key 3- Authentication key\r\n\r\nDo we need to specify how this 3 keys are derived from the master key? I think that we should need to specify a bit more about how to handle master keys, rotation and how to derive them. Not sure if this collide with MLS, but at least some kind of explanation would be helpful (at least for me as this is the part that I understand the less)",
+      "createdAt": "2020-04-16T22:35:16Z",
+      "updatedAt": "2020-04-30T08:36:36Z",
+      "closedAt": "2020-04-30T08:36:36Z",
+      "comments": [
+        {
+          "author": "eomara",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Emad to add this ",
+          "createdAt": "2020-04-22T19:43:55Z",
+          "updatedAt": "2020-04-22T19:43:55Z"
+        }
+      ]
+    },
+    {
+      "number": 4,
+      "id": "MDU6SXNzdWU2MDE1NTYzNzA=",
+      "title": "question about CTR collision",
+      "url": "https://github.com/sframe-wg/sframe/issues/4",
+      "state": "CLOSED",
+      "author": "murillo128",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "If I understood it correctly, the IV is formed from the CTR and salt key:\r\n\r\n```\r\nIV = (SRC||CTR) XOR Salt key\r\n```\r\n\r\nAs I don't really understand how the salt key is derived from the master key, maybe this is a dumb question, but if the salt key is the same for all the participants, wouldn't the CTR eventually collide for different participants on the conference?",
+      "createdAt": "2020-04-16T22:39:08Z",
+      "updatedAt": "2020-04-30T08:36:52Z",
+      "closedAt": "2020-04-30T08:36:52Z",
+      "comments": [
+        {
+          "author": "eomara",
+          "authorAssociation": "COLLABORATOR",
+          "body": "emad to address ",
+          "createdAt": "2020-04-22T19:44:44Z",
+          "updatedAt": "2020-04-22T19:44:44Z"
+        }
+      ]
+    },
+    {
+      "number": 5,
+      "id": "MDU6SXNzdWU2MDE1Njc1MzU=",
+      "title": "Does SFrame provide identity verification?",
+      "url": "https://github.com/sframe-wg/sframe/issues/5",
+      "state": "CLOSED",
+      "author": "murillo128",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "As the SFU can mangle the source of each stream that it is delivered to the receiver, does SFrame provide any way for the receiver to authenticate the identity of the original sender?\r\n\r\nIn MLS there is there:\r\n\r\n>   Identity Key:  A long-lived signing key pair used to authenticate the sender of a message. \r\n\r\nCan this be used in SFrame as is, or would it require any kind of modification? ",
+      "createdAt": "2020-04-16T22:55:16Z",
+      "updatedAt": "2020-04-30T08:37:09Z",
+      "closedAt": "2020-04-30T08:37:09Z",
+      "comments": [
+        {
+          "author": "eomara",
+          "authorAssociation": "COLLABORATOR",
+          "body": "This regarding virtual SSRC, like to N audio streams, this could be done by blindly trying to all keys untill a success decryption",
+          "createdAt": "2020-04-22T19:50:04Z",
+          "updatedAt": "2020-04-22T19:50:04Z"
+        }
+      ]
+    },
+    {
+      "number": 6,
+      "id": "MDU6SXNzdWU2MDM3Njc5MDQ=",
+      "title": "should we separate pure media encryption and key management?",
+      "url": "https://github.com/sframe-wg/sframe/issues/6",
+      "state": "CLOSED",
+      "author": "agouaillard-cosmo",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "there can be different use cases, with different e.g. scalability criteria, and threat/trust model. The key management can be different for each, but the media encryption would remain the same. \r\nFrom my point of view, SFrame is the pendant of 'double' but separated key management documents should be made.\r\nRight now, as-is, the SFrame document mixes media encryption with conferencing concerns. Also the trust model would be different with a native and a web app. In webrtc NV meeting in stockholm we also differentiated between 3 different trust models for web apps depending on whether you trust JS or not (and it connects to discussion about identity, ...). Then there is the connection with the large scale streaming use case, and (separately) DRM and Secure Media Extensions.\r\nWe would volunteer with Bernard A. to write a comprehensive \"trust mode for Media over the internet\" reference document. Then we could split the current document between media encryption and conference use case key management, and let the other use case be dealt with by other people. It would be cleaner, and by better defining the scope, we could fence off potential negative reviews.\r\n\r\nthoughts?",
+      "createdAt": "2020-04-21T07:20:14Z",
+      "updatedAt": "2020-04-22T19:38:14Z",
+      "closedAt": "2020-04-22T19:38:14Z",
+      "comments": [
+        {
+          "author": "eomara",
+          "authorAssociation": "COLLABORATOR",
+          "body": "we agreed key management is out of scope of this draft",
+          "createdAt": "2020-04-22T19:38:14Z",
+          "updatedAt": "2020-04-22T19:38:14Z"
+        }
+      ]
+    },
+    {
+      "number": 7,
+      "id": "MDU6SXNzdWU2MDM3NzQwNzM=",
+      "title": "SSRC Splicing attack",
+      "url": "https://github.com/sframe-wg/sframe/issues/7",
+      "state": "CLOSED",
+      "author": "agouaillard-cosmo",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "when MID/BUNDLE is used",
+      "createdAt": "2020-04-21T07:31:21Z",
+      "updatedAt": "2020-05-18T21:01:00Z",
+      "closedAt": "2020-05-18T21:01:00Z",
+      "comments": [
+        {
+          "author": "murillo128",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I think we can close this",
+          "createdAt": "2020-05-14T03:01:28Z",
+          "updatedAt": "2020-05-14T03:01:28Z"
+        }
+      ]
+    },
+    {
+      "number": 8,
+      "id": "MDU6SXNzdWU2MDM3NzUyMTE=",
+      "title": "META: parse this thread for actionable issues",
+      "url": "https://github.com/sframe-wg/sframe/issues/8",
+      "state": "CLOSED",
+      "author": "agouaillard-cosmo",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [
+        "agouaillard-cosmo"
+      ],
+      "labels": [],
+      "body": "https://mailarchive.ietf.org/arch/msg/perc/x1HjohPL6ISuoNj7eE6HEre7O1E/",
+      "createdAt": "2020-04-21T07:33:17Z",
+      "updatedAt": "2020-06-02T18:25:18Z",
+      "closedAt": "2020-06-02T18:25:18Z",
+      "comments": []
+    },
+    {
+      "number": 9,
+      "id": "MDU6SXNzdWU2MDUwMjgwNDE=",
+      "title": "Add background section",
+      "url": "https://github.com/sframe-wg/sframe/issues/9",
+      "state": "CLOSED",
+      "author": "murillo128",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [
+        "murillo128"
+      ],
+      "labels": [],
+      "body": "",
+      "createdAt": "2020-04-22T19:55:21Z",
+      "updatedAt": "2020-05-13T00:51:38Z",
+      "closedAt": "2020-05-13T00:51:38Z",
+      "comments": [
+        {
+          "author": "murillo128",
+          "authorAssociation": "COLLABORATOR",
+          "body": "better handle this on the goal section #18 ",
+          "createdAt": "2020-05-13T00:51:37Z",
+          "updatedAt": "2020-05-13T00:51:37Z"
+        }
+      ]
+    },
+    {
+      "number": 10,
+      "id": "MDU6SXNzdWU2MTA0MzAyMTk=",
+      "title": "Usage of signature with SVC or temporal scalability",
+      "url": "https://github.com/sframe-wg/sframe/issues/10",
+      "state": "CLOSED",
+      "author": "murillo128",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Currently it says that:\r\n\r\n> Because some frames could be lost and never delivered, when the signature is sent, it will also send all the hashes it used to calculate the signature, and the recipient client will only use these hashes if they didn't receive the any matching frame. For example Client A sends a signature\tevery 5 frames, so it sends the signature and Hash(Frame1), ...,Hash(Frame5), client B received only frames 1,2,4 and 5. When B receives the signature and the hashes, it will compute the hashes of frames 1,2,4 and 5 locally and use the received Hash(Frame3) to verify the signature. It is up to the application to decide what to do when signature verification fails.\r\n\r\n\r\nHowever, if using SVC, the hash will be calculated over all the frames of the different spatial layers within the same superframe/picture. However the SFU will be able to drop frames within the same stream (either spatial or temporal) to match target bitrate. \r\n\r\nIn that case, the receiver will never get a full frame and be able to check the signature. Which will render it a kind of useless feature.\r\n\r\nAn easy way of solving the issue would be to perform signature only on the base layer or take into consideration the dependency graph and send multiple signatures in parallel (each for a branch of the dependency graph). ",
+      "createdAt": "2020-04-30T22:30:16Z",
+      "updatedAt": "2020-05-14T20:35:04Z",
+      "closedAt": "2020-05-14T20:35:04Z",
+      "comments": [
+        {
+          "author": "juberti",
+          "authorAssociation": "COLLABORATOR",
+          "body": "This is a good point and suggests 'frame' really refers to each independently decodable unit.",
+          "createdAt": "2020-05-02T01:28:50Z",
+          "updatedAt": "2020-05-02T01:28:50Z"
+        },
+        {
+          "author": "murillo128",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I think I mixed two things on this issue and my original comment is not totally accurate. \r\n\r\nThe signature will contain the HMAC of all the frames it contains, so if any of them is dropped, the receiver can still compute the signature of the received ones. However, if the signature is not sent on the base layer, then it can be dropped by the SFU. \r\n\r\nI think it still makes sense to send different signatures over different layers to avoid having to send data on the wire that will be dropped by the SFU. ",
+          "createdAt": "2020-05-12T20:55:05Z",
+          "updatedAt": "2020-05-12T20:55:05Z"
+        }
+      ]
+    },
+    {
+      "number": 11,
+      "id": "MDU6SXNzdWU2MTA0NDcxOTM=",
+      "title": "repeat attack",
+      "url": "https://github.com/sframe-wg/sframe/issues/11",
+      "state": "CLOSED",
+      "author": "murillo128",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Shouldn't each of the receiver store the last frame counter received for each stream src in order to prevent the SFU of replaying old media to the endpoints as if it was new?",
+      "createdAt": "2020-04-30T23:08:27Z",
+      "updatedAt": "2020-05-05T00:56:50Z",
+      "closedAt": "2020-05-05T00:56:50Z",
+      "comments": [
+        {
+          "author": "juberti",
+          "authorAssociation": "COLLABORATOR",
+          "body": "absolutely; with no ROC, this should be fairly easy",
+          "createdAt": "2020-05-02T01:30:06Z",
+          "updatedAt": "2020-05-02T01:30:06Z"
+        },
+        {
+          "author": "eomara",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Added a section for this \"Duplicate Frame\" I initially called it \"Replay Attack Mitigation\" but it happens frequently without attack, SFrame has a mitigation for this by keeping track of all received frame Ids",
+          "createdAt": "2020-05-05T00:56:50Z",
+          "updatedAt": "2020-05-05T00:56:50Z"
+        }
+      ]
+    },
+    {
+      "number": 12,
+      "id": "MDU6SXNzdWU2MTA0NTUwODk=",
+      "title": "signature bitstream format",
+      "url": "https://github.com/sframe-wg/sframe/issues/12",
+      "state": "CLOSED",
+      "author": "murillo128",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "In the draft it says that:\r\n\r\n>when the signature is sent, it will also send all the hashes it used to calculate the signature\r\n\r\nHow is the bitstream format of the signature+hashes, also how is the signature added to the frame (after the auth tag?) and how is the presence of the signature in a frame signaled?",
+      "createdAt": "2020-04-30T23:27:08Z",
+      "updatedAt": "2020-05-14T20:34:56Z",
+      "closedAt": "2020-05-14T20:34:56Z",
+      "comments": [
+        {
+          "author": "murillo128",
+          "authorAssociation": "COLLABORATOR",
+          "body": "How about something like this for the signature format?\r\n\r\n```\r\n     0                   1                   2                   3\r\n     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1\r\n    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+\r\n    |     SLEN      |      Signature Data (length = SLEN)           |\r\n    +-+-+-+-+-+-+-+-+                                               +\r\n    :                                                               :\r\n    +               +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+\r\n    |               | HNUM  | HLEN  | HMAC 0 (length=HLEN)          :\r\n    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+\r\n    :                               | HMAC 1 (length=HLEN)          :\r\n    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+\r\n    :                               |                               :\r\n    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+                               +\r\n    :                                                               :\r\n    +                  (HMACS of size HLEN)                         +\r\n    :                                                               :\r\n    +                               +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+\r\n    :                               | HMAC N (N=HNUM,length=HLEN)   :\r\n    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+\r\n    :                               | HNUM  | HLEN  |               :\r\n    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+               +\r\n    :                                                               :\r\n    +                  (HNUM HMACS of size HLEN)                    +\r\n    :                                                               :\r\n    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+\r\n    |HNUM=0 |HLEN=0 |\r\n    +-+-+-+-+-+-+-+-+\r\n```\r\n\r\nThe signature is appended after the `CTR` block if the `S` bit of the SFrame header is 1. The first byte  (SLEN) is the length of the signature data . \r\n\r\nAfter the signature there will be 1 or more blocks of HMACs. A they can be off different size, each HMAC block will have 1 byte header with HNUM (4 bits) indicating the number of HMACs present and HLEN(4 bits) to indicate the size in bytes of each HMAC.\r\n\r\nTo indicate the end of the HMACS blocks an HMAC header block with HNUM=0 and HLEN=0 will be inserted.",
+          "createdAt": "2020-05-12T13:41:57Z",
+          "updatedAt": "2020-05-12T13:42:46Z"
+        },
+        {
+          "author": "murillo128",
+          "authorAssociation": "COLLABORATOR",
+          "body": "One question, what are the sizes of the HMACs? I have considered the ones for AES which are 4 and 8, but in GCM are bigger, right?\r\n\r\nAre they required to be even or a power of 2? we could do either length=2^(HLEN+1) or LEN=2*(HLEN+2) in that case.",
+          "createdAt": "2020-05-12T20:18:31Z",
+          "updatedAt": "2020-05-12T20:18:31Z"
+        },
+        {
+          "author": "juberti",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I don't think they have to be 2**n. SHA-256 is, of course, but SHA-384 isn't",
+          "createdAt": "2020-05-12T20:49:04Z",
+          "updatedAt": "2020-05-12T20:49:04Z"
+        }
+      ]
+    },
+    {
+      "number": 14,
+      "id": "MDU6SXNzdWU2MTIxNTE0NTk=",
+      "title": "What is the purpose of the SRC in counter?",
+      "url": "https://github.com/sframe-wg/sframe/issues/14",
+      "state": "CLOSED",
+      "author": "murillo128",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [
+        "murillo128"
+      ],
+      "labels": [],
+      "body": "I have a doubt about why an SRC for the CTR is needed at all and if a global counter for all streams would be equally secure in terms forming the IV or was due to implementation details to be able to have different context for each streams?\r\n",
+      "createdAt": "2020-05-04T20:35:34Z",
+      "updatedAt": "2020-05-13T06:23:18Z",
+      "closedAt": "2020-05-13T06:23:18Z",
+      "comments": [
+        {
+          "author": "eomara",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Because the key is used to encrypt all outgoing stream, we need a global counter for the IV to avoid counter reuse. \r\nIf we use the frame counter only, then each stream will have their own counter and IV will collide ",
+          "createdAt": "2020-05-05T00:54:25Z",
+          "updatedAt": "2020-05-05T00:54:25Z"
+        },
+        {
+          "author": "murillo128",
+          "authorAssociation": "COLLABORATOR",
+          "body": "If the frame counter is global for the participant instead that per stream, i.e. increased whenever a new frame is encoded regarding the media stream, there would be no IV collision. ",
+          "createdAt": "2020-05-05T01:31:54Z",
+          "updatedAt": "2020-05-05T01:31:54Z"
+        },
+        {
+          "author": "eomara",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Correct. But I imagine this will be more complex to implement, having a single global counter across all media sources including audio and video ",
+          "createdAt": "2020-05-05T02:41:37Z",
+          "updatedAt": "2020-05-05T02:41:37Z"
+        },
+        {
+          "author": "eomara",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Prepared a PR to change it to a global counter, however I want to make sure I understand how the counter is maintained globally, \r\nIf the frame N is encrypted in 3 different layers, they will have different counter values right?\r\n\r\nOne potential benefit of having a global counter it will free up some bits in the header which we can use as a keyId (up to 16 keys) which is nice",
+          "createdAt": "2020-05-12T08:23:01Z",
+          "updatedAt": "2020-05-12T08:23:01Z"
+        },
+        {
+          "author": "murillo128",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> If the frame N is encrypted in 3 different layers, they will have different counter values right?\r\n\r\nYes, each call to the frame encryptor which would require to atomically increment the counter. In the case of the simulcast, the same input image will produce N different encoded frames which would have their unique counter.\r\n\r\nRegarding the free bits, I was thinking in something like this:\r\n\r\n```\r\n 0 1 2 3 4 5 6 7\r\n+-+-+-+-+-+-+-+-+---------------------------------+\r\n|S|LEN  |X|  K  |    CTR... (length=LEN)          |\r\n+-+-+-+-+-+-+-+-+---------------------------------+\r\n```\r\n\r\nIf x=0 then K is the key id ( 0-7)\r\n\r\n```\r\n 0 1 2 3 4 5 6 7\r\n+-+-+-+-+-+-+-+-+---------------------------------+\r\n|S|LEN  |0| KID |    CTR... (length=LEN)          |\r\n+-+-+-+-+-+-+-+-+---------------------------------+\r\n```\r\nif x=1 then K is the length of the key that is inserted before the `CTR`\r\n\r\n```\r\n 0 1 2 3 4 5 6 7\r\n+-+-+-+-+-+-+-+-+---------------------------------+---------------------------------+\r\n|S|LEN  |1|KLEN |      KEY ID... (length=KLEN)    |    CTR... (length=LEN)          |\r\n+-+-+-+-+-+-+-+-+---------------------------------+---------------------------------+\r\n```\r\n\r\nThis would allow to avoid the extra byte for conferences with less than 9 participants. \r\n\r\nAnother option would be to always use the KLEN/KEYID and reserve that bit for extensions in the future.\r\n",
+          "createdAt": "2020-05-12T13:14:13Z",
+          "updatedAt": "2020-05-12T13:14:13Z"
+        },
+        {
+          "author": "eomara",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I like it :-) ",
+          "createdAt": "2020-05-12T19:25:17Z",
+          "updatedAt": "2020-05-12T19:25:17Z"
+        }
+      ]
+    },
+    {
+      "number": 15,
+      "id": "MDU6SXNzdWU2MTIxNTQ2NTQ=",
+      "title": "Clarification on keys",
+      "url": "https://github.com/sframe-wg/sframe/issues/15",
+      "state": "CLOSED",
+      "author": "murillo128",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "> Each client creates a 32 bytes secret key K and share it with with other participants via an E2EE channel. From K, we derive 3 secrets:\r\n\r\nWho is `we` in this context (sender or receiver, or all?). I assume that hey key is symmetric, right?\r\n\r\nCould it be possible to use instead a pair of keys one for encryption and another one for authentication so we could the signature process? \r\n",
+      "createdAt": "2020-05-04T20:41:25Z",
+      "updatedAt": "2020-05-05T00:52:42Z",
+      "closedAt": "2020-05-05T00:52:42Z",
+      "comments": [
+        {
+          "author": "eomara",
+          "authorAssociation": "COLLABORATOR",
+          "body": "All keys in this section are symmetric keys/secrets. I changed it to be\r\n\r\nEach client creates a 32 bytes secret key K and share it with with other participants via an E2EE channel. From K, three different secrets are derived:",
+          "createdAt": "2020-05-05T00:52:42Z",
+          "updatedAt": "2020-05-05T00:52:42Z"
+        }
+      ]
+    },
+    {
+      "number": 18,
+      "id": "MDU6SXNzdWU2MTY0NjA2OTg=",
+      "title": "Add a \"Goals\" section",
+      "url": "https://github.com/sframe-wg/sframe/issues/18",
+      "state": "CLOSED",
+      "author": "eomara",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [
+        "juberti"
+      ],
+      "labels": [],
+      "body": "",
+      "createdAt": "2020-05-12T08:23:33Z",
+      "updatedAt": "2020-06-02T18:25:02Z",
+      "closedAt": "2020-06-02T18:25:02Z",
+      "comments": [
+        {
+          "author": "murillo128",
+          "authorAssociation": "COLLABORATOR",
+          "body": "some ideas:\r\n\r\n- Provide an end to end media encryption mechanism which is decoupled from the key management and allows to be used with different KMS.\r\n- Low overhead.\r\n- As few changes to current SFU behaviors and implementations.\r\n- Works with non-RTP transports (like QUIC/WebTransport).\r\n",
+          "createdAt": "2020-05-12T14:15:31Z",
+          "updatedAt": "2020-05-12T14:15:31Z"
+        },
+        {
+          "author": "juberti",
+          "authorAssociation": "COLLABORATOR",
+          "body": "maybe also:\r\n- works with popular video codecs\r\n- also easy to implement in endpoints (in addition to SFUs as noted above)",
+          "createdAt": "2020-05-12T20:55:06Z",
+          "updatedAt": "2020-05-12T20:55:06Z"
+        },
+        {
+          "author": "juberti",
+          "authorAssociation": "COLLABORATOR",
+          "body": "- transparent to FEC and RTX (since payloads are already encrypted)",
+          "createdAt": "2020-05-12T21:21:50Z",
+          "updatedAt": "2020-05-12T21:21:50Z"
+        }
+      ]
+    },
+    {
+      "number": 20,
+      "id": "MDU6SXNzdWU2MTY5NjI1NDM=",
+      "title": "Add explanation of what counter is used for on receiver side",
+      "url": "https://github.com/sframe-wg/sframe/issues/20",
+      "state": "OPEN",
+      "author": "juberti",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "",
+      "createdAt": "2020-05-12T21:10:46Z",
+      "updatedAt": "2020-05-12T21:10:46Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 28,
+      "id": "MDU6SXNzdWU2MTg1MTk0NjU=",
+      "title": "Update per-lite reference",
+      "url": "https://github.com/sframe-wg/sframe/issues/28",
+      "state": "CLOSED",
+      "author": "murillo128",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [
+        "eomara"
+      ],
+      "labels": [],
+      "body": "https://tools.ietf.org/html/draft-murillo-perc-lite-01",
+      "createdAt": "2020-05-14T20:36:04Z",
+      "updatedAt": "2020-05-14T22:52:05Z",
+      "closedAt": "2020-05-14T22:52:05Z",
+      "comments": []
+    },
+    {
+      "number": 32,
+      "id": "MDU6SXNzdWU2MjA1NzA4OTM=",
+      "title": "Mapping between streams to decryption keys",
+      "url": "https://github.com/sframe-wg/sframe/issues/32",
+      "state": "OPEN",
+      "author": "eomara",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "As mentioned in the current draft , if the appllication doesn't have the mapping yet between SSRC and users id, the decryptors will try all keys from all users until it finds the mapping. \r\n\r\nHowever if the stremas are multiplexed by the SFU, the mapping is lost. There are two solutions\r\n1- Use CSRC to write the original SSRC for the multiplexed stream (Already implemented in SFrame) but this will require changes in the SFU\r\n2- Add user Id field in the sFrame payload. There is already a field for KeyId which is incremented everytime the endpoint switched to a new key, we will also add another counter for users (0, 2,,3,.. etc). This means adding extra overhead per packet\r\n\r\n\r\n\r\n",
+      "createdAt": "2020-05-18T23:38:36Z",
+      "updatedAt": "2022-09-01T09:38:21Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "murillo128",
+          "authorAssociation": "COLLABORATOR",
+          "body": "From my experience (and from the feedback from other sfu devs) CSRC mapping is widely used in SFUs.\r\n\r\nHow about replacing the keyId by an sender id (as the one present in MLS)? \r\n\r\n",
+          "createdAt": "2020-05-18T23:44:32Z",
+          "updatedAt": "2020-05-18T23:44:32Z"
+        },
+        {
+          "author": "murillo128",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Also, if we use CSRCs we would have to handle SSRC collisions between remote participants, and we definitively don't want to go that route. ",
+          "createdAt": "2020-05-18T23:59:31Z",
+          "updatedAt": "2020-05-18T23:59:31Z"
+        },
+        {
+          "author": "murillo128",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Given that we want SFrame/SPacket to be protocol agnostic, both in them of transport and key management, we can't rely on using CSRCs mapping for this.\r\n\r\nSo we have the following options:\r\n- Signal only the senderId on the SFrame packet, but not the keyId. The receiver would need to keep track of the valid keys for the sender.\r\n- Signal both the senderId and the keyId on the SFrame packet.\r\n- Signal only the keyId and require the senderId to be signaled by the KMS.\r\n\r\nI would prefer the first one, as it would also allow to bring back the key ratcheting feature back. \r\n",
+          "createdAt": "2022-09-01T09:38:21Z",
+          "updatedAt": "2022-09-01T09:38:21Z"
+        }
+      ]
+    },
+    {
+      "number": 34,
+      "id": "MDU6SXNzdWU2MjA5NDA2ODk=",
+      "title": "V1 feedback: VBR and threat model - protection against speaker detection",
+      "url": "https://github.com/sframe-wg/sframe/issues/34",
+      "state": "CLOSED",
+      "author": "agouaillard-cosmo",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "- VBR and threat model: I take it from reading the document that you consider attacks exploiting VBR to be out of scope in this document?\r\nYou do not attempt to hide who is speaking in the the video conference.\r\n\r\ncredit: Frederic Jacobs",
+      "createdAt": "2020-05-19T12:35:06Z",
+      "updatedAt": "2022-10-06T08:42:07Z",
+      "closedAt": "2022-10-06T08:42:07Z",
+      "comments": [
+        {
+          "author": "murillo128",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Active speaker and VBR vs CBR are out of the scope of SFrame",
+          "createdAt": "2022-10-06T08:42:07Z",
+          "updatedAt": "2022-10-06T08:42:07Z"
+        }
+      ]
+    },
+    {
+      "number": 35,
+      "id": "MDU6SXNzdWU2MjA5NDExOTQ=",
+      "title": "V1 feedback: KeyID and substitution",
+      "url": "https://github.com/sframe-wg/sframe/issues/35",
+      "state": "OPEN",
+      "author": "agouaillard-cosmo",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "- KeyID and substitution:\r\nI\u2019m aware that you leave it to the higher layer to choose what Key IDs they use. But you suggest counters for keys? That would leak quite bit of metadata and would not be tied to the key itself. Did you consider using a truncated diversified key derivation for deriving the KeyID? \r\n\r\nCredits: Frederic Jacobs",
+      "createdAt": "2020-05-19T12:35:57Z",
+      "updatedAt": "2020-06-02T18:24:22Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 36,
+      "id": "MDU6SXNzdWU2MjA5NDE3OTM=",
+      "title": "V1 feedback: If signatures can be stripped, what s the point?",
+      "url": "https://github.com/sframe-wg/sframe/issues/36",
+      "state": "CLOSED",
+      "author": "agouaillard-cosmo",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "- The use of the signature bit is unclear to me. There is a downgrade attack if the receivers are not aware that they should be expecting signatures to be there. From my read, you include that flag to figure out if you should be adding a signature for that frame. But what\u2019s confusing to me is that you should know ahead of time what frames would have a signature, otherwise, an attacker can just strip that bit and signatures would never be verified. What am I missing?\r\n\r\nCredits: Frederic Jacobs",
+      "createdAt": "2020-05-19T12:36:54Z",
+      "updatedAt": "2022-10-06T08:43:31Z",
+      "closedAt": "2022-10-06T08:43:31Z",
+      "comments": [
+        {
+          "author": "murillo128",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Signatures have been removed from the spec. ",
+          "createdAt": "2022-10-06T08:43:31Z",
+          "updatedAt": "2022-10-06T08:43:31Z"
+        }
+      ]
+    },
+    {
+      "number": 37,
+      "id": "MDU6SXNzdWU2MjA5NDIxMjQ=",
+      "title": "V1 feedback: Resigning attacks",
+      "url": "https://github.com/sframe-wg/sframe/issues/37",
+      "state": "OPEN",
+      "author": "agouaillard-cosmo",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "- Resigning attacks: It\u2019s unclear how the frames are signed but it seems like unless you have some identity binding in the key derivation, re-signing attacks would be possible.\r\n\r\nCredits: Frederic Jacobs",
+      "createdAt": "2020-05-19T12:37:28Z",
+      "updatedAt": "2020-06-02T18:23:55Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 38,
+      "id": "MDU6SXNzdWU2MjA5NDI1NjU=",
+      "title": "V1 feedback: what s the point of signature is they can be ignored",
+      "url": "https://github.com/sframe-wg/sframe/issues/38",
+      "state": "CLOSED",
+      "author": "agouaillard-cosmo",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "- What would be the point of using signatures if the application decides to proceed when signature verification fails?\r\n\r\nCredits: Frederic Jacobs.",
+      "createdAt": "2020-05-19T12:38:07Z",
+      "updatedAt": "2022-10-06T08:44:17Z",
+      "closedAt": "2022-10-06T08:44:17Z",
+      "comments": [
+        {
+          "author": "murillo128",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Signatures have been removed from the Sframe spec.",
+          "createdAt": "2022-10-06T08:44:17Z",
+          "updatedAt": "2022-10-06T08:44:17Z"
+        }
+      ]
+    },
+    {
+      "number": 39,
+      "id": "MDU6SXNzdWU2MjA5NDM2Mjg=",
+      "title": "V1 feedback: why AES-128 and not AES-256",
+      "url": "https://github.com/sframe-wg/sframe/issues/39",
+      "state": "OPEN",
+      "author": "agouaillard-cosmo",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "- Why are you using AES-128 for the encryption of the frames and not AES-256? \r\nKey = HKDF(K, \u2019SFrameEncryptionKey\u2019, 16)\r\n\r\nCredits: Frederic Jacobs",
+      "createdAt": "2020-05-19T12:39:47Z",
+      "updatedAt": "2020-06-02T18:23:21Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 40,
+      "id": "MDU6SXNzdWU2MjA5NDQwMTU=",
+      "title": "V1 feedback: proposal to rename \"Salt Key\" to IV_0",
+      "url": "https://github.com/sframe-wg/sframe/issues/40",
+      "state": "OPEN",
+      "author": "agouaillard-cosmo",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "- The name of \u201cSalt Key\u201d for contributing to the IV is confusing to me. \u201cIV_0\u201d or something would make more sense to me.\r\n\r\nCredits: Frederic Jacobs",
+      "createdAt": "2020-05-19T12:40:26Z",
+      "updatedAt": "2020-06-02T18:22:52Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 41,
+      "id": "MDU6SXNzdWU2MjA5NDQ0NDg=",
+      "title": "V1 feedback: Is there or should there be a retry expiration?",
+      "url": "https://github.com/sframe-wg/sframe/issues/41",
+      "state": "OPEN",
+      "author": "agouaillard-cosmo",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "- I assume there is a retry expiration, otherwise this could cause some quite confusing UX?\r\nFor frames that are failed to decrypt because there is not key available yet, SFrame will buffer them and retries to decrypt them once a key is received. \r\n\r\nCredits: Frederic Jacobs",
+      "createdAt": "2020-05-19T12:41:09Z",
+      "updatedAt": "2020-06-02T18:23:04Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 42,
+      "id": "MDU6SXNzdWU2MjA5NDU5Nzk=",
+      "title": "V1 feedback: key ratcheting on joins and rolling on leaves.",
+      "url": "https://github.com/sframe-wg/sframe/issues/42",
+      "state": "OPEN",
+      "author": "agouaillard-cosmo",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "- I like the key ratcheting on joins and rolling on leaves. But the following logic seems fragile and can lead to painful situations to debug:\r\nWhen SFrame decryptor fails to decrypt one of the frames, it automatically ratchets the key forward and retries again until one ratchet succeed or it reaches the maximum allowed ratcheting window \r\n\r\nCredits: Frederic Jacobs.",
+      "createdAt": "2020-05-19T12:43:26Z",
+      "updatedAt": "2020-06-02T18:22:37Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 43,
+      "id": "MDU6SXNzdWU2MjA5NDc2NzQ=",
+      "title": "V1 feedback:  request for clarification about the decryption step",
+      "url": "https://github.com/sframe-wg/sframe/issues/43",
+      "state": "OPEN",
+      "author": "agouaillard-cosmo",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "- I\u2019m unable to understand the beginning of this sentence (on the decrypts):\r\nSFrame will set the key immediately on the decrypts when it is received and destroys the old key material, so if the key manager sends a new key during the call, it is recommended not to start using it immediately and wait for a short time to make sure it is delivered to all other clients before using it to decrease the number of decryption failure \r\n\r\nCredits: Frederic Jacobs",
+      "createdAt": "2020-05-19T12:46:05Z",
+      "updatedAt": "2020-06-02T18:22:10Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 44,
+      "id": "MDU6SXNzdWU2MjA5NDg0NzQ=",
+      "title": "V1 feedback: What are you trying to mitigate with signatures?",
+      "url": "https://github.com/sframe-wg/sframe/issues/44",
+      "state": "CLOSED",
+      "author": "agouaillard-cosmo",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "- What threat are you exactly trying to mitigate with the use of signatures? I assume it\u2019s a threat model where a malicious user in the group colludes with the server to inject something modified sound/video coming from another user. Is that the main concern?\r\n\r\nCredits: Frederic Jacobs",
+      "createdAt": "2020-05-19T12:47:26Z",
+      "updatedAt": "2022-10-06T08:45:41Z",
+      "closedAt": "2022-10-06T08:45:41Z",
+      "comments": [
+        {
+          "author": "murillo128",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Signatures have been removed from the Sframe spec.",
+          "createdAt": "2022-10-06T08:45:41Z",
+          "updatedAt": "2022-10-06T08:45:41Z"
+        }
+      ]
+    },
+    {
+      "number": 45,
+      "id": "MDU6SXNzdWU2MjA5NDg5NjY=",
+      "title": "V1 feedback: Trivial: complete authentication sentence",
+      "url": "https://github.com/sframe-wg/sframe/issues/45",
+      "state": "OPEN",
+      "author": "agouaillard-cosmo",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "- When discussing authentication you\u2019re missing the word verification in this sentence: \r\nIf the signature is sent on a frame which layer that is dropped by the SFU, the receiver will not receive it and will not be able to perform the signature of the other received layers.\r\n\r\nCredits: Frederic Jacobs",
+      "createdAt": "2020-05-19T12:48:13Z",
+      "updatedAt": "2020-06-02T18:21:43Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 46,
+      "id": "MDU6SXNzdWU2MjA5NDkyOTE=",
+      "title": "V1 feedback: Questions / Clarification request about cipher suite.",
+      "url": "https://github.com/sframe-wg/sframe/issues/46",
+      "state": "OPEN",
+      "author": "agouaillard-cosmo",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "- For the ciphersuite:\r\n\t- Why CM over CTR acronym in the ciphersuite?\r\n\t- What\u2019s the reasoning on the 80-bits and 32-bits MACs?\r\n",
+      "createdAt": "2020-05-19T12:48:47Z",
+      "updatedAt": "2022-10-06T08:46:20Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "murillo128",
+          "authorAssociation": "COLLABORATOR",
+          "body": "CM acronym renamed to CTR",
+          "createdAt": "2022-10-06T08:46:20Z",
+          "updatedAt": "2022-10-06T08:46:20Z"
+        }
+      ]
+    },
+    {
+      "number": 47,
+      "id": "MDU6SXNzdWU2MjA5NTAwMjM=",
+      "title": "V1 feedback:  typo in the key ID sequential feature explanation",
+      "url": "https://github.com/sframe-wg/sframe/issues/47",
+      "state": "OPEN",
+      "author": "agouaillard-cosmo",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "- Should be \"every\"\r\nKeys must have a sequential id starting from 0 and incremented eery time a new key is generated for this endpoint.\r\n\r\nCredits: Frederic Jacobs.",
+      "createdAt": "2020-05-19T12:49:57Z",
+      "updatedAt": "2020-06-02T18:20:57Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 48,
+      "id": "MDU6SXNzdWU2NjMzMTk5Nzk=",
+      "title": "Use QUIC-style varints",
+      "url": "https://github.com/sframe-wg/sframe/issues/48",
+      "state": "OPEN",
+      "author": "bifurcation",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Instead of inventing a new variable-length integer encoding, we should consider the [scheme used in QUIC](https://tools.ietf.org/html/draft-ietf-quic-transport-17#section-16).  The size in bytes for different ranges of integers is as follows:\r\n\r\n| Range          | SFrame | QUIC |\r\n|:---------------|:------:|:----:|\r\n| 0 ... 2^3 - 1  |    .5  |  1   |\r\n|   ... 2^6 - 1  |   1.5  |  1   | \r\n|   ... 2^8 - 1  |   1.5  |  2   |\r\n|   ... 2^14 - 1 |   2.5  |  2   |\r\n|   ... 2^16 - 1 |   2.5  |  4   |\r\n|   ... 2^24 - 1 |   3.5  |  4   |\r\n|   ... 2^30 - 1 |   4.5  |  4   |\r\n|   ... 2^32 - 1 |   4.5  |  8   |\r\n|   ... 2^40 - 1 |   5.5  |  8   |\r\n|   ... 2^48 - 1 |   6.5  |  8   |\r\n|   ... 2^56 - 1 |   7.5  |  8   |\r\n|   ... 2^62 - 1 |   6.5  |  8   |\r\n\r\nBasically it doesn't pack down quite as small as the current thing, but it avoids having to deal with half-bytes.\r\n",
+      "createdAt": "2020-07-21T21:27:45Z",
+      "updatedAt": "2020-07-21T21:27:45Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 49,
+      "id": "MDU6SXNzdWU2NzM2OTE4ODA=",
+      "title": "IV calculation issue",
+      "url": "https://github.com/sframe-wg/sframe/issues/49",
+      "state": "CLOSED",
+      "author": "eomara",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "The current IV equation is IVCounter XOR SaltKey. This will lead to IV reuse across multiple blocks in AES-CTR\r\nfor example\r\n\r\nFrame 0 AES(0) XOR Block0, AES(1) XOR Block1, AES(2) XOR Block2,...\r\nFrame 1 AES (1) XOR Block0, AES(2) XOR Block1, AES(3) XOR Block2,..\r\nFrame 2 AES(2) XOR Block0, AES(3) XOR Block1, AES(4) XOR Block2,...\r\n\r\nThe equation should be changed to shift the frame counter to high significant 8 bytes and the other 8 bytes will be zeros then do the XOR\r\n\r\nFrameCounter8 = DecodeVarIntIntoInt64(counter)\r\nFrameCounter16 = FrameCounter << 8\r\nIV = FrameCounter16 XOR SaltKey",
+      "createdAt": "2020-08-05T16:38:56Z",
+      "updatedAt": "2020-08-05T20:52:44Z",
+      "closedAt": "2020-08-05T20:52:44Z",
+      "comments": []
+    },
+    {
+      "number": 56,
+      "id": "MDU6SXNzdWU3MTA4MjE3Mzg=",
+      "title": "Mapping between key/counter lengths and their 3 bit fields is unclear",
+      "url": "https://github.com/sframe-wg/sframe/issues/56",
+      "state": "CLOSED",
+      "author": "youennf",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "The spec says: Counter Length (LEN): 3 bits This field indicates the length of the CTR fields in bytes.\r\nThis probably means 000 is 1 byte, 001 is 2 bytes, and so on... It would be good to clarify this.",
+      "createdAt": "2020-09-29T06:57:55Z",
+      "updatedAt": "2021-04-09T18:36:16Z",
+      "closedAt": "2021-04-09T18:36:16Z",
+      "comments": []
+    },
+    {
+      "number": 57,
+      "id": "MDU6SXNzdWU4MDU0MTE5NzE=",
+      "title": "Provide hooks to W3C SFrame transform",
+      "url": "https://github.com/sframe-wg/sframe/issues/57",
+      "state": "OPEN",
+      "author": "youennf",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "https://w3c.github.io/webrtc-insertable-streams/#sframe defines a native SFrame transform.\r\nIt would be good to define hooks in this spec that could be referred from https://w3c.github.io/webrtc-insertable-streams/#sframe.\r\nI can see the following hooks that might be worth exposing:\r\n- Encrypting/decrypting a frame\r\n- Setting keys\r\n- Ratcheting\r\n- Error reporting, especially on decoding side: decryption failure, missing key...",
+      "createdAt": "2021-02-10T11:05:56Z",
+      "updatedAt": "2021-02-10T11:05:56Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 62,
+      "id": "MDU6SXNzdWU4NTQ3MjYyNDM=",
+      "title": "Spec is not clear about defined cypher suites",
+      "url": "https://github.com/sframe-wg/sframe/issues/62",
+      "state": "CLOSED",
+      "author": "youennf",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Spec is defining AES_CM_128_HMAC_SHA256_8 and AES_CM_128_HMAC_SHA256_4.\r\nLater in the spec, a tag of 80 bytes is mentioned for video.\r\nShould the spec also define AES_CM_128_HMAC_SHA256_10?",
+      "createdAt": "2021-04-09T17:34:47Z",
+      "updatedAt": "2022-09-14T00:40:09Z",
+      "closedAt": "2022-09-14T00:40:09Z",
+      "comments": []
+    },
+    {
+      "number": 63,
+      "id": "MDU6SXNzdWU4NTQ3MzMzNzA=",
+      "title": "Spec is not clear about the metadata field",
+      "url": "https://github.com/sframe-wg/sframe/issues/63",
+      "state": "OPEN",
+      "author": "youennf",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "The spec defines aad has header+metadata.\r\nThe metadata is expected to be generated by the encoder and then the metadata will be serialized in RTP header extensions.\r\nThe metadata is used to compute the authentication tag.\r\n\r\nThis makes it a requirement for metadata to be serialised to and deserialised from RTP header extensions without any loss of information. Otherwise, the receiver will not be able to validate the authentication tag.\r\n\r\nGiven the metadata should be redundant with the actual content, it is always possible for the receiver to validate the metadata  with the decrypted content.\r\n\r\nThat makes me wonder what we are trying to protect from by authenticating the metadata.\r\nIf useful, it would be good to give some advice on what metadata is expected to go there.",
+      "createdAt": "2021-04-09T17:45:32Z",
+      "updatedAt": "2021-04-11T14:46:39Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "murillo128",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I am not sure what is the metadata here, I would not make it e2ee authenticated. For example, the Dependency Descriptor is modified by the SFU to indicate which are the active layers (i.e. the ones being forwarded)",
+          "createdAt": "2021-04-09T17:49:24Z",
+          "updatedAt": "2021-04-09T17:49:24Z"
+        },
+        {
+          "author": "youennf",
+          "authorAssociation": "COLLABORATOR",
+          "body": "For RTP, I would think the metadata field would be empty as the data would probably go in RTP header extensions.\r\nMaybe other transports have different requirements but I do not really like having metadata be sometimes in the SFrame payload and sometimes not in the SFrame payload depending on the underlying transport.",
+          "createdAt": "2021-04-11T14:46:39Z",
+          "updatedAt": "2021-04-11T14:46:39Z"
+        }
+      ]
+    },
+    {
+      "number": 64,
+      "id": "MDU6SXNzdWU4NTQ3MzUyMjU=",
+      "title": "Ciphersuites table is missing the Nh value",
+      "url": "https://github.com/sframe-wg/sframe/issues/64",
+      "state": "CLOSED",
+      "author": "youennf",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "It would be nice to update the table to include the Nh value to improve readability.\r\nIt seems Nh would be equal to 32 for the first 3 and 64 for the last.\r\n",
+      "createdAt": "2021-04-09T17:48:31Z",
+      "updatedAt": "2021-04-12T19:47:51Z",
+      "closedAt": "2021-04-12T19:47:51Z",
+      "comments": []
+    },
+    {
+      "number": 65,
+      "id": "MDU6SXNzdWU4NTQ3Mzg1MjM=",
+      "title": "Clarify derive_subkeys",
+      "url": "https://github.com/sframe-wg/sframe/issues/65",
+      "state": "CLOSED",
+      "author": "youennf",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "There is probably a small typo:\r\naead_secret = HKDF-Extract(K, 'SFrame10 AES CM AEAD')\r\nShould probably be read as:\r\naead_secret = HKDF-Extract(key, 'SFrame10 AES CM AEAD')\r\n\r\nAlso derive_subkeys is taking a key as input, and it is not really clear what is the key value.\r\nMy understanding is that it is 'sframe_key' that we are using as input.\r\nIf so, it would be good to clarify the spec accordingly.",
+      "createdAt": "2021-04-09T17:53:58Z",
+      "updatedAt": "2021-04-12T19:48:47Z",
+      "closedAt": "2021-04-12T19:48:47Z",
+      "comments": []
+    },
+    {
+      "number": 70,
+      "id": "I_kwDODz8O_c5CZsJ7",
+      "title": "Update draft according feedback received during the call for adoption",
+      "url": "https://github.com/sframe-wg/sframe/issues/70",
+      "state": "OPEN",
+      "author": "youennf",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Some requests for change have been received during the call for adoption, in particular:\r\n- Bernard Aboba feedback at https://mailarchive.ietf.org/arch/msg/sframe/G3jC1bqZNqYz0dFr9JBOqni1lB0/\r\n- Eric Rescorla feedback at https://mailarchive.ietf.org/arch/msg/sframe/yWMP6BRT_SGlhjTiaOmgfBVTVmw/\r\n\r\nWe should split this feedback in manageable issues.",
+      "createdAt": "2022-01-25T15:28:17Z",
+      "updatedAt": "2022-01-25T15:28:17Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 76,
+      "id": "I_kwDODz8O_c5Feo5h",
+      "title": "Provide clear guidance about replay",
+      "url": "https://github.com/sframe-wg/sframe/issues/76",
+      "state": "OPEN",
+      "author": "bifurcation",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "The document is currently unclear on what replay checks are required.  We should decide what replay protections are required and describe them clearly.\r\n\r\nFor background, SRTP has [fairly stringent anti-replay protections](https://datatracker.ietf.org/doc/html/rfc3711#section-3.3.2), which accounts for a nontrivial amount of code in libsrtp.\r\n\r\nThe context for SFrame seems a bit different, since the outer transport will typically provide anti-replay support (SRTP and QUIC both do, for example).  So you're only worried about the SFU replaying frames.  But that still seems worth some level of defense.\r\n\r\nMaybe a couple of simple bounds would do here?  Just tracking the highest CTR and rejecting frames with CTR older than a specific age would cover the worst abuse cases, like copy/pasting from different segments of the stream.  \r\n\r\nThat still wouldn't prevent the server from looping indefinitely over the replay window, say to show a receiver as silent when they were actually transmitting.  To address that, you would need a actual anti-replay, probably allowing some number >1 of legitimate replays.  So it seems like that either leads to SRTP-like full anti-replay (plus a bit), or to deciding that to leave this risk un-addressed.",
+      "createdAt": "2022-03-10T19:57:42Z",
+      "updatedAt": "2022-10-06T13:57:14Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "murillo128",
+          "authorAssociation": "COLLABORATOR",
+          "body": "We would need to specify the CTR as an incremental counter (which I am in favor of). \r\n\r\nI think that a time based replay window vs a counter based one could solve the issue. I will try to work on an algorithm to solve this. ",
+          "createdAt": "2022-10-06T08:55:06Z",
+          "updatedAt": "2022-10-06T08:55:06Z"
+        },
+        {
+          "author": "bifurcation",
+          "authorAssociation": "COLLABORATOR",
+          "body": "FWIW, I would probably be fine locking CTR to be a counter (as the name already suggests!).  The only lingering doubt in my mind is whether you might want to support multiple senders under the same KID by segmenting the CTR space.  But that's probably a bad idea, and KID should actually identify the sender.\r\n\r\nI'm not sure what you mean by \"time based\" vs. \"counter based\", but happy to review an algorithm proposal :)",
+          "createdAt": "2022-10-06T12:45:56Z",
+          "updatedAt": "2022-10-06T12:45:56Z"
+        },
+        {
+          "author": "murillo128",
+          "authorAssociation": "COLLABORATOR",
+          "body": ">FWIW, I would probably be fine locking CTR to be a counter (as the name already suggests!). The only lingering doubt in my mind is whether you might want to support multiple senders under the same KID by segmenting the CTR space. But that's probably a bad idea, and KID should actually identify the sender.\r\n\r\n+1\r\n\r\n> I'm not sure what you mean by \"time based\" vs. \"counter based\"\r\n\r\nMe neither.. yet \ud83e\udd23",
+          "createdAt": "2022-10-06T13:57:14Z",
+          "updatedAt": "2022-10-06T13:57:14Z"
+        }
+      ]
+    },
+    {
+      "number": 79,
+      "id": "I_kwDODz8O_c5J93Ff",
+      "title": "Rename branch master -> main",
+      "url": "https://github.com/sframe-wg/sframe/issues/79",
+      "state": "CLOSED",
+      "author": "martinthomson",
+      "authorAssociation": "MEMBER",
+      "assignees": [],
+      "labels": [],
+      "body": "With permission, I can manage this.",
+      "createdAt": "2022-05-19T01:47:39Z",
+      "updatedAt": "2022-09-01T09:57:41Z",
+      "closedAt": "2022-09-01T09:57:41Z",
+      "comments": [
+        {
+          "author": "murillo128",
+          "authorAssociation": "COLLABORATOR",
+          "body": "seems this is already done",
+          "createdAt": "2022-09-01T09:57:41Z",
+          "updatedAt": "2022-09-01T09:57:41Z"
+        }
+      ]
+    },
+    {
+      "number": 80,
+      "id": "I_kwDODz8O_c5J93rv",
+      "title": "Enable CI",
+      "url": "https://github.com/sframe-wg/sframe/issues/80",
+      "state": "CLOSED",
+      "author": "martinthomson",
+      "authorAssociation": "MEMBER",
+      "assignees": [],
+      "labels": [],
+      "body": "With permission, I can set this up so that you get automated gh-pages generation and publication based on tags (rather than manual).",
+      "createdAt": "2022-05-19T01:49:14Z",
+      "updatedAt": "2022-10-13T23:46:04Z",
+      "closedAt": "2022-10-13T23:46:04Z",
+      "comments": [
+        {
+          "author": "youennf",
+          "authorAssociation": "COLLABORATOR",
+          "body": "That would be good to have.\r\nWhat do you need to do to make this happen?",
+          "createdAt": "2022-09-15T16:57:03Z",
+          "updatedAt": "2022-09-15T16:57:03Z"
+        },
+        {
+          "author": "martinthomson",
+          "authorAssociation": "MEMBER",
+          "body": "Just your consent.  And a little time.",
+          "createdAt": "2022-09-18T02:21:50Z",
+          "updatedAt": "2022-09-18T02:21:50Z"
+        },
+        {
+          "author": "youennf",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I am interested, editors probably as well.\r\nLet me know how I can help there.",
+          "createdAt": "2022-10-13T14:33:00Z",
+          "updatedAt": "2022-10-13T14:33:00Z"
+        },
+        {
+          "author": "martinthomson",
+          "authorAssociation": "MEMBER",
+          "body": "It looks like we're already rolling according to the actions logs.  The [preview](https://sframe-wg.github.io/sframe/draft-ietf-sframe-enc.html) seems relatively current as well.  Marking this as done.",
+          "createdAt": "2022-10-13T23:46:04Z",
+          "updatedAt": "2022-10-13T23:46:04Z"
+        }
+      ]
+    },
+    {
+      "number": 84,
+      "id": "I_kwDODz8O_c5Ps9Jz",
+      "title": "What hash is used in HKDF ",
+      "url": "https://github.com/sframe-wg/sframe/issues/84",
+      "state": "CLOSED",
+      "author": "fluffy",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "\r\nAs far as I can tell, the document does not defined which hash function is used in the KDF. ( note that RFC 5869 does nod do this and is just an information doc about HKDF in general ... ",
+      "createdAt": "2022-08-12T13:06:07Z",
+      "updatedAt": "2022-08-13T03:17:13Z",
+      "closedAt": "2022-08-13T03:17:13Z",
+      "comments": []
+    },
+    {
+      "number": 85,
+      "id": "I_kwDODz8O_c5QKm_a",
+      "title": "Are the test vectors provided in draft 03 outdated?",
+      "url": "https://github.com/sframe-wg/sframe/issues/85",
+      "state": "OPEN",
+      "author": "roidanton",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "Having an implementation based on draft 03, the test vector tests start to fail when the extended key is used and the implementation adds +1 to the header value of `LEN` and `KLEN` (as described in draft 03). When I correctly understand the commit [Restore test vectors instructions](https://github.com/sframe-wg/sframe/commit/ab6f855ee15476b8ffb872f440485090087212c6), they are outdated and it is expected that a test fails which uses the test vectors for a draft 03 implementation. Is that assumption correct?",
+      "createdAt": "2022-08-19T22:56:44Z",
+      "updatedAt": "2022-08-19T22:58:59Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 86,
+      "id": "I_kwDODz8O_c5QzR_M",
+      "title": "Should we separate the SFrame specification in smaller specifications",
+      "url": "https://github.com/sframe-wg/sframe/issues/86",
+      "state": "OPEN",
+      "author": "youennf",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "As mentioned in feedback given during the review (see https://github.com/sframe-wg/sframe/issues/70), the idea to split the spec in smaller entities was brought up.\r\nFor instance, a spec about just the format, and a spec about E2E encryption usage.",
+      "createdAt": "2022-08-30T11:33:14Z",
+      "updatedAt": "2022-08-30T11:35:52Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "youennf",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I started an initial version of a format only spec at https://github.com/youennf/sframe/tree/format-specific-spec.\r\nIt is basically the current spec with some parts removed.",
+          "createdAt": "2022-08-30T11:35:52Z",
+          "updatedAt": "2022-08-30T11:35:52Z"
+        }
+      ]
+    },
+    {
+      "number": 87,
+      "id": "I_kwDODz8O_c5R9RHC",
+      "title": "Allow the application to provide additional authenticated data",
+      "url": "https://github.com/sframe-wg/sframe/issues/87",
+      "state": "OPEN",
+      "author": "bifurcation",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Some applications might wish to attach information to an SFrame-encrypted payload that is visible to intermediaries but authenticated end-to-end.\r\n\r\nCurrently, the only AAD provided to the SFrame AEAD operation is the SFrame header.  It seems like we could allow the application to append arbitrary AAD after that.  Since the SFrame header is parseable, there would be no risk of confusion between the header part of the AAD and the application-provided part.",
+      "createdAt": "2022-09-15T19:58:15Z",
+      "updatedAt": "2022-09-15T19:58:15Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 88,
+      "id": "I_kwDODz8O_c5TUsdI",
+      "title": "Show intermediate keys in test vectors",
+      "url": "https://github.com/sframe-wg/sframe/issues/88",
+      "state": "OPEN",
+      "author": "bifurcation",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "The AES-CTR + HMAC construction derives intermediate encryption and authentication keys.  It would be helpful for debugging if the test vectors could show these intermediate keys as well as the base key.",
+      "createdAt": "2022-10-05T14:54:03Z",
+      "updatedAt": "2022-10-05T14:54:03Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 89,
+      "id": "I_kwDODz8O_c5TbAkb",
+      "title": "Update quantitative analysis to show per-packet vs. per-frame differences",
+      "url": "https://github.com/sframe-wg/sframe/issues/89",
+      "state": "OPEN",
+      "author": "bifurcation",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "",
+      "createdAt": "2022-10-06T13:07:13Z",
+      "updatedAt": "2022-10-06T13:07:13Z",
+      "closedAt": null,
+      "comments": []
+    }
+  ],
+  "pulls": [
+    {
+      "number": 13,
+      "id": "MDExOlB1bGxSZXF1ZXN0NDExODk3NzQz",
+      "title": "Add SFU section",
+      "url": "https://github.com/sframe-wg/sframe/pull/13",
+      "state": "MERGED",
+      "author": "murillo128",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "for #9",
+      "createdAt": "2020-04-30T23:42:09Z",
+      "updatedAt": "2020-05-01T05:26:27Z",
+      "baseRepository": "sframe-wg/sframe",
+      "baseRefName": "master",
+      "baseRefOid": "d6dc5e0e452f4fe1ecff0dc22d3792349c3de9fa",
+      "headRepository": null,
+      "headRefName": "master",
+      "headRefOid": "9c275e584b4849f909d8560bec377eed128fd988",
+      "closedAt": "2020-05-01T00:46:58Z",
+      "mergedAt": "2020-05-01T00:46:58Z",
+      "mergedBy": "eomara",
+      "mergeCommit": {
+        "oid": "5459dff272a57dddccd6f9f932182231aab47ec5"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "MDE3OlB1bGxSZXF1ZXN0UmV2aWV3NDAzOTY4NTQw",
+          "commit": {
+            "abbreviatedOid": "9c275e5"
+          },
+          "author": "eomara",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2020-05-01T00:46:51Z",
+          "updatedAt": "2020-05-01T00:46:51Z",
+          "comments": []
+        },
+        {
+          "id": "MDE3OlB1bGxSZXF1ZXN0UmV2aWV3NDA0MDI2MTgz",
+          "commit": {
+            "abbreviatedOid": "9c275e5"
+          },
+          "author": "agouaillard-cosmo",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2020-05-01T05:25:55Z",
+          "updatedAt": "2020-05-01T05:25:55Z",
+          "comments": [
+            {
+              "originalPosition": 31,
+              "body": "typo: malicious",
+              "createdAt": "2020-05-01T05:25:55Z",
+              "updatedAt": "2020-05-01T05:25:55Z"
+            }
+          ]
+        },
+        {
+          "id": "MDE3OlB1bGxSZXF1ZXN0UmV2aWV3NDA0MDI2Mjc4",
+          "commit": {
+            "abbreviatedOid": "9c275e5"
+          },
+          "author": "agouaillard-cosmo",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2020-05-01T05:26:26Z",
+          "updatedAt": "2020-05-01T05:26:27Z",
+          "comments": [
+            {
+              "originalPosition": 34,
+              "body": "typo: SSRC",
+              "createdAt": "2020-05-01T05:26:27Z",
+              "updatedAt": "2020-05-01T05:26:27Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 16,
+      "id": "MDExOlB1bGxSZXF1ZXN0NDEzMTk1Mjk3",
+      "title": "Update draft-omara-sframe.md",
+      "url": "https://github.com/sframe-wg/sframe/pull/16",
+      "state": "MERGED",
+      "author": "eomara",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Update the authors list",
+      "createdAt": "2020-05-04T21:29:09Z",
+      "updatedAt": "2020-05-04T21:53:19Z",
+      "baseRepository": "sframe-wg/sframe",
+      "baseRefName": "master",
+      "baseRefOid": "95d7c4ad33c3baa5b825acec1894b59c96368856",
+      "headRepository": "sframe-wg/sframe",
+      "headRefName": "authors",
+      "headRefOid": "bd9114bfef2781c9f12620ecfce0acf820e58160",
+      "closedAt": "2020-05-04T21:53:19Z",
+      "mergedAt": "2020-05-04T21:53:19Z",
+      "mergedBy": "eomara",
+      "mergeCommit": {
+        "oid": "32032fdfc5db4be0833e24a28cf156ddbb8c8b8a"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "MDE3OlB1bGxSZXF1ZXN0UmV2aWV3NDA1MzYyODM3",
+          "commit": {
+            "abbreviatedOid": "bd9114b"
+          },
+          "author": "murillo128",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2020-05-04T21:31:17Z",
+          "updatedAt": "2020-05-04T21:31:17Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 17,
+      "id": "MDExOlB1bGxSZXF1ZXN0NDE2NTQzNTQx",
+      "title": "Frame counter & MLS",
+      "url": "https://github.com/sframe-wg/sframe/pull/17",
+      "state": "MERGED",
+      "author": "eomara",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Change frame counter to be a global counter\r\nAdd section to Key management and reference MLS\r\nclarify the SFrame keys are per sender",
+      "createdAt": "2020-05-12T07:36:40Z",
+      "updatedAt": "2020-05-12T18:41:51Z",
+      "baseRepository": "sframe-wg/sframe",
+      "baseRefName": "master",
+      "baseRefOid": "43b987baae04cbe217122732796ee6ff08cab375",
+      "headRepository": "sframe-wg/sframe",
+      "headRefName": "authors",
+      "headRefOid": "8da45e1f173ecd6aa2adcd983a8a3f5e941f34fc",
+      "closedAt": "2020-05-12T18:41:51Z",
+      "mergedAt": "2020-05-12T18:41:51Z",
+      "mergedBy": "eomara",
+      "mergeCommit": {
+        "oid": "c32ece34245660291c686be96d4a19dedefb3f55"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "MDE3OlB1bGxSZXF1ZXN0UmV2aWV3NDA5OTQ2NTg2",
+          "commit": {
+            "abbreviatedOid": "f0e2ec1"
+          },
+          "author": "murillo128",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2020-05-12T11:27:11Z",
+          "updatedAt": "2020-05-12T11:30:18Z",
+          "comments": [
+            {
+              "originalPosition": 115,
+              "body": "wouldn't it be `each frame` instead of  `each stream`?",
+              "createdAt": "2020-05-12T11:27:11Z",
+              "updatedAt": "2020-05-12T18:41:27Z"
+            }
+          ]
+        },
+        {
+          "id": "MDE3OlB1bGxSZXF1ZXN0UmV2aWV3NDEwMzIwNDQ0",
+          "commit": {
+            "abbreviatedOid": "07f83e4"
+          },
+          "author": "eomara",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2020-05-12T18:39:18Z",
+          "updatedAt": "2020-05-12T18:39:19Z",
+          "comments": [
+            {
+              "originalPosition": 115,
+              "body": "Fixed",
+              "createdAt": "2020-05-12T18:39:18Z",
+              "updatedAt": "2020-05-12T18:41:27Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 19,
+      "id": "MDExOlB1bGxSZXF1ZXN0NDE2OTYzMTIy",
+      "title": "Editorial pass over the start of the document",
+      "url": "https://github.com/sframe-wg/sframe/pull/19",
+      "state": "MERGED",
+      "author": "juberti",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "",
+      "createdAt": "2020-05-12T20:53:01Z",
+      "updatedAt": "2022-07-29T22:13:00Z",
+      "baseRepository": "sframe-wg/sframe",
+      "baseRefName": "master",
+      "baseRefOid": "371131d4039d19cb27dc57c47277304212b2d2ed",
+      "headRepository": "sframe-wg/sframe",
+      "headRefName": "juberti-patch-1",
+      "headRefOid": "89fd09bfa4d921ef5678601e20212d70ce8d4537",
+      "closedAt": "2020-05-13T06:39:23Z",
+      "mergedAt": "2020-05-13T06:39:23Z",
+      "mergedBy": "eomara",
+      "mergeCommit": {
+        "oid": "26bcfb5d5750fecf7f03d2c3208321fef5f7fca7"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "MDE3OlB1bGxSZXF1ZXN0UmV2aWV3NDEwNDE3MDU0",
+          "commit": {
+            "abbreviatedOid": "4835598"
+          },
+          "author": "murillo128",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2020-05-12T20:58:33Z",
+          "updatedAt": "2020-05-12T20:58:33Z",
+          "comments": []
+        },
+        {
+          "id": "MDE3OlB1bGxSZXF1ZXN0UmV2aWV3NDEwNjI0OTQ1",
+          "commit": {
+            "abbreviatedOid": "4835598"
+          },
+          "author": "eomara",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2020-05-13T06:36:24Z",
+          "updatedAt": "2020-05-13T06:36:24Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 21,
+      "id": "MDExOlB1bGxSZXF1ZXN0NDE3MDQwNjIw",
+      "title": "Remove SRC ID and add KEY ID (closes #14)",
+      "url": "https://github.com/sframe-wg/sframe/pull/21",
+      "state": "MERGED",
+      "author": "murillo128",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "",
+      "createdAt": "2020-05-13T00:15:36Z",
+      "updatedAt": "2020-05-14T20:23:15Z",
+      "baseRepository": "sframe-wg/sframe",
+      "baseRefName": "master",
+      "baseRefOid": "c32ece34245660291c686be96d4a19dedefb3f55",
+      "headRepository": "sframe-wg/sframe",
+      "headRefName": "remove-src-id",
+      "headRefOid": "031853d5229d273bc43e1660229dfe313dbca676",
+      "closedAt": "2020-05-13T06:23:16Z",
+      "mergedAt": "2020-05-13T06:23:16Z",
+      "mergedBy": "eomara",
+      "mergeCommit": {
+        "oid": "371131d4039d19cb27dc57c47277304212b2d2ed"
+      },
+      "comments": [
+        {
+          "author": "eomara",
+          "authorAssociation": "COLLABORATOR",
+          "body": "LGTM",
+          "createdAt": "2020-05-13T06:23:07Z",
+          "updatedAt": "2020-05-13T06:23:07Z"
+        }
+      ],
+      "reviews": [
+        {
+          "id": "MDE3OlB1bGxSZXF1ZXN0UmV2aWV3NDEwNjE4NDQw",
+          "commit": {
+            "abbreviatedOid": "031853d"
+          },
+          "author": "eomara",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2020-05-13T06:22:52Z",
+          "updatedAt": "2020-05-13T06:22:52Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 22,
+      "id": "MDExOlB1bGxSZXF1ZXN0NDE3MDU0Mzg1",
+      "title": "Add signature bitstream format and clarify SVC/Simulcast (#12 and #10)",
+      "url": "https://github.com/sframe-wg/sframe/pull/22",
+      "state": "MERGED",
+      "author": "murillo128",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "",
+      "createdAt": "2020-05-13T01:06:08Z",
+      "updatedAt": "2020-05-14T20:23:33Z",
+      "baseRepository": "sframe-wg/sframe",
+      "baseRefName": "master",
+      "baseRefOid": "c32ece34245660291c686be96d4a19dedefb3f55",
+      "headRepository": "sframe-wg/sframe",
+      "headRefName": "signature-bitstream-format",
+      "headRefOid": "6e643c108072c68eb03d5e613f2375f1dbc22796",
+      "closedAt": "2020-05-14T17:31:01Z",
+      "mergedAt": "2020-05-14T17:31:01Z",
+      "mergedBy": "eomara",
+      "mergeCommit": {
+        "oid": "f97d73c401743e9c2838c0ede8611b31f0921aae"
+      },
+      "comments": [
+        {
+          "author": "murillo128",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I think that the hash/auth tag list should be better moved at the end of the frame after the auth tag to make it easier to apply the encryption and generating the auth tag without having to reconstruct the frame to insert the signature in the middle of it.\r\n\r\nSo, my new proposal would be first to generate the frame header with the s bit = 1, append the payload, encrypt the frame and add the auth tag as normal:\r\n\r\n```\r\nSframe Header(S=1) | Payload N | Auth Tag N\r\n```\r\n\r\nThen append the tags before that frame at the end and the number of auth tags without the current frame one\r\n\r\n``` \r\nSframe Header(S=1) | Payload N | Auth Tag N | Auth Tag N-1 | .... | Auth Tag N-M | M\r\n```\r\nThen calculate the signature of the auth tags in reverse order:\r\n```\r\nSignature = Sign(Auth Tag N | Auth Tag N-1 | .... | Auth Tag N-M\r\n```\r\nAnd then append the Signature at the end of the frame:\r\n\r\n``` \r\nSframe Header(S=1) | Payload N | Auth Tag N | Auth Tag N-1 | .... | Auth Tag N-M | M | Signature\r\n```\r\nWhen the receiver gets the frame, it will also be able to reuse the buffer to calculate the Signature without having to move momory around.\r\n\r\nIn case it is not secure to use the auth tags, it would be still be similar:\r\n\r\n```\r\nSframe Header(S=1) | Payload N | Auth Tag N | Hash N-1 | .... | Hash N-M | M | Signature\r\n```\r\n\r\nThe receiver would have to generate the Hash of the frame up to the Auth tag, and then calculate the signature with the rest of the hashes on the list.\r\n\r\n",
+          "createdAt": "2020-05-13T13:02:38Z",
+          "updatedAt": "2020-05-13T13:02:38Z"
+        },
+        {
+          "author": "eomara",
+          "authorAssociation": "COLLABORATOR",
+          "body": "- Adding Signature at the end will mean adding a new offset field to point to where the Signature block start as it will be a variable length block (depends how many hashes it has), where if it was put at the beginning, we won't need to add an offset field.\r\n\r\n- I think doing signature over the auth tag is fine\r\n\r\n- You are right about the startFrameIndex, it won't be enough. What about having startFrameIndex 4 bytes or whatever, then having one byte frameOffset for every other hash to get the frameindex by using this offset from the start index, assuming 255 is enough range. I just don't want to add full length frameId for every hash  ",
+          "createdAt": "2020-05-14T00:10:51Z",
+          "updatedAt": "2020-05-14T00:10:51Z"
+        },
+        {
+          "author": "murillo128",
+          "authorAssociation": "COLLABORATOR",
+          "body": "didn't you said that:\r\n> Also the signature length is fixed, so no need for SLen either.\r\n\r\nWhy is it fixed if it is at the beginning, but variable if it is in the end?\r\n\r\nwhy do we need the `startFrameIndex` at all? The receiver would just need to have an ordered map of the pending to be verified authentication tags and remove them when they signature for each is received. \r\n\r\nThe receiver should have also a verification timeout and if a signature is not received for that tag in time, it would be considered as failed.\r\n\r\n",
+          "createdAt": "2020-05-14T00:59:15Z",
+          "updatedAt": "2020-05-14T00:59:15Z"
+        },
+        {
+          "author": "murillo128",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Ok, I see, ECDSA signatures are ASN1 encoded objects, so the length can be derived by parsing it from the start bite. Is that correct? ",
+          "createdAt": "2020-05-14T01:14:13Z",
+          "updatedAt": "2020-05-14T01:14:13Z"
+        },
+        {
+          "author": "murillo128",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I have made a new tentative approach with my comments above. What do you think? ",
+          "createdAt": "2020-05-14T02:35:12Z",
+          "updatedAt": "2020-05-14T02:35:12Z"
+        },
+        {
+          "author": "eomara",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Sorry I should have been more clear\r\n- The signature itself is fixed length (ex 64 bytes for ed25519) but The entire signature block will be variable depends on the number of signature, unless you want to make this number fixed (ex always 50 hashes)\r\n\r\n- We need frameIndex so the recipient know which hashes to use to verify the signature, we can't just relay on an ordered list of all previous hashes because the signature block could have hashes of missing frames, or even the signature packet could be lost itself",
+          "createdAt": "2020-05-14T02:38:24Z",
+          "updatedAt": "2020-05-14T02:38:24Z"
+        },
+        {
+          "author": "murillo128",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> The signature itself is fixed length (ex 64 bytes for ed25519) but The entire signature block will be variable depends on the number of signature, unless you want to make this number fixed (ex always 50 hashes)\r\n\r\nWhat is a signature block? What is the difference between the signature and the signature block? \r\n\r\n> We need frameIndex so the recipient know which hashes to use to verify the signature, we can't just relay on an ordered list of all previous hashes because the signature block could have hashes of missing frames, or even the signature packet could be lost itself\r\n\r\nThat should be covered by my proposal. ",
+          "createdAt": "2020-05-14T02:43:18Z",
+          "updatedAt": "2020-05-14T02:43:18Z"
+        },
+        {
+          "author": "eomara",
+          "authorAssociation": "COLLABORATOR",
+          "body": "signature = sign(data)\r\nSignature block is what I referred to on my drawing as signature header+ signature + hash list",
+          "createdAt": "2020-05-14T02:47:09Z",
+          "updatedAt": "2020-05-14T02:47:09Z"
+        },
+        {
+          "author": "murillo128",
+          "authorAssociation": "COLLABORATOR",
+          "body": "If I understood your proposal correctly, you are sending the whole list of hashes so the receiver can recreate the `data` if any of them is missing. \r\n\r\nSo you don't really don't need the index of each frame, as you there should be (almost) a 1-to-1 mapping between the hashes/auth tag and the frame index (how probable is to have a hash or auth tag collision?). \r\n\r\nSo, given the hash/auth tag list, the receiver could derive the frame index of it (by keeping an internal <hash,index> map)\r\n\r\n",
+          "createdAt": "2020-05-14T02:55:27Z",
+          "updatedAt": "2020-05-14T02:55:27Z"
+        },
+        {
+          "author": "eomara",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I think that's good for now.\r\n\r\nMy initial thought was to have the sender chose the packet to sign, they can be different number each time, also they might chose not ti sign every packet, for example random X packets every Y seconds.\r\n\r\nAnyway, we can always improve later, your proposal is good to start with ",
+          "createdAt": "2020-05-14T03:02:40Z",
+          "updatedAt": "2020-05-14T03:02:40Z"
+        },
+        {
+          "author": "murillo128",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> My initial thought was to have the sender chose the packet to sign, they can be different number each time, also they might chose not ti sign every packet, for example random X packets every Y seconds.\r\n\r\nThis should be also possible with current approach, right? Have you seen any reason that it couldn't be done?",
+          "createdAt": "2020-05-14T09:43:33Z",
+          "updatedAt": "2020-05-14T09:43:33Z"
+        }
+      ],
+      "reviews": [
+        {
+          "id": "MDE3OlB1bGxSZXF1ZXN0UmV2aWV3NDEwNjE5OTIy",
+          "commit": {
+            "abbreviatedOid": "a7bc8fc"
+          },
+          "author": "eomara",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2020-05-13T06:25:56Z",
+          "updatedAt": "2020-05-13T06:25:56Z",
+          "comments": [
+            {
+              "originalPosition": 9,
+              "body": "Replace HMAC with hash, here and other places",
+              "createdAt": "2020-05-13T06:25:56Z",
+              "updatedAt": "2020-05-14T11:12:56Z"
+            }
+          ]
+        },
+        {
+          "id": "MDE3OlB1bGxSZXF1ZXN0UmV2aWV3NDEwNjIwMzAw",
+          "commit": {
+            "abbreviatedOid": "a7bc8fc"
+          },
+          "author": "eomara",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2020-05-13T06:26:48Z",
+          "updatedAt": "2020-05-13T06:26:49Z",
+          "comments": [
+            {
+              "originalPosition": 13,
+              "body": "the receiver will not receive (remove be)",
+              "createdAt": "2020-05-13T06:26:48Z",
+              "updatedAt": "2020-05-14T11:12:56Z"
+            }
+          ]
+        },
+        {
+          "id": "MDE3OlB1bGxSZXF1ZXN0UmV2aWV3NDEwNjIwNTYw",
+          "commit": {
+            "abbreviatedOid": "a7bc8fc"
+          },
+          "author": "eomara",
+          "authorAssociation": "COLLABORATOR",
+          "state": "CHANGES_REQUESTED",
+          "body": "",
+          "createdAt": "2020-05-13T06:27:22Z",
+          "updatedAt": "2020-05-13T06:35:37Z",
+          "comments": [
+            {
+              "originalPosition": 19,
+              "body": "hash list",
+              "createdAt": "2020-05-13T06:27:22Z",
+              "updatedAt": "2020-05-14T11:12:56Z"
+            },
+            {
+              "originalPosition": 57,
+              "body": "Hashes should be fixed size, so you really don't need the HLEN/HNUM fields. Instead you need at the beginning the startFrameIndex, and number of hashes\r\nFor example if this signature is for frames 100, to 150 you will have frmaeIndex=100, numberOfFraeHashes=50, then you will have 50 fixed length hashes.\r\n\r\nAlso the signature length is fixed, so no need for SLen either. \r\n\r\nIf the s bit is set in the header, then the signature data will be directly after the header\r\n first 32 bytes will be the signature itself, then  \r\n4 bytes frmaeStartIndex (can be encoded as varInt) then\r\n1 byte number of frameHashes then\r\nframeHashes * HashSize bytes for all the hashes\r\n\r\nDoes this make sense?",
+              "createdAt": "2020-05-13T06:35:14Z",
+              "updatedAt": "2020-05-14T11:12:56Z"
+            }
+          ]
+        },
+        {
+          "id": "MDE3OlB1bGxSZXF1ZXN0UmV2aWV3NDEwNjk3MDc5",
+          "commit": {
+            "abbreviatedOid": "a7bc8fc"
+          },
+          "author": "murillo128",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2020-05-13T08:23:39Z",
+          "updatedAt": "2020-05-13T08:23:40Z",
+          "comments": [
+            {
+              "originalPosition": 57,
+              "body": "Umm.. I was under the impression that we were going to reuse the authentication tag present in each frame already, instead of having to calculate a new hash again for each receive frame. Auth tag have different sizes for audio and video, rigth? also they are smaller than hashes, so why not reuse them for signing?\r\n\r\nAlso, signature should be per stream/independent base layer, so there won't be of continuous frames that's why I think the frame index doesn't make much sense.\r\n\r\nI will remove the LEN for the signature.",
+              "createdAt": "2020-05-13T08:23:40Z",
+              "updatedAt": "2020-05-14T11:12:56Z"
+            }
+          ]
+        },
+        {
+          "id": "MDE3OlB1bGxSZXF1ZXN0UmV2aWV3NDEwNzMzMTUy",
+          "commit": {
+            "abbreviatedOid": "a7bc8fc"
+          },
+          "author": "murillo128",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2020-05-13T09:08:49Z",
+          "updatedAt": "2020-05-13T09:08:50Z",
+          "comments": [
+            {
+              "originalPosition": 57,
+              "body": "on a second thought, even if we use the authentication tag and the authentication tags can have different sizes, all the tags present on the signature list should be from the same stream, so they would have the same size as the authentication tag in the current frame.",
+              "createdAt": "2020-05-13T09:08:49Z",
+              "updatedAt": "2020-05-14T11:12:56Z"
+            }
+          ]
+        },
+        {
+          "id": "MDE3OlB1bGxSZXF1ZXN0UmV2aWV3NDExNDMyNTk5",
+          "commit": {
+            "abbreviatedOid": "b40a563"
+          },
+          "author": "eomara",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2020-05-14T02:59:26Z",
+          "updatedAt": "2020-05-14T02:59:26Z",
+          "comments": []
+        },
+        {
+          "id": "MDE3OlB1bGxSZXF1ZXN0UmV2aWV3NDExNDM0MDQ1",
+          "commit": {
+            "abbreviatedOid": "7db21b8"
+          },
+          "author": "eomara",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2020-05-14T03:04:26Z",
+          "updatedAt": "2020-05-14T03:04:35Z",
+          "comments": [
+            {
+              "originalPosition": 39,
+              "body": "minor: I prefer to have the auth tags at the end of the signature, as they are related",
+              "createdAt": "2020-05-14T03:04:27Z",
+              "updatedAt": "2020-05-14T11:12:56Z"
+            }
+          ]
+        },
+        {
+          "id": "MDE3OlB1bGxSZXF1ZXN0UmV2aWV3NDExNjM2NzU3",
+          "commit": {
+            "abbreviatedOid": "b40a563"
+          },
+          "author": "murillo128",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2020-05-14T09:42:15Z",
+          "updatedAt": "2020-05-14T09:42:15Z",
+          "comments": [
+            {
+              "originalPosition": 39,
+              "body": "me too, I will try to have a new version before meeting",
+              "createdAt": "2020-05-14T09:42:15Z",
+              "updatedAt": "2020-05-14T11:12:56Z"
+            }
+          ]
+        },
+        {
+          "id": "MDE3OlB1bGxSZXF1ZXN0UmV2aWV3NDEyMDMzNDA2",
+          "commit": {
+            "abbreviatedOid": "6e643c1"
+          },
+          "author": "eomara",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2020-05-14T17:30:54Z",
+          "updatedAt": "2020-05-14T17:30:54Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 23,
+      "id": "MDExOlB1bGxSZXF1ZXN0NDE3MTkzNDU5",
+      "title": "Add diagram for SFrame payload",
+      "url": "https://github.com/sframe-wg/sframe/pull/23",
+      "state": "MERGED",
+      "author": "eomara",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Add SFrame payload format including the signature block\r\n\r\nMove Ciphersuites at the end\r\n\r\nRefer to the KeyId field in the decryption section",
+      "createdAt": "2020-05-13T08:11:24Z",
+      "updatedAt": "2020-05-13T15:14:45Z",
+      "baseRepository": "sframe-wg/sframe",
+      "baseRefName": "master",
+      "baseRefOid": "26bcfb5d5750fecf7f03d2c3208321fef5f7fca7",
+      "headRepository": "sframe-wg/sframe",
+      "headRefName": "authors",
+      "headRefOid": "70ed5e6aa572e06f716c1d416d2b93ec4313da95",
+      "closedAt": "2020-05-13T15:14:45Z",
+      "mergedAt": "2020-05-13T15:14:45Z",
+      "mergedBy": "eomara",
+      "mergeCommit": {
+        "oid": "ccb5d035e0c72c364534c03fe161ef1602ce1cff"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "MDE3OlB1bGxSZXF1ZXN0UmV2aWV3NDEwNjkyMzk4",
+          "commit": {
+            "abbreviatedOid": "70ed5e6"
+          },
+          "author": "murillo128",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2020-05-13T08:17:52Z",
+          "updatedAt": "2020-05-13T08:17:52Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 24,
+      "id": "MDExOlB1bGxSZXF1ZXN0NDE4MTk1NTM5",
+      "title": "Key management & MLS",
+      "url": "https://github.com/sframe-wg/sframe/pull/24",
+      "state": "MERGED",
+      "author": "eomara",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Rewrite the Key management section\r\nAdd MLS subsection\r\nUpdate the SFrame format \r\nFixed typos",
+      "createdAt": "2020-05-14T19:14:17Z",
+      "updatedAt": "2020-05-14T19:40:22Z",
+      "baseRepository": "sframe-wg/sframe",
+      "baseRefName": "master",
+      "baseRefOid": "f97d73c401743e9c2838c0ede8611b31f0921aae",
+      "headRepository": "sframe-wg/sframe",
+      "headRefName": "authors",
+      "headRefOid": "bf5ac10d4a624e7cba745957e722edc532f2f074",
+      "closedAt": "2020-05-14T19:40:22Z",
+      "mergedAt": "2020-05-14T19:40:22Z",
+      "mergedBy": "eomara",
+      "mergeCommit": {
+        "oid": "30b65eebdb04ca9e3c8ffde88d74f1818f44e2ec"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "MDE3OlB1bGxSZXF1ZXN0UmV2aWV3NDEyMTE3NTgz",
+          "commit": {
+            "abbreviatedOid": "bf5ac10"
+          },
+          "author": "murillo128",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2020-05-14T19:26:21Z",
+          "updatedAt": "2020-05-14T19:26:21Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 25,
+      "id": "MDExOlB1bGxSZXF1ZXN0NDE4MjE0MTI4",
+      "title": "Add keyid to iv",
+      "url": "https://github.com/sframe-wg/sframe/pull/25",
+      "state": "OPEN",
+      "author": "murillo128",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "Waiting for input"
+      ],
+      "body": "Do we need to specify the padding of both keyid and CTR somehow?\r\n\r\n\r\n```\r\nIV = (Pad(KeyId,8) || Pad(CTR,8)) XOR Salt key\r\n```",
+      "createdAt": "2020-05-14T19:54:09Z",
+      "updatedAt": "2022-09-01T09:24:53Z",
+      "baseRepository": "sframe-wg/sframe",
+      "baseRefName": "main",
+      "baseRefOid": "30b65eebdb04ca9e3c8ffde88d74f1818f44e2ec",
+      "headRepository": "sframe-wg/sframe",
+      "headRefName": "add-keyid-to-iv",
+      "headRefOid": "db7f8a3ddd99ca6f14fbe47879371d10b200a4aa",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [
+        {
+          "author": "eomara",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Can you explain the value of this?",
+          "createdAt": "2020-05-18T06:22:04Z",
+          "updatedAt": "2020-05-18T06:22:04Z"
+        },
+        {
+          "author": "murillo128",
+          "authorAssociation": "COLLABORATOR",
+          "body": "This would allow to have a single symmetric key for all the participants in the conference while keeping  the IV counter being used only once.",
+          "createdAt": "2020-05-18T08:55:42Z",
+          "updatedAt": "2020-05-18T08:55:42Z"
+        },
+        {
+          "author": "eomara",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> being\r\n\r\nIf we are going to use a single key for everyone, then we need to add userId to the IV not keyId as keyid will collide ",
+          "createdAt": "2020-05-18T19:56:36Z",
+          "updatedAt": "2020-05-18T19:56:36Z"
+        },
+        {
+          "author": "murillo128",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I was assuming that the keyId was uniquely associated to a participant (i.e. it was the same as a senderId), is that wrong? ",
+          "createdAt": "2020-05-18T20:16:39Z",
+          "updatedAt": "2020-05-18T20:16:39Z"
+        },
+        {
+          "author": "eomara",
+          "authorAssociation": "COLLABORATOR",
+          "body": "No it is a zero based counter, it is mentioned in the document. So everyone will start with keyId = 0, and if they have to exchange a new key, they move to keyId 1 etc",
+          "createdAt": "2020-05-18T21:04:29Z",
+          "updatedAt": "2020-05-18T21:04:29Z"
+        },
+        {
+          "author": "murillo128",
+          "authorAssociation": "COLLABORATOR",
+          "body": "How would the receiver map an incoming frame to the correct sender then? I.e. imagine that you have a large conference with hundreds of participants multiplexing video over same ssrc/rtpreceiver, would you have to test each potential key?",
+          "createdAt": "2020-05-18T21:06:43Z",
+          "updatedAt": "2020-05-18T21:06:43Z"
+        },
+        {
+          "author": "eomara",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Correct. I have a couple of sentences about this in the decryption section. For video is fine. But for Top N audio streams the decryptor has to try all keys if it doesn't have the mappings yet, alternatively the app can push the mappings to SFrame when they are available\r\n",
+          "createdAt": "2020-05-18T21:25:03Z",
+          "updatedAt": "2020-05-18T21:25:03Z"
+        },
+        {
+          "author": "murillo128",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I would say for video is even worse than for video, as typically you multiplex several video sources over same stream.\r\n\r\nSo in case the SFU decides to switch the input of the video of a given SSRC (which happens quite frecuently), the decryptor will fail to  decrypt the current frame, and will have to retry all the available keys (and their possible rachets just in case?)\r\n\r\nIMHO there is more benefit in sending the senderId and not the keyId\r\n",
+          "createdAt": "2020-05-18T21:31:42Z",
+          "updatedAt": "2020-05-18T21:31:42Z"
+        },
+        {
+          "author": "eomara",
+          "authorAssociation": "COLLABORATOR",
+          "body": "This should only happen at the very beginning, when multiplexing happens the CSRC will have the original SSRC and SFrame checks that to get the mapping ",
+          "createdAt": "2020-05-18T21:37:28Z",
+          "updatedAt": "2020-05-18T21:37:28Z"
+        },
+        {
+          "author": "murillo128",
+          "authorAssociation": "COLLABORATOR",
+          "body": "CSRCs are not used in any SFU that I am aware of",
+          "createdAt": "2020-05-18T21:40:01Z",
+          "updatedAt": "2020-05-18T21:40:01Z"
+        },
+        {
+          "author": "eomara",
+          "authorAssociation": "COLLABORATOR",
+          "body": "hmm Adding userID is an overkill. UserIds tends to be large strings (usually UUID) and not a small counter. So we will have to create another counters for users\r\n\r\nI think having SFU to write CSRC when multiplexing should be a very easy change to make",
+          "createdAt": "2020-05-18T21:51:01Z",
+          "updatedAt": "2020-05-18T21:51:01Z"
+        },
+        {
+          "author": "murillo128",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I was not thinking in a uuid (which would be an overkill), but an numeric id assigned by the KMS (like the senderId in MLS) ",
+          "createdAt": "2020-05-18T21:53:17Z",
+          "updatedAt": "2020-05-18T21:53:17Z"
+        },
+        {
+          "author": "eomara",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Created https://github.com/eomara/sframe/issues/32 to track this after V1",
+          "createdAt": "2020-05-18T23:39:09Z",
+          "updatedAt": "2020-05-18T23:39:09Z"
+        },
+        {
+          "author": "youennf",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Is this still a PR we should consider given #32?",
+          "createdAt": "2022-09-01T07:57:38Z",
+          "updatedAt": "2022-09-01T07:57:38Z"
+        },
+        {
+          "author": "murillo128",
+          "authorAssociation": "COLLABORATOR",
+          "body": "let's close it until we have a consensus on #32 ",
+          "createdAt": "2022-09-01T09:24:53Z",
+          "updatedAt": "2022-09-01T09:24:53Z"
+        }
+      ],
+      "reviews": []
+    },
+    {
+      "number": 26,
+      "id": "MDExOlB1bGxSZXF1ZXN0NDE4MjI5ODAw",
+      "title": "Add video key frame recommendation when updating e2ee keys",
+      "url": "https://github.com/sframe-wg/sframe/pull/26",
+      "state": "MERGED",
+      "author": "murillo128",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "from https://github.com/w3c/webrtc-extensions/pull/37#issuecomment-628774128",
+      "createdAt": "2020-05-14T20:28:48Z",
+      "updatedAt": "2022-07-29T22:13:01Z",
+      "baseRepository": "sframe-wg/sframe",
+      "baseRefName": "master",
+      "baseRefOid": "30b65eebdb04ca9e3c8ffde88d74f1818f44e2ec",
+      "headRepository": "sframe-wg/sframe",
+      "headRefName": "video-key-frame",
+      "headRefOid": "569bfc5c41ad3707d2a12a53ab7db47e958d6711",
+      "closedAt": "2020-05-19T00:36:43Z",
+      "mergedAt": "2020-05-19T00:36:43Z",
+      "mergedBy": "eomara",
+      "mergeCommit": {
+        "oid": "f4d03621771b22936487a69aabfb741c01bf3f1f"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "MDE3OlB1bGxSZXF1ZXN0UmV2aWV3NDEyMTk2ODc4",
+          "commit": {
+            "abbreviatedOid": "569bfc5"
+          },
+          "author": "eomara",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2020-05-14T21:26:01Z",
+          "updatedAt": "2020-05-14T21:26:01Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 27,
+      "id": "MDExOlB1bGxSZXF1ZXN0NDE4MjMyMzE4",
+      "title": "Remove inner and outer reference",
+      "url": "https://github.com/sframe-wg/sframe/pull/27",
+      "state": "MERGED",
+      "author": "murillo128",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "I don't think we should not reference the inner/outer encryption, as we only define the e2ee encryption in the draft",
+      "createdAt": "2020-05-14T20:34:14Z",
+      "updatedAt": "2022-07-29T22:13:02Z",
+      "baseRepository": "sframe-wg/sframe",
+      "baseRefName": "master",
+      "baseRefOid": "30b65eebdb04ca9e3c8ffde88d74f1818f44e2ec",
+      "headRepository": "sframe-wg/sframe",
+      "headRefName": "sergio-editorial",
+      "headRefOid": "155938afef5324bad7a62f5b981de49cef00ce00",
+      "closedAt": "2020-05-14T21:24:25Z",
+      "mergedAt": "2020-05-14T21:24:25Z",
+      "mergedBy": "eomara",
+      "mergeCommit": {
+        "oid": "f9e6027b07c3b3d3ab2082876428780f6f14d12a"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "MDE3OlB1bGxSZXF1ZXN0UmV2aWV3NDEyMTk1Nzg5",
+          "commit": {
+            "abbreviatedOid": "155938a"
+          },
+          "author": "eomara",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2020-05-14T21:24:19Z",
+          "updatedAt": "2020-05-14T21:24:19Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 29,
+      "id": "MDExOlB1bGxSZXF1ZXN0NDE4MjU0MDAw",
+      "title": "Add end to end example diagram",
+      "url": "https://github.com/sframe-wg/sframe/pull/29",
+      "state": "MERGED",
+      "author": "eomara",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Added end to end diagram",
+      "createdAt": "2020-05-14T21:23:37Z",
+      "updatedAt": "2020-05-14T22:31:43Z",
+      "baseRepository": "sframe-wg/sframe",
+      "baseRefName": "master",
+      "baseRefOid": "30b65eebdb04ca9e3c8ffde88d74f1818f44e2ec",
+      "headRepository": "sframe-wg/sframe",
+      "headRefName": "authors",
+      "headRefOid": "c1536fd446e818b01f493ce003581af2b79d0041",
+      "closedAt": "2020-05-14T22:31:43Z",
+      "mergedAt": "2020-05-14T22:31:43Z",
+      "mergedBy": "eomara",
+      "mergeCommit": {
+        "oid": "c6b759332e70b07be2a7fce80c42dbe82288657f"
+      },
+      "comments": [
+        {
+          "author": "murillo128",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I would put only one media server, not two.\r\n\r\nBtw, the E2E channel is p2p? I assumed there was a MLS/KMS server somewehre\r\n",
+          "createdAt": "2020-05-14T21:26:32Z",
+          "updatedAt": "2020-05-14T21:26:32Z"
+        },
+        {
+          "author": "murillo128",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I would prefer a single media server:\r\n\r\n```\r\n      +-------------------------------------------------------+\r\n      |                                                       |\r\n      |  +----------+      +------------+      +-----------+  |\r\n      |  |  Media   |      |   SFrame   |      |Packetizer |  |       DTLS-SRTP\r\n      |  |  Source  +----->+    Enc     +----->+           +--------------------------------+\r\n ,-.  |  |          |      |            |      |           |  |   +--+  +--+  +--+          |\r\n `|'  |  +----------+      +-----+------+      +-----------+  |   |  |  |  |  |  |          |\r\n /|\\  |                          ^                            |   |  |  |  |  |  |          |\r\n  +   |                          |                            |   |  |  |  |  |  |          |\r\n / \\  |                          |                            |   +--+  +--+  +--+          |\r\nAlice |                    +-----+------+                     |   Encrypted Packets         |\r\n      |                    |Key Manager |                     |                             |\r\n      |                    +-----+------+                     |                             |\r\n      |                          ^                            |                             |\r\n      |                          |                            |                             |\r\n      |                          |                            |                             |\r\n      +-------------------------------------------------------+                             |\r\n                                 |                                                          |\r\n                                 |                                                          v\r\n                                 |                                                    +-----+------+\r\n                                 |                                                    |   Media    |\r\n                             E2EE|Channel                                             |   Server   |\r\n                                 |                                                    |            |\r\n                                 |                                                    +-----+------+\r\n                                 |                                                          |\r\n                                 |                                                          |\r\n      +-------------------------------------------------------+                             |\r\n      |                          |                            |                             |\r\n      |                          |                            |                             |\r\n      |                          v                            |                             |\r\n      |                    +-----+------+                     |                             |\r\n      |                    |Key Manager |                     |                             |\r\n ,-.  |                    +-----+------+                     |   Encrypted Packets         |\r\n `|'  |                          |                            |   +--+  +--+  +--+          |\r\n /|\\  |                          |                            |   |  |  |  |  |  |          |\r\n  +   |                          v                            |   |  |  |  |  |  |          |\r\n / \\  |  +----------+      +-----+------+      +-----------+  |   |  |  |  |  |  |          |\r\n Bob  |  |  Media   |      |   SFrame   |      |   De-     |  |   +--+  +--+  +--+          |\r\n      |  |  Dest    +<-----+    Dec     +<-----+Packetizer +<-------------------------------+\r\n      |  |          |      |            |      |           |  |        DTLS-SRTP\r\n      |  +----------+      +------------+      +-----------+  |\r\n      |                                                       |\r\n      +-------------------------------------------------------+\r\n\r\n\r\n```",
+          "createdAt": "2020-05-14T22:07:04Z",
+          "updatedAt": "2020-05-14T22:07:04Z"
+        },
+        {
+          "author": "eomara",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Added messaging server",
+          "createdAt": "2020-05-14T22:31:36Z",
+          "updatedAt": "2020-05-14T22:31:36Z"
+        }
+      ],
+      "reviews": [
+        {
+          "id": "MDE3OlB1bGxSZXF1ZXN0UmV2aWV3NDEyMjI1NzI3",
+          "commit": {
+            "abbreviatedOid": "0596066"
+          },
+          "author": "murillo128",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2020-05-14T22:20:57Z",
+          "updatedAt": "2020-05-14T22:20:57Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 30,
+      "id": "MDExOlB1bGxSZXF1ZXN0NDE4MjgzOTc3",
+      "title": "Add reference to PERC-Lite",
+      "url": "https://github.com/sframe-wg/sframe/pull/30",
+      "state": "MERGED",
+      "author": "eomara",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "",
+      "createdAt": "2020-05-14T22:49:49Z",
+      "updatedAt": "2020-05-14T22:51:52Z",
+      "baseRepository": "sframe-wg/sframe",
+      "baseRefName": "master",
+      "baseRefOid": "c6b759332e70b07be2a7fce80c42dbe82288657f",
+      "headRepository": "sframe-wg/sframe",
+      "headRefName": "authors",
+      "headRefOid": "26f083c8e976f932c6930da7faa74835787bdc3d",
+      "closedAt": "2020-05-14T22:51:52Z",
+      "mergedAt": "2020-05-14T22:51:51Z",
+      "mergedBy": "eomara",
+      "mergeCommit": {
+        "oid": "7046c199b4c6664c3ee85126cb5b791c5be24e27"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "MDE3OlB1bGxSZXF1ZXN0UmV2aWV3NDEyMjM3OTUy",
+          "commit": {
+            "abbreviatedOid": "26f083c"
+          },
+          "author": "murillo128",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2020-05-14T22:50:42Z",
+          "updatedAt": "2020-05-14T22:50:42Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 31,
+      "id": "MDExOlB1bGxSZXF1ZXN0NDE5NzM4MzY4",
+      "title": "Add Goals & some edits",
+      "url": "https://github.com/sframe-wg/sframe/pull/31",
+      "state": "MERGED",
+      "author": "eomara",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "",
+      "createdAt": "2020-05-18T20:57:23Z",
+      "updatedAt": "2022-07-29T22:13:04Z",
+      "baseRepository": "sframe-wg/sframe",
+      "baseRefName": "master",
+      "baseRefOid": "4d826f56f6408e5abfd0c9213dd7636e733348d0",
+      "headRepository": "sframe-wg/sframe",
+      "headRefName": "authors",
+      "headRefOid": "d258f094a19b855af4df6eb04073033072bfd7a2",
+      "closedAt": "2020-05-19T00:22:23Z",
+      "mergedAt": "2020-05-19T00:22:23Z",
+      "mergedBy": "eomara",
+      "mergeCommit": {
+        "oid": "1e24bc661f0ad7a6ba9c8c391c7a501f8a2ea930"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "MDE3OlB1bGxSZXF1ZXN0UmV2aWV3NDEzOTM1NTU2",
+          "commit": {
+            "abbreviatedOid": "2058d36"
+          },
+          "author": "murillo128",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2020-05-18T21:00:28Z",
+          "updatedAt": "2020-05-18T21:00:29Z",
+          "comments": [
+            {
+              "originalPosition": 156,
+              "body": "Not sure if I understood this part",
+              "createdAt": "2020-05-18T21:00:29Z",
+              "updatedAt": "2020-05-18T21:12:32Z"
+            }
+          ]
+        },
+        {
+          "id": "MDE3OlB1bGxSZXF1ZXN0UmV2aWV3NDEzOTQzMDc3",
+          "commit": {
+            "abbreviatedOid": "d258f09"
+          },
+          "author": "eomara",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2020-05-18T21:13:21Z",
+          "updatedAt": "2020-05-18T21:13:21Z",
+          "comments": [
+            {
+              "originalPosition": 156,
+              "body": "NM, removed it.\r\n\r\nI was trying to address the concern of partial decoding and add support for SFrame to encrypt NAL units instead",
+              "createdAt": "2020-05-18T21:13:21Z",
+              "updatedAt": "2020-05-18T21:13:21Z"
+            }
+          ]
+        },
+        {
+          "id": "MDE3OlB1bGxSZXF1ZXN0UmV2aWV3NDEzOTQzMjk5",
+          "commit": {
+            "abbreviatedOid": "d258f09"
+          },
+          "author": "murillo128",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "\ud83d\ude02",
+          "createdAt": "2020-05-18T21:13:46Z",
+          "updatedAt": "2020-05-18T21:13:46Z",
+          "comments": []
+        },
+        {
+          "id": "MDE3OlB1bGxSZXF1ZXN0UmV2aWV3NDEzOTQ0MDE4",
+          "commit": {
+            "abbreviatedOid": "d258f09"
+          },
+          "author": "murillo128",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2020-05-18T21:15:02Z",
+          "updatedAt": "2020-05-18T21:15:02Z",
+          "comments": [
+            {
+              "originalPosition": 156,
+              "body": "now I understand it. fine to leave it then.",
+              "createdAt": "2020-05-18T21:15:02Z",
+              "updatedAt": "2020-05-18T21:15:02Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 33,
+      "id": "MDExOlB1bGxSZXF1ZXN0NDE5OTI3MTI5",
+      "title": "Move and rework goals section",
+      "url": "https://github.com/sframe-wg/sframe/pull/33",
+      "state": "MERGED",
+      "author": "juberti",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Mostly cleanup and reordering to largely match the SRTP document's structure.",
+      "createdAt": "2020-05-19T07:20:14Z",
+      "updatedAt": "2022-07-29T22:13:12Z",
+      "baseRepository": "sframe-wg/sframe",
+      "baseRefName": "master",
+      "baseRefOid": "f4d03621771b22936487a69aabfb741c01bf3f1f",
+      "headRepository": "sframe-wg/sframe",
+      "headRefName": "juberti",
+      "headRefOid": "551fc84995a3b63b2c54c3d01d4d48e5fddd32cf",
+      "closedAt": "2020-05-19T07:30:38Z",
+      "mergedAt": "2020-05-19T07:30:38Z",
+      "mergedBy": "eomara",
+      "mergeCommit": {
+        "oid": "594cb5a29fd4930e7761e96e947c2a21f2b1e4dd"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "MDE3OlB1bGxSZXF1ZXN0UmV2aWV3NDE0MTcyMzQ4",
+          "commit": {
+            "abbreviatedOid": "551fc84"
+          },
+          "author": "eomara",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2020-05-19T07:30:27Z",
+          "updatedAt": "2020-05-19T07:30:27Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 50,
+      "id": "MDExOlB1bGxSZXF1ZXN0NDYzNTIzMTY3",
+      "title": "Fix IV calculation",
+      "url": "https://github.com/sframe-wg/sframe/pull/50",
+      "state": "MERGED",
+      "author": "eomara",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Add more information for how the CTR is used to derive the final IV",
+      "createdAt": "2020-08-05T17:00:13Z",
+      "updatedAt": "2022-07-29T22:13:10Z",
+      "baseRepository": "sframe-wg/sframe",
+      "baseRefName": "master",
+      "baseRefOid": "594cb5a29fd4930e7761e96e947c2a21f2b1e4dd",
+      "headRepository": "sframe-wg/sframe",
+      "headRefName": "eomara-patch-IV-fix",
+      "headRefOid": "28b50b931831ea65423da78a79f352c3efc60bdd",
+      "closedAt": "2020-08-05T20:52:44Z",
+      "mergedAt": "2020-08-05T20:52:44Z",
+      "mergedBy": "eomara",
+      "mergeCommit": {
+        "oid": "e3440749023bb9b409ea63075fcc9e2ff1f59506"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "MDE3OlB1bGxSZXF1ZXN0UmV2aWV3NDYyMDAyMzAy",
+          "commit": {
+            "abbreviatedOid": "28b50b9"
+          },
+          "author": "murillo128",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "lgtm",
+          "createdAt": "2020-08-05T20:32:35Z",
+          "updatedAt": "2020-08-05T20:32:35Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 51,
+      "id": "MDExOlB1bGxSZXF1ZXN0NDY2OTI0ODE2",
+      "title": "Improve Markdown usage",
+      "url": "https://github.com/sframe-wg/sframe/pull/51",
+      "state": "MERGED",
+      "author": "bifurcation",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "* Inline references\r\n* Semantic figure titles\r\n* Semantic tables",
+      "createdAt": "2020-08-12T18:04:18Z",
+      "updatedAt": "2020-08-13T16:10:50Z",
+      "baseRepository": "sframe-wg/sframe",
+      "baseRefName": "master",
+      "baseRefOid": "e3440749023bb9b409ea63075fcc9e2ff1f59506",
+      "headRepository": "bifurcation/sframe-protocol",
+      "headRefName": "md",
+      "headRefOid": "08d40289bdc7686c59269bca892933f83ffa231f",
+      "closedAt": "2020-08-13T16:10:50Z",
+      "mergedAt": "2020-08-13T16:10:50Z",
+      "mergedBy": "eomara",
+      "mergeCommit": {
+        "oid": "08d40289bdc7686c59269bca892933f83ffa231f"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "MDE3OlB1bGxSZXF1ZXN0UmV2aWV3NDY2Mjc1NDUw",
+          "commit": {
+            "abbreviatedOid": "08d4028"
+          },
+          "author": "eomara",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2020-08-12T21:03:03Z",
+          "updatedAt": "2020-08-12T21:03:03Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 52,
+      "id": "MDExOlB1bGxSZXF1ZXN0NDY2OTc0NDc3",
+      "title": "Update AEAD computations",
+      "url": "https://github.com/sframe-wg/sframe/pull/52",
+      "state": "MERGED",
+      "author": "bifurcation",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "This PR revises the encryption procedures in a few ways:\r\n\r\n* Ciphersuites for AES-GCM are now included\r\n* The combination of AES-CM and SHA2 is spelled out, including an AAD length prefix to guard against confusion attacks\r\n* We use the RFC 5116 AEAD interface (in particular, no separate auth tag)\r\n* ... and as a result the tag truncation is internal to the AES-CM+SHA combination\r\n* SFrame encryption now includes the encoded header as AAD\r\n\r\nDepends on #51 ",
+      "createdAt": "2020-08-12T19:54:09Z",
+      "updatedAt": "2020-08-13T16:10:49Z",
+      "baseRepository": "sframe-wg/sframe",
+      "baseRefName": "master",
+      "baseRefOid": "e3440749023bb9b409ea63075fcc9e2ff1f59506",
+      "headRepository": "bifurcation/sframe-protocol",
+      "headRefName": "aead",
+      "headRefOid": "9a37f668c844c45ffc9fbf69be3225dd2dcb7124",
+      "closedAt": "2020-08-13T16:10:49Z",
+      "mergedAt": "2020-08-13T16:10:49Z",
+      "mergedBy": "eomara",
+      "mergeCommit": {
+        "oid": "dab5037c1ad29578162dce8f138392a94a326bab"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "MDE3OlB1bGxSZXF1ZXN0UmV2aWV3NDY2Mjc4NTQ0",
+          "commit": {
+            "abbreviatedOid": "9a37f66"
+          },
+          "author": "eomara",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2020-08-12T21:07:57Z",
+          "updatedAt": "2020-08-12T21:13:01Z",
+          "comments": [
+            {
+              "originalPosition": 233,
+              "body": "Need to spell out explicitly that the ctr is encoded into 16 bytes buffer, where the ctr occupies the left 8 bytes and padded with 8 zero bytes ",
+              "createdAt": "2020-08-12T21:07:57Z",
+              "updatedAt": "2020-08-12T21:13:18Z"
+            }
+          ]
+        },
+        {
+          "id": "MDE3OlB1bGxSZXF1ZXN0UmV2aWV3NDY2MzM4NTcw",
+          "commit": {
+            "abbreviatedOid": "9a37f66"
+          },
+          "author": "bifurcation",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2020-08-12T23:16:18Z",
+          "updatedAt": "2020-08-12T23:16:18Z",
+          "comments": [
+            {
+              "originalPosition": 233,
+              "body": "This is a bit more flexible than that, in order to allow for cipher agility.  CTR and GCM take 12-byte IVs, whereas say CBC takes 16 bytes and XChaCha20 takes 24 (not that we would necessarily use those, but they're not totally implausible).  So what this is mean to say is, \"Encode `CTR` into a big-endian integer as long as a nonce\", which means implicitly that the number is on the right, padded with zeros to the left.\r\n\r\n```\r\nencode_big_endian(0x123456789ab, 12) = 0x0000000000000123456789ab\r\nencode_big_endian(0x123456789ab, 16) = 0x000000000000000000000123456789ab\r\n```\r\n\r\nUnless you disagree with forming the nonce that way, the right answer is probably just to properly define `encode_big_endian()`.",
+              "createdAt": "2020-08-12T23:16:18Z",
+              "updatedAt": "2020-08-12T23:16:18Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 53,
+      "id": "MDExOlB1bGxSZXF1ZXN0NDY3NTY5OTQ3",
+      "title": "Clarify key selection",
+      "url": "https://github.com/sframe-wg/sframe/pull/53",
+      "state": "MERGED",
+      "author": "bifurcation",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "The current key selection scheme is ambiguous, and as a result insecure.  Relying on trial decryption is not a safe way to determine which key/nonce were used to produce a given ciphertext (see, e.g., https://eprint.iacr.org/2019/016.pdf).  \r\n\r\nThis PR simplifies the key selection scheme so that each KID specifies exactly one key.  This still allows senders to update keys unilaterally; they just need to update the KID when they do it.",
+      "createdAt": "2020-08-13T18:46:01Z",
+      "updatedAt": "2020-09-11T03:01:34Z",
+      "baseRepository": "sframe-wg/sframe",
+      "baseRefName": "master",
+      "baseRefOid": "dab5037c1ad29578162dce8f138392a94a326bab",
+      "headRepository": "bifurcation/sframe-protocol",
+      "headRefName": "key-selection",
+      "headRefOid": "818d557b5db85ae64045495ad62b2ad85f59cee6",
+      "closedAt": "2020-09-11T03:01:34Z",
+      "mergedAt": "2020-09-11T03:01:34Z",
+      "mergedBy": "eomara",
+      "mergeCommit": {
+        "oid": "818d557b5db85ae64045495ad62b2ad85f59cee6"
+      },
+      "comments": [
+        {
+          "author": "bifurcation",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Ratcheting is added back in #55.  The idea there is the the KID starts at 0 and increments by one every time you ratchet.  That seemed to make sense given that the existing ratcheting section was assuming that KIDs were per-sender anyway.",
+          "createdAt": "2020-08-18T21:37:06Z",
+          "updatedAt": "2020-08-18T21:37:06Z"
+        }
+      ],
+      "reviews": [
+        {
+          "id": "MDE3OlB1bGxSZXF1ZXN0UmV2aWV3NDY3ODg3OTMy",
+          "commit": {
+            "abbreviatedOid": "818d557"
+          },
+          "author": "eomara",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "LGTM. But since you removed the ratcheting section, it is not clear now what KeyID represents, does it represent the initial secret key or includes the ratcheting as well?\r\n\r\nBty, Signal also uses try and error to find the right ratcheting key",
+          "createdAt": "2020-08-14T21:36:10Z",
+          "updatedAt": "2020-08-14T21:36:10Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 54,
+      "id": "MDExOlB1bGxSZXF1ZXN0NDY3NTc2Njcx",
+      "title": "Fix fencing error",
+      "url": "https://github.com/sframe-wg/sframe/pull/54",
+      "state": "MERGED",
+      "author": "bifurcation",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "One `~` was missing from a code fence, resulting in the remainder of the document being treated as code.",
+      "createdAt": "2020-08-13T18:58:38Z",
+      "updatedAt": "2020-09-11T03:02:07Z",
+      "baseRepository": "sframe-wg/sframe",
+      "baseRefName": "master",
+      "baseRefOid": "dab5037c1ad29578162dce8f138392a94a326bab",
+      "headRepository": "bifurcation/sframe-protocol",
+      "headRefName": "fencing",
+      "headRefOid": "6e281197663a9efc5dfb908bea85f52fff1b884f",
+      "closedAt": "2020-09-11T03:02:07Z",
+      "mergedAt": "2020-09-11T03:02:07Z",
+      "mergedBy": "eomara",
+      "mergeCommit": {
+        "oid": "7c79d602f346327c52eef6d8109b9424a2335418"
+      },
+      "comments": [],
+      "reviews": []
+    },
+    {
+      "number": 55,
+      "id": "MDExOlB1bGxSZXF1ZXN0NDY3NjQ1MDM1",
+      "title": "Update key management and define an initial MLS integration",
+      "url": "https://github.com/sframe-wg/sframe/pull/55",
+      "state": "MERGED",
+      "author": "bifurcation",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "This PR attempts to capture the spirit of the original key management provisions with a little more clarity about assumptions.  It also adds a more more explicit construction for connecting SFrame to MLS.",
+      "createdAt": "2020-08-13T21:34:53Z",
+      "updatedAt": "2020-09-11T03:01:33Z",
+      "baseRepository": "sframe-wg/sframe",
+      "baseRefName": "master",
+      "baseRefOid": "dab5037c1ad29578162dce8f138392a94a326bab",
+      "headRepository": "bifurcation/sframe-protocol",
+      "headRefName": "mls",
+      "headRefOid": "98a8a2e085e41c55196069005428209524efdddf",
+      "closedAt": "2020-09-11T03:01:33Z",
+      "mergedAt": "2020-09-11T03:01:33Z",
+      "mergedBy": "eomara",
+      "mergeCommit": {
+        "oid": "041991999a19fa9e2bdb3ac43f60775ae47cbaa6"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "MDE3OlB1bGxSZXF1ZXN0UmV2aWV3NDY3ODg4NzQy",
+          "commit": {
+            "abbreviatedOid": "98a8a2e"
+          },
+          "author": "eomara",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2020-08-14T21:38:19Z",
+          "updatedAt": "2020-08-14T21:38:19Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 58,
+      "id": "MDExOlB1bGxSZXF1ZXN0NjAzMTU0MjE3",
+      "title": "Remove signature",
+      "url": "https://github.com/sframe-wg/sframe/pull/58",
+      "state": "MERGED",
+      "author": "bifurcation",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "",
+      "createdAt": "2021-03-29T21:21:47Z",
+      "updatedAt": "2021-03-30T05:53:14Z",
+      "baseRepository": "sframe-wg/sframe",
+      "baseRefName": "master",
+      "baseRefOid": "7c79d602f346327c52eef6d8109b9424a2335418",
+      "headRepository": "bifurcation/sframe-protocol",
+      "headRefName": "remove-signature",
+      "headRefOid": "7253569b78c9439060c93bccfae7315046d02e09",
+      "closedAt": "2021-03-30T05:53:14Z",
+      "mergedAt": "2021-03-30T05:53:14Z",
+      "mergedBy": "juberti",
+      "mergeCommit": {
+        "oid": "89adc35f4f01b6c6d096158e40838108dfc90dda"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "MDE3OlB1bGxSZXF1ZXN0UmV2aWV3NjIzODY2Mzkz",
+          "commit": {
+            "abbreviatedOid": "7253569"
+          },
+          "author": "juberti",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2021-03-30T05:53:09Z",
+          "updatedAt": "2021-03-30T05:53:09Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 59,
+      "id": "MDExOlB1bGxSZXF1ZXN0NjAzMTU0Mjg1",
+      "title": "Extend tag calculation to cover nonce",
+      "url": "https://github.com/sframe-wg/sframe/pull/59",
+      "state": "MERGED",
+      "author": "bifurcation",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "",
+      "createdAt": "2021-03-29T21:21:52Z",
+      "updatedAt": "2021-03-30T05:53:55Z",
+      "baseRepository": "sframe-wg/sframe",
+      "baseRefName": "master",
+      "baseRefOid": "7c79d602f346327c52eef6d8109b9424a2335418",
+      "headRepository": "bifurcation/sframe-protocol",
+      "headRefName": "ctr-hmac-aead",
+      "headRefOid": "d53d13c913cc2232389c33ab4456c05fa87c1842",
+      "closedAt": "2021-03-30T05:53:54Z",
+      "mergedAt": "2021-03-30T05:53:54Z",
+      "mergedBy": "juberti",
+      "mergeCommit": {
+        "oid": "9b752d1ae9e64b6e75afcdc39b275e9d56d685dc"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "MDE3OlB1bGxSZXF1ZXN0UmV2aWV3NjIzODY2Njc4",
+          "commit": {
+            "abbreviatedOid": "d53d13c"
+          },
+          "author": "juberti",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2021-03-30T05:53:50Z",
+          "updatedAt": "2021-03-30T05:53:50Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 60,
+      "id": "MDExOlB1bGxSZXF1ZXN0NjA3NjM1ODc1",
+      "title": "Add test vectors",
+      "url": "https://github.com/sframe-wg/sframe/pull/60",
+      "state": "MERGED",
+      "author": "bifurcation",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "This PR adds test vectors for SFrame encryption.  A Go script is provided that implements the header encoding and the relevant encryption routines, generates test vectors for salient cases, and serializes them as Markdown or JSON.  The Markdown version is included in the specification directly.",
+      "createdAt": "2021-04-01T19:56:02Z",
+      "updatedAt": "2021-04-01T21:26:55Z",
+      "baseRepository": "sframe-wg/sframe",
+      "baseRefName": "master",
+      "baseRefOid": "9b752d1ae9e64b6e75afcdc39b275e9d56d685dc",
+      "headRepository": "bifurcation/sframe-protocol",
+      "headRefName": "test-vectors",
+      "headRefOid": "29255d931f24428379ad0faf6231b921e2f87805",
+      "closedAt": "2021-04-01T21:26:55Z",
+      "mergedAt": "2021-04-01T21:26:55Z",
+      "mergedBy": "eomara",
+      "mergeCommit": {
+        "oid": "4a5d3fe9b38110fa38222c8c2283fbf4f2ed332a"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "MDE3OlB1bGxSZXF1ZXN0UmV2aWV3NjI2NjYwMjE4",
+          "commit": {
+            "abbreviatedOid": "29255d9"
+          },
+          "author": "eomara",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2021-04-01T21:26:23Z",
+          "updatedAt": "2021-04-01T21:26:23Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 61,
+      "id": "MDExOlB1bGxSZXF1ZXN0NjEwNzc1MTEx",
+      "title": "Fix length",
+      "url": "https://github.com/sframe-wg/sframe/pull/61",
+      "state": "MERGED",
+      "author": "youennf",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "PR fixes https://github.com/eomara/sframe/issues/56.\r\nPR also updates AES-CTR test vectors accordingly.\r\nPR clarifies that decryption ought to work but comparing encrypted data may sometimes fail.",
+      "createdAt": "2021-04-07T15:40:41Z",
+      "updatedAt": "2021-04-09T18:36:16Z",
+      "baseRepository": "sframe-wg/sframe",
+      "baseRefName": "master",
+      "baseRefOid": "4a5d3fe9b38110fa38222c8c2283fbf4f2ed332a",
+      "headRepository": "youennf/sframe",
+      "headRefName": "fix-length",
+      "headRefOid": "455f0da1a390cac8f81aa93f835c75d5dc39cc6a",
+      "closedAt": "2021-04-09T18:36:16Z",
+      "mergedAt": "2021-04-09T18:36:16Z",
+      "mergedBy": "eomara",
+      "mergeCommit": {
+        "oid": "6ec1159cb57fca94a61d714af14eb21927adb5be"
+      },
+      "comments": [],
+      "reviews": []
+    },
+    {
+      "number": 66,
+      "id": "MDExOlB1bGxSZXF1ZXN0NjEzMDg0Mzk0",
+      "title": "Explicitly provide Nh values",
+      "url": "https://github.com/sframe-wg/sframe/pull/66",
+      "state": "MERGED",
+      "author": "youennf",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Fixes https://github.com/eomara/sframe/issues/64",
+      "createdAt": "2021-04-11T14:27:46Z",
+      "updatedAt": "2021-04-12T19:47:51Z",
+      "baseRepository": "sframe-wg/sframe",
+      "baseRefName": "master",
+      "baseRefOid": "6ec1159cb57fca94a61d714af14eb21927adb5be",
+      "headRepository": "youennf/sframe",
+      "headRefName": "clarify-nh-values",
+      "headRefOid": "a1c45d6731f214379b4b8a696df0840d39946389",
+      "closedAt": "2021-04-12T19:47:51Z",
+      "mergedAt": "2021-04-12T19:47:51Z",
+      "mergedBy": "eomara",
+      "mergeCommit": {
+        "oid": "06ebe6fe38fe8394dcfb448db57af6639cd87e9e"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "MDE3OlB1bGxSZXF1ZXN0UmV2aWV3NjMzOTA3MjAx",
+          "commit": {
+            "abbreviatedOid": "a1c45d6"
+          },
+          "author": "eomara",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2021-04-12T19:47:46Z",
+          "updatedAt": "2021-04-12T19:47:46Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 67,
+      "id": "MDExOlB1bGxSZXF1ZXN0NjEzMDg0Njgz",
+      "title": "Clarify how derive_subkeys is used",
+      "url": "https://github.com/sframe-wg/sframe/pull/67",
+      "state": "MERGED",
+      "author": "youennf",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Fixes https://github.com/eomara/sframe/issues/65",
+      "createdAt": "2021-04-11T14:29:34Z",
+      "updatedAt": "2021-04-12T19:48:48Z",
+      "baseRepository": "sframe-wg/sframe",
+      "baseRefName": "master",
+      "baseRefOid": "6ec1159cb57fca94a61d714af14eb21927adb5be",
+      "headRepository": "youennf/sframe",
+      "headRefName": "clarify-derive-subkeys",
+      "headRefOid": "1af7cdeb2ab675bc4fee0072ae750de928a296c8",
+      "closedAt": "2021-04-12T19:48:48Z",
+      "mergedAt": "2021-04-12T19:48:47Z",
+      "mergedBy": "eomara",
+      "mergeCommit": {
+        "oid": "ccfec7fd68fc65a69417af0b3d1e57f1daf1b335"
+      },
+      "comments": [
+        {
+          "author": "youennf",
+          "authorAssociation": "COLLABORATOR",
+          "body": "@bifurcation, goal of this PR is not to change any behavior, just to clarify how things are supposed to work.\r\nCan you validate this PR aligns without your understanding of the spec?",
+          "createdAt": "2021-04-11T14:35:29Z",
+          "updatedAt": "2021-04-11T14:35:29Z"
+        }
+      ],
+      "reviews": [
+        {
+          "id": "MDE3OlB1bGxSZXF1ZXN0UmV2aWV3NjMzOTA3ODg4",
+          "commit": {
+            "abbreviatedOid": "1af7cde"
+          },
+          "author": "eomara",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2021-04-12T19:48:43Z",
+          "updatedAt": "2021-04-12T19:48:43Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 68,
+      "id": "MDExOlB1bGxSZXF1ZXN0NjEzMDg0ODg0",
+      "title": "Clarify support for 10 bytes tags",
+      "url": "https://github.com/sframe-wg/sframe/pull/68",
+      "state": "MERGED",
+      "author": "youennf",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Fixes https://github.com/eomara/sframe/issues/62 by explicitly adding 10 bytes tags.",
+      "createdAt": "2021-04-11T14:30:53Z",
+      "updatedAt": "2022-09-14T00:40:09Z",
+      "baseRepository": "sframe-wg/sframe",
+      "baseRefName": "main",
+      "baseRefOid": "40ef3145abad8596fa768f37c547e247d6c5841d",
+      "headRepository": "youennf/sframe",
+      "headRefName": "10-byte-tags",
+      "headRefOid": "74020fd674d38974d68067020e6df27a36548433",
+      "closedAt": "2022-09-14T00:40:09Z",
+      "mergedAt": "2022-09-14T00:40:08Z",
+      "mergedBy": "murillo128",
+      "mergeCommit": {
+        "oid": "d87c671cc618909c1a2e3d1d5993969a023aba96"
+      },
+      "comments": [
+        {
+          "author": "youennf",
+          "authorAssociation": "COLLABORATOR",
+          "body": "@murillo128 , @eomara , can you merge this PR if it still looks good to you?",
+          "createdAt": "2022-08-30T11:30:32Z",
+          "updatedAt": "2022-08-30T11:30:32Z"
+        },
+        {
+          "author": "murillo128",
+          "authorAssociation": "COLLABORATOR",
+          "body": "seems that your commits for adding the fomat specific draft have been added also to this PR, @youennf could you move it to a different PR so I could merge only the changes for the 10-byte-tags?",
+          "createdAt": "2022-09-01T10:01:24Z",
+          "updatedAt": "2022-09-01T10:01:24Z"
+        },
+        {
+          "author": "youennf",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> seems that your commits for adding the fomat specific draft have been added also to this PR, @youennf could you move it to a different PR so I could merge only the changes for the 10-byte-tags?\r\n\r\nShould be good now, thanks for spotting it.",
+          "createdAt": "2022-09-12T15:04:19Z",
+          "updatedAt": "2022-09-12T15:04:19Z"
+        }
+      ],
+      "reviews": [
+        {
+          "id": "MDE3OlB1bGxSZXF1ZXN0UmV2aWV3NjMzOTA4Njg1",
+          "commit": {
+            "abbreviatedOid": "375bbf9"
+          },
+          "author": "eomara",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2021-04-12T19:49:45Z",
+          "updatedAt": "2021-04-12T19:49:45Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDODz8O_c5B9DQt",
+          "commit": {
+            "abbreviatedOid": "3200e3d"
+          },
+          "author": "murillo128",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2022-09-13T22:37:14Z",
+          "updatedAt": "2022-09-13T22:39:41Z",
+          "comments": [
+            {
+              "originalPosition": 16,
+              "body": "missing _ ?",
+              "createdAt": "2022-09-13T22:37:14Z",
+              "updatedAt": "2022-09-13T22:39:41Z"
+            },
+            {
+              "originalPosition": 12,
+              "body": "isn't it a bit inconsistent to use bits in SHA256 and bytes in 8? wouldn't it be better to rename it to\r\n\r\nAES\\_CM\\_128\\_HMAC\\_SHA256\\_80",
+              "createdAt": "2022-09-13T22:39:24Z",
+              "updatedAt": "2022-09-13T22:39:41Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDODz8O_c5B9EwJ",
+          "commit": {
+            "abbreviatedOid": "3200e3d"
+          },
+          "author": "youennf",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2022-09-13T22:47:08Z",
+          "updatedAt": "2022-09-13T22:47:08Z",
+          "comments": [
+            {
+              "originalPosition": 16,
+              "body": "Fixed",
+              "createdAt": "2022-09-13T22:47:08Z",
+              "updatedAt": "2022-09-13T22:47:08Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDODz8O_c5B9Frk",
+          "commit": {
+            "abbreviatedOid": "3200e3d"
+          },
+          "author": "youennf",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2022-09-13T22:52:49Z",
+          "updatedAt": "2022-09-13T22:52:49Z",
+          "comments": [
+            {
+              "originalPosition": 12,
+              "body": "OK, done",
+              "createdAt": "2022-09-13T22:52:49Z",
+              "updatedAt": "2022-09-13T22:52:49Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDODz8O_c5B9Im2",
+          "commit": {
+            "abbreviatedOid": "e1458b8"
+          },
+          "author": "murillo128",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2022-09-13T23:06:01Z",
+          "updatedAt": "2022-09-13T23:06:02Z",
+          "comments": [
+            {
+              "originalPosition": 26,
+              "body": "\\_8->\\_64 and \\_4->\\_32 ?",
+              "createdAt": "2022-09-13T23:06:01Z",
+              "updatedAt": "2022-09-13T23:06:02Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 69,
+      "id": "MDExOlB1bGxSZXF1ZXN0NjkwNTQ2MDY4",
+      "title": "Clarify auth tag lens",
+      "url": "https://github.com/sframe-wg/sframe/pull/69",
+      "state": "OPEN",
+      "author": "murillo128",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "Waiting for input"
+      ],
+      "body": "",
+      "createdAt": "2021-07-15T09:21:47Z",
+      "updatedAt": "2022-09-01T07:58:12Z",
+      "baseRepository": "sframe-wg/sframe",
+      "baseRefName": "main",
+      "baseRefOid": "ccfec7fd68fc65a69417af0b3d1e57f1daf1b335",
+      "headRepository": "sframe-wg/sframe",
+      "headRefName": "auth-tag-len",
+      "headRefOid": "c5e1cff0fa0d726be5a9c9dd9162ebba04308234",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [
+        {
+          "author": "murillo128",
+          "authorAssociation": "COLLABORATOR",
+          "body": "@bifurcation @youennf should we use the 64 bits auth length for video or a 80 bits length one for AES_CM_128_HMAC_SHA256?",
+          "createdAt": "2021-07-15T09:24:13Z",
+          "updatedAt": "2021-07-15T09:24:13Z"
+        },
+        {
+          "author": "youennf",
+          "authorAssociation": "COLLABORATOR",
+          "body": "This seems partially redundant with https://github.com/sframe-wg/sframe/pull/68.\r\nGiven https://github.com/sframe-wg/sframe/pull/68 is already approved, can we merge it and rebase this one on top of it?",
+          "createdAt": "2022-08-30T11:29:46Z",
+          "updatedAt": "2022-08-30T11:29:46Z"
+        }
+      ],
+      "reviews": [
+        {
+          "id": "MDE3OlB1bGxSZXF1ZXN0UmV2aWV3NzA3ODA0OTc1",
+          "commit": {
+            "abbreviatedOid": "c5e1cff"
+          },
+          "author": "bifurcation",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2021-07-15T20:46:37Z",
+          "updatedAt": "2021-07-15T20:47:32Z",
+          "comments": [
+            {
+              "originalPosition": 10,
+              "body": "Should probably clarify that this is in bits.",
+              "createdAt": "2021-07-15T20:46:37Z",
+              "updatedAt": "2021-07-15T20:47:32Z"
+            },
+            {
+              "originalPosition": 15,
+              "body": "The auth tag here is still 128 bits.",
+              "createdAt": "2021-07-15T20:47:16Z",
+              "updatedAt": "2021-07-15T20:47:32Z"
+            }
+          ]
+        },
+        {
+          "id": "MDE3OlB1bGxSZXF1ZXN0UmV2aWV3NzA4MTcwNDg3",
+          "commit": {
+            "abbreviatedOid": "c5e1cff"
+          },
+          "author": "murillo128",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2021-07-16T09:14:05Z",
+          "updatedAt": "2021-07-16T09:14:05Z",
+          "comments": [
+            {
+              "originalPosition": 15,
+              "body": "The rest of values (Nh/NK/Nn) are in bytes, right? ",
+              "createdAt": "2021-07-16T09:14:05Z",
+              "updatedAt": "2021-07-16T09:14:06Z"
+            }
+          ]
+        },
+        {
+          "id": "MDE3OlB1bGxSZXF1ZXN0UmV2aWV3NzA4NzAyOTg0",
+          "commit": {
+            "abbreviatedOid": "c5e1cff"
+          },
+          "author": "bifurcation",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2021-07-16T19:48:09Z",
+          "updatedAt": "2021-07-16T19:48:09Z",
+          "comments": [
+            {
+              "originalPosition": 15,
+              "body": "Correct.  So either the auth tag length should be in bytes, or we should clarify that it's in bits.  (We could also assign it a cute name like the other columns, say `Nt`.)  In any case, AES-128-GCM and AES-256-GCM both have a 16-byte / 128-bit tag.",
+              "createdAt": "2021-07-16T19:48:09Z",
+              "updatedAt": "2021-07-16T19:48:09Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 71,
+      "id": "PR_kwDODz8O_c4yKg_H",
+      "title": "remove Dr. Alex from authors",
+      "url": "https://github.com/sframe-wg/sframe/pull/71",
+      "state": "MERGED",
+      "author": "murillo128",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "@juberti @youennf please review the wording, my english is not good enough for this kind of language.",
+      "createdAt": "2022-02-07T11:28:34Z",
+      "updatedAt": "2022-07-29T22:13:13Z",
+      "baseRepository": "sframe-wg/sframe",
+      "baseRefName": "master",
+      "baseRefOid": "7bdb32d20b0a4c4f6d380e00addcd0fae55b8ee9",
+      "headRepository": "sframe-wg/sframe",
+      "headRefName": "murillo128-dr-alex",
+      "headRefOid": "ab29f87bafe358a3e44c57614443ba5aa275c8ba",
+      "closedAt": "2022-03-10T08:39:15Z",
+      "mergedAt": "2022-03-10T08:39:15Z",
+      "mergedBy": "murillo128",
+      "mergeCommit": {
+        "oid": "db23502e9d98ec9b6fc518283f52c93d5b88680d"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDODz8O_c40IZSo",
+          "commit": {
+            "abbreviatedOid": "d5544f9"
+          },
+          "author": "youennf",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2022-02-07T12:45:52Z",
+          "updatedAt": "2022-02-07T12:45:52Z",
+          "comments": [
+            {
+              "originalPosition": 20,
+              "body": "```suggestion\r\n   The authors wish to specially thank Dr. Alex Gouaillard as one of the early contributors to the document. His passion and energy were key to the design and development of SFrame. \r\n```",
+              "createdAt": "2022-02-07T12:45:52Z",
+              "updatedAt": "2022-02-07T12:45:52Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 72,
+      "id": "PR_kwDODz8O_c40IPUU",
+      "title": "Revise Abstract and Introduction",
+      "url": "https://github.com/sframe-wg/sframe/pull/72",
+      "state": "OPEN",
+      "author": "bifurcation",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "",
+      "createdAt": "2022-03-08T20:48:33Z",
+      "updatedAt": "2022-10-06T12:55:57Z",
+      "baseRepository": "sframe-wg/sframe",
+      "baseRefName": "main",
+      "baseRefOid": "558a23416e7c0ef63077935c08ae013f578288d3",
+      "headRepository": "bifurcation/sframe-protocol",
+      "headRefName": "intro",
+      "headRefOid": "2a06ec0b74fb4c61201409096bc59051a7cdbc3a",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [
+        {
+          "author": "youennf",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Needs rebasing. I am not sure what the changes should look like, @bifurcation , can you do the rebasing?",
+          "createdAt": "2022-10-05T12:44:49Z",
+          "updatedAt": "2022-10-05T12:44:49Z"
+        }
+      ],
+      "reviews": [
+        {
+          "id": "PRR_kwDODz8O_c413nyD",
+          "commit": {
+            "abbreviatedOid": "715ec0b"
+          },
+          "author": "martinthomson",
+          "authorAssociation": "MEMBER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2022-03-09T01:32:53Z",
+          "updatedAt": "2022-03-09T01:32:54Z",
+          "comments": [
+            {
+              "originalPosition": 30,
+              "body": "Here's a scary experiment:\r\n\r\n```suggestion\r\n~~~ aasvg\r\n```",
+              "createdAt": "2022-03-09T01:32:54Z",
+              "updatedAt": "2022-03-09T01:32:54Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDODz8O_c4154YH",
+          "commit": {
+            "abbreviatedOid": "715ec0b"
+          },
+          "author": "bifurcation",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2022-03-09T13:34:02Z",
+          "updatedAt": "2022-03-09T13:34:02Z",
+          "comments": [
+            {
+              "originalPosition": 30,
+              "body": "What is this supposed to do?  Auto-generate SVG from ASCII art?",
+              "createdAt": "2022-03-09T13:34:02Z",
+              "updatedAt": "2022-03-09T13:34:02Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDODz8O_c418-N9",
+          "commit": {
+            "abbreviatedOid": "715ec0b"
+          },
+          "author": "martinthomson",
+          "authorAssociation": "MEMBER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2022-03-10T00:40:42Z",
+          "updatedAt": "2022-03-10T00:40:42Z",
+          "comments": [
+            {
+              "originalPosition": 30,
+              "body": "Yep.  For example:\r\n\r\n![image](https://user-images.githubusercontent.com/67641/157564036-1c98c53b-c09a-4cd4-a8c2-5d3c3c90381b.png)\r\n",
+              "createdAt": "2022-03-10T00:40:42Z",
+              "updatedAt": "2022-03-10T00:40:42Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDODz8O_c5Dc5sh",
+          "commit": {
+            "abbreviatedOid": "6e01def"
+          },
+          "author": "youennf",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2022-10-05T15:37:22Z",
+          "updatedAt": "2022-10-05T15:39:11Z",
+          "comments": [
+            {
+              "originalPosition": 10,
+              "body": "This one is 80 char wrapped, not the other section.\r\nWe should probably try to be consistent.",
+              "createdAt": "2022-10-05T15:37:22Z",
+              "updatedAt": "2022-10-05T15:39:11Z"
+            },
+            {
+              "originalPosition": 16,
+              "body": "Do we need to spell out SFU since we already clarified what this is in the abstract?",
+              "createdAt": "2022-10-05T15:38:05Z",
+              "updatedAt": "2022-10-05T15:39:11Z"
+            },
+            {
+              "originalPosition": 25,
+              "body": "```suggestion\r\nThe Secure Real-Time Protocol (SRTP) is already widely used for HBH encryption {{?RFC3711}}. The SRTP \"double encryption\" scheme defines a way to do E2E encryption in SRTP {{?RFC8723}}. Unfortunately, this scheme has poor efficiency and high complexity, and its entanglement with RTP makes it unworkable in several realistic SFU scenarios.\r\n```",
+              "createdAt": "2022-10-05T15:38:44Z",
+              "updatedAt": "2022-10-05T15:39:11Z"
+            },
+            {
+              "originalPosition": 28,
+              "body": "```suggestion\r\nThis document proposes a new end-to-end encryption mechanism known as SFrame, specifically designed to work in group conference calls with SFUs. SFrame is a general encryption framing that can be used to protect payloads sent over SRTP\r\n```",
+              "createdAt": "2022-10-05T15:39:05Z",
+              "updatedAt": "2022-10-05T15:39:12Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDODz8O_c5Dh1wZ",
+          "commit": {
+            "abbreviatedOid": "6e01def"
+          },
+          "author": "bifurcation",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2022-10-06T12:51:27Z",
+          "updatedAt": "2022-10-06T12:51:27Z",
+          "comments": [
+            {
+              "originalPosition": 16,
+              "body": "Seems like it doesn't hurt, and might improve clarity if someone skips the abstract.",
+              "createdAt": "2022-10-06T12:51:27Z",
+              "updatedAt": "2022-10-06T12:51:27Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDODz8O_c5Dh3Zo",
+          "commit": {
+            "abbreviatedOid": "2a06ec0"
+          },
+          "author": "bifurcation",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2022-10-06T12:55:42Z",
+          "updatedAt": "2022-10-06T12:55:57Z",
+          "comments": [
+            {
+              "originalPosition": 10,
+              "body": "Updated the sections affected by this PR.  I can do a global 80-char-wrap PR once the current queue drains.",
+              "createdAt": "2022-10-06T12:55:42Z",
+              "updatedAt": "2022-10-06T12:55:57Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 73,
+      "id": "PR_kwDODz8O_c40JBP-",
+      "title": "Update context section to talk about both SPacket and SFrame",
+      "url": "https://github.com/sframe-wg/sframe/pull/73",
+      "state": "OPEN",
+      "author": "bifurcation",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "",
+      "createdAt": "2022-03-08T23:48:30Z",
+      "updatedAt": "2022-10-06T15:27:39Z",
+      "baseRepository": "sframe-wg/sframe",
+      "baseRefName": "main",
+      "baseRefOid": "558a23416e7c0ef63077935c08ae013f578288d3",
+      "headRepository": "bifurcation/sframe-protocol",
+      "headRefName": "app-context",
+      "headRefOid": "31059e528f934b05ecc132320574b28d5630c944",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [
+        {
+          "author": "youennf",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I am ok with these changes given the current scope of the document.\r\nIn general, I would prefer we be frame/packet agnostic in this document, so some of the text would go in another document.\r\nLet's do that as a follow-up.",
+          "createdAt": "2022-10-05T12:37:58Z",
+          "updatedAt": "2022-10-05T12:37:58Z"
+        },
+        {
+          "author": "bifurcation",
+          "authorAssociation": "COLLABORATOR",
+          "body": "@youennf - I rephrased the per-frame / per-packet stuff to make clear that it is just an example.  Hopefully works better for you.",
+          "createdAt": "2022-10-06T15:27:39Z",
+          "updatedAt": "2022-10-06T15:27:39Z"
+        }
+      ],
+      "reviews": [
+        {
+          "id": "PRR_kwDODz8O_c41372g",
+          "commit": {
+            "abbreviatedOid": "5d223ba"
+          },
+          "author": "martinthomson",
+          "authorAssociation": "MEMBER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2022-03-09T04:38:54Z",
+          "updatedAt": "2022-03-09T04:41:32Z",
+          "comments": [
+            {
+              "originalPosition": 29,
+              "body": "\"propose\"?",
+              "createdAt": "2022-03-09T04:38:54Z",
+              "updatedAt": "2022-03-09T04:41:32Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDODz8O_c5DbomG",
+          "commit": {
+            "abbreviatedOid": "a3dbd00"
+          },
+          "author": "murillo128",
+          "authorAssociation": "COLLABORATOR",
+          "state": "CHANGES_REQUESTED",
+          "body": "lgtm",
+          "createdAt": "2022-10-05T12:06:07Z",
+          "updatedAt": "2022-10-05T12:06:21Z",
+          "comments": [
+            {
+              "originalPosition": 29,
+              "body": "We propose an encryption mechanism -> This document defines\r\n\r\n",
+              "createdAt": "2022-10-05T12:06:07Z",
+              "updatedAt": "2022-10-05T12:06:21Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDODz8O_c5DbxLu",
+          "commit": {
+            "abbreviatedOid": "a3dbd00"
+          },
+          "author": "youennf",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2022-10-05T12:35:04Z",
+          "updatedAt": "2022-10-05T12:35:05Z",
+          "comments": [
+            {
+              "originalPosition": 29,
+              "body": "```suggestion\r\nThis document defines an encryption mechanism that provides effective end-to-end encryption, is simple to implement, has no dependencies on RTP, and minimizes encryption bandwidth overhead. Because SFrame can encrypt a full frame, rather than individual packets, bandwidth overhead can reduced by adding encryption overhead only once per media frame, instead of once per packet.\r\n```",
+              "createdAt": "2022-10-05T12:35:04Z",
+              "updatedAt": "2022-10-05T12:35:05Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDODz8O_c5DbxUg",
+          "commit": {
+            "abbreviatedOid": "a3dbd00"
+          },
+          "author": "youennf",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2022-10-05T12:35:31Z",
+          "updatedAt": "2022-10-05T12:35:31Z",
+          "comments": [
+            {
+              "originalPosition": 29,
+              "body": "Suggesting the change proposed by @murillo128",
+              "createdAt": "2022-10-05T12:35:31Z",
+              "updatedAt": "2022-10-05T12:35:31Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDODz8O_c5Dbxo9",
+          "commit": {
+            "abbreviatedOid": "5d223ba"
+          },
+          "author": "youennf",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2022-10-05T12:36:32Z",
+          "updatedAt": "2022-10-05T12:36:32Z",
+          "comments": [
+            {
+              "originalPosition": 29,
+              "body": "Resolved by s/We propose/The document defines/",
+              "createdAt": "2022-10-05T12:36:32Z",
+              "updatedAt": "2022-10-05T12:36:32Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDODz8O_c5DbyXN",
+          "commit": {
+            "abbreviatedOid": "6a9522f"
+          },
+          "author": "youennf",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "Looking quickly at these changes, I think I prefer we move away from discussing SPacket/SFrame in this document.\r\nIt seems better to remove the packetization aspects instead of trying to describe both models.",
+          "createdAt": "2022-10-05T12:38:51Z",
+          "updatedAt": "2022-10-05T12:42:08Z",
+          "comments": [
+            {
+              "originalPosition": 29,
+              "body": "This is pre-existing, but we should probably wrap these lines by 80 characters like you are doing below.",
+              "createdAt": "2022-10-05T12:38:51Z",
+              "updatedAt": "2022-10-05T12:42:08Z"
+            },
+            {
+              "originalPosition": 34,
+              "body": "```suggestion\r\npacketization within a media stack. That is, SFrame can be applied per-frame or\r\n```",
+              "createdAt": "2022-10-05T12:39:02Z",
+              "updatedAt": "2022-10-05T12:42:08Z"
+            },
+            {
+              "originalPosition": 34,
+              "body": "I'd prefer we live packetization out of the this document. SFrame may be used in other places where there is no concept of packetization.",
+              "createdAt": "2022-10-05T12:39:41Z",
+              "updatedAt": "2022-10-05T12:42:08Z"
+            },
+            {
+              "originalPosition": 36,
+              "body": "The more complex integration depends on the media stack implementation (see how easy it is in UAs to do frame level processing and how difficult it is in other native stacks).\r\n",
+              "createdAt": "2022-10-05T12:41:02Z",
+              "updatedAt": "2022-10-05T12:42:08Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 74,
+      "id": "PR_kwDODz8O_c40JOg9",
+      "title": "Pictures!",
+      "url": "https://github.com/sframe-wg/sframe/pull/74",
+      "state": "MERGED",
+      "author": "martinthomson",
+      "authorAssociation": "MEMBER",
+      "assignees": [],
+      "labels": [],
+      "body": "Some modest tweaking was necessary, but the result should be nicer.\r\n\r\nAlso, update the Makefile",
+      "createdAt": "2022-03-09T01:43:08Z",
+      "updatedAt": "2022-09-19T21:36:49Z",
+      "baseRepository": "sframe-wg/sframe",
+      "baseRefName": "main",
+      "baseRefOid": "d87c671cc618909c1a2e3d1d5993969a023aba96",
+      "headRepository": "martinthomson/sframe",
+      "headRefName": "picturez",
+      "headRefOid": "58b5594d8f4d219ee17a5edb598b8a37be77cf80",
+      "closedAt": "2022-09-19T21:36:49Z",
+      "mergedAt": "2022-09-19T21:36:49Z",
+      "mergedBy": "youennf",
+      "mergeCommit": {
+        "oid": "c1d4a141847e599d9cc2b2ef2181a96d85e83d27"
+      },
+      "comments": [
+        {
+          "author": "bifurcation",
+          "authorAssociation": "COLLABORATOR",
+          "body": "@martinthomson is there a way to see how this renders?\r\n",
+          "createdAt": "2022-03-10T22:15:31Z",
+          "updatedAt": "2022-03-10T22:15:31Z"
+        },
+        {
+          "author": "martinthomson",
+          "authorAssociation": "MEMBER",
+          "body": "If you had CI enabled, there would be a copy attached to this pull request.  I can upload HTML in a zip file though (there are too many pictures for screenshots).\r\n\r\n[draft-omara-sframe.zip](https://github.com/eomara/sframe/files/8227668/draft-omara-sframe.zip)\r\n",
+          "createdAt": "2022-03-10T22:56:57Z",
+          "updatedAt": "2022-03-10T22:56:57Z"
+        },
+        {
+          "author": "bifurcation",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I suppose that's something to fix once we get moved over to the WG repo.",
+          "createdAt": "2022-03-10T22:57:44Z",
+          "updatedAt": "2022-03-10T22:57:44Z"
+        },
+        {
+          "author": "youennf",
+          "authorAssociation": "COLLABORATOR",
+          "body": "@martinthomson, do you plan to rebase this PR?\r\nShould the makefile changes be done in a separate PR?",
+          "createdAt": "2022-09-12T15:09:56Z",
+          "updatedAt": "2022-09-12T15:09:56Z"
+        },
+        {
+          "author": "martinthomson",
+          "authorAssociation": "MEMBER",
+          "body": "The makefile changes are necessary to have this work.  I've added some more changes that will ensure that a local build works (assuming that you have the basic prerequisites installed).",
+          "createdAt": "2022-09-14T16:34:18Z",
+          "updatedAt": "2022-09-14T16:34:18Z"
+        }
+      ],
+      "reviews": [
+        {
+          "id": "PRR_kwDODz8O_c5CIn5Q",
+          "commit": {
+            "abbreviatedOid": "58b5594"
+          },
+          "author": "youennf",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "I run this locally and this looks good to me.",
+          "createdAt": "2022-09-15T16:56:26Z",
+          "updatedAt": "2022-09-15T16:56:26Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 75,
+      "id": "PR_kwDODz8O_c40QkI0",
+      "title": "Revise SFrame format section",
+      "url": "https://github.com/sframe-wg/sframe/pull/75",
+      "state": "MERGED",
+      "author": "bifurcation",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "",
+      "createdAt": "2022-03-10T19:21:46Z",
+      "updatedAt": "2022-10-05T15:34:23Z",
+      "baseRepository": "sframe-wg/sframe",
+      "baseRefName": "main",
+      "baseRefOid": "5a2e6cac35249891fef6532b4f52ddb812b2b589",
+      "headRepository": "bifurcation/sframe-protocol",
+      "headRefName": "format",
+      "headRefOid": "328ef5944ec3311ed947a0ff2be0a53dc06a4788",
+      "closedAt": "2022-10-05T15:34:23Z",
+      "mergedAt": "2022-10-05T15:34:23Z",
+      "mergedBy": "youennf",
+      "mergeCommit": {
+        "oid": "558a23416e7c0ef63077935c08ae013f578288d3"
+      },
+      "comments": [
+        {
+          "author": "bifurcation",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I suppose there's a valid question about how prescriptive we want to be about CTR.  On the one hand, the hard requirement is that (KID, CTR) pairs be unique, not that CTR be a counter, so you could allow senders flexibility in populating CTR as long as they enforce uniqueness.  On the other hand, if CTR is required to be a counter, you can rely on that for things like gap and replay detection or reordering (as with the RTP sequence number).",
+          "createdAt": "2022-10-05T13:23:39Z",
+          "updatedAt": "2022-10-05T13:23:39Z"
+        },
+        {
+          "author": "youennf",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> I suppose there's a valid question about how prescriptive we want to be about CTR.\r\n\r\nIt might be worth an issue.\r\nIt seems to me we should probably spell out explicitly a good default implementation (incrementing counter) given it is simple and efficient.",
+          "createdAt": "2022-10-05T15:34:18Z",
+          "updatedAt": "2022-10-05T15:34:18Z"
+        }
+      ],
+      "reviews": [
+        {
+          "id": "PRR_kwDODz8O_c5Dblu1",
+          "commit": {
+            "abbreviatedOid": "ea6814f"
+          },
+          "author": "murillo128",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "lgtm with minor comments",
+          "createdAt": "2022-10-05T11:55:40Z",
+          "updatedAt": "2022-10-05T12:00:57Z",
+          "comments": [
+            {
+              "originalPosition": 37,
+              "body": "Same as in I think that the mentions about specific usage per frame and per packet should be moved to a different document. However, i am ok to keep the text here as a Note:",
+              "createdAt": "2022-10-05T11:55:40Z",
+              "updatedAt": "2022-10-05T12:00:57Z"
+            },
+            {
+              "originalPosition": 50,
+              "body": "Shouldn't we add: `The frame counter must be unique and monotonically increasing to avoid IV reuse` or any guidance about how to construct the `CTR`?",
+              "createdAt": "2022-10-05T11:57:02Z",
+              "updatedAt": "2022-10-05T12:00:57Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDODz8O_c5DbpnI",
+          "commit": {
+            "abbreviatedOid": "ea6814f"
+          },
+          "author": "murillo128",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2022-10-05T12:09:44Z",
+          "updatedAt": "2022-10-05T12:09:45Z",
+          "comments": [
+            {
+              "originalPosition": 37,
+              "body": "I have seen that the new abstract specifically mentions per packet and per frame usage, so I am fine with this as it is.",
+              "createdAt": "2022-10-05T12:09:44Z",
+              "updatedAt": "2022-10-05T12:09:45Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDODz8O_c5DcA8X",
+          "commit": {
+            "abbreviatedOid": "ea6814f"
+          },
+          "author": "bifurcation",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2022-10-05T13:19:54Z",
+          "updatedAt": "2022-10-05T13:19:54Z",
+          "comments": [
+            {
+              "originalPosition": 50,
+              "body": "That is stated just below here:\r\n\r\n> Applications MUST ensure that each (KID, CTR) combination is used for exactly\r\none encryption operation.  Typically this is done by assigning each sender a KID\r\nor set of KIDs, then having each sender use the CTR field to uniquely identify\r\neach encryption operation.\r\n\r\nWe could add something at the end of that if you think it would clarify, like:\r\n\r\n> Applications MUST ensure that each (KID, CTR) combination is used for exactly\r\none encryption operation.  Typically this is done by assigning each sender a KID\r\nor set of KIDs, then having each sender use the CTR field to uniquely identify\r\neach encryption operation, for example by populating the CTR field with a monotonically increasing counter that increments for each encryption operation.",
+              "createdAt": "2022-10-05T13:19:54Z",
+              "updatedAt": "2022-10-05T13:19:54Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDODz8O_c5DcJvR",
+          "commit": {
+            "abbreviatedOid": "ea6814f"
+          },
+          "author": "murillo128",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2022-10-05T13:41:52Z",
+          "updatedAt": "2022-10-05T13:41:53Z",
+          "comments": [
+            {
+              "originalPosition": 50,
+              "body": "If any random CTR value would work as long as it is used a single time, I am fine with that. I would also state that having an incremental counter is the most optimum approach as the encoding of the CTR on the header has less overhead the smaller the CTR value is.",
+              "createdAt": "2022-10-05T13:41:52Z",
+              "updatedAt": "2022-10-05T13:41:53Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 77,
+      "id": "PR_kwDODz8O_c40QrXA",
+      "title": "Revise encryption and decryption sections",
+      "url": "https://github.com/sframe-wg/sframe/pull/77",
+      "state": "MERGED",
+      "author": "bifurcation",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "",
+      "createdAt": "2022-03-10T19:58:33Z",
+      "updatedAt": "2022-10-05T12:33:40Z",
+      "baseRepository": "sframe-wg/sframe",
+      "baseRefName": "main",
+      "baseRefOid": "0488ccc3bd70a6ed439388cc9d7880a8b52e4051",
+      "headRepository": "bifurcation/sframe-protocol",
+      "headRefName": "encryption",
+      "headRefOid": "f88f54c41a30903451ea589f6ae5662936b66399",
+      "closedAt": "2022-10-05T12:33:40Z",
+      "mergedAt": "2022-10-05T12:33:40Z",
+      "mergedBy": "youennf",
+      "mergeCommit": {
+        "oid": "5a2e6cac35249891fef6532b4f52ddb812b2b589"
+      },
+      "comments": [
+        {
+          "author": "youennf",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Needs rebasing.",
+          "createdAt": "2022-09-12T15:07:00Z",
+          "updatedAt": "2022-09-12T15:07:00Z"
+        }
+      ],
+      "reviews": [
+        {
+          "id": "PRR_kwDODz8O_c5Dbkta",
+          "commit": {
+            "abbreviatedOid": "3ea2562"
+          },
+          "author": "murillo128",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "lgtm except minor note",
+          "createdAt": "2022-10-05T11:51:45Z",
+          "updatedAt": "2022-10-05T11:52:35Z",
+          "comments": [
+            {
+              "originalPosition": 115,
+              "body": "I think that the mentions about specific usage per frame and per packet should be moved to a diferent document. However, i am ok to keep the text here as a `Note:`",
+              "createdAt": "2022-10-05T11:51:45Z",
+              "updatedAt": "2022-10-05T11:52:35Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDODz8O_c5DbpUC",
+          "commit": {
+            "abbreviatedOid": "3ea2562"
+          },
+          "author": "murillo128",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2022-10-05T12:08:41Z",
+          "updatedAt": "2022-10-05T12:08:41Z",
+          "comments": [
+            {
+              "originalPosition": 115,
+              "body": "I have seen that the new abstract specifically mentions per packet and per frame usage, so I am fine with this as it is.",
+              "createdAt": "2022-10-05T12:08:41Z",
+              "updatedAt": "2022-10-05T12:08:41Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDODz8O_c5DbvwX",
+          "commit": {
+            "abbreviatedOid": "3ea2562"
+          },
+          "author": "youennf",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2022-10-05T12:30:27Z",
+          "updatedAt": "2022-10-05T12:30:27Z",
+          "comments": [
+            {
+              "originalPosition": 115,
+              "body": "Agreed with the direction to move per frame/packet to another document if possible.\r\nThat said, let's do that as as a follow-up.",
+              "createdAt": "2022-10-05T12:30:27Z",
+              "updatedAt": "2022-10-05T12:30:27Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDODz8O_c5Dbv15",
+          "commit": {
+            "abbreviatedOid": "3ea2562"
+          },
+          "author": "youennf",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2022-10-05T12:30:44Z",
+          "updatedAt": "2022-10-05T12:30:44Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 78,
+      "id": "PR_kwDODz8O_c40RGSV",
+      "title": "Remove vestigial references to signature",
+      "url": "https://github.com/sframe-wg/sframe/pull/78",
+      "state": "MERGED",
+      "author": "bifurcation",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "The signature mechanism was removed from SFrame some time ago.  This PR removes a few remaining references to it.",
+      "createdAt": "2022-03-10T22:25:01Z",
+      "updatedAt": "2022-10-05T12:28:50Z",
+      "baseRepository": "sframe-wg/sframe",
+      "baseRefName": "main",
+      "baseRefOid": "d87c671cc618909c1a2e3d1d5993969a023aba96",
+      "headRepository": "bifurcation/sframe-protocol",
+      "headRefName": "no-signature",
+      "headRefOid": "6e3762cefcd703b76e5a9e1a72dd4cff5640e589",
+      "closedAt": "2022-10-05T12:28:50Z",
+      "mergedAt": "2022-10-05T12:28:50Z",
+      "mergedBy": "youennf",
+      "mergeCommit": {
+        "oid": "0488ccc3bd70a6ed439388cc9d7880a8b52e4051"
+      },
+      "comments": [
+        {
+          "author": "youennf",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Seems good but needs rebasing",
+          "createdAt": "2022-09-12T15:08:03Z",
+          "updatedAt": "2022-09-12T15:08:03Z"
+        },
+        {
+          "author": "murillo128",
+          "authorAssociation": "COLLABORATOR",
+          "body": "@youennf @bifurcation I think we are ok to merge this PR?",
+          "createdAt": "2022-10-05T11:47:03Z",
+          "updatedAt": "2022-10-05T11:47:03Z"
+        }
+      ],
+      "reviews": [
+        {
+          "id": "PRR_kwDODz8O_c5CVajX",
+          "commit": {
+            "abbreviatedOid": "f382ae0"
+          },
+          "author": "youennf",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2022-09-19T21:37:41Z",
+          "updatedAt": "2022-09-19T21:40:42Z",
+          "comments": [
+            {
+              "originalPosition": 34,
+              "body": "```suggestion\r\na fresh encryption key. The client then uses\r\n```",
+              "createdAt": "2022-09-19T21:37:41Z",
+              "updatedAt": "2022-09-19T21:40:42Z"
+            },
+            {
+              "originalPosition": 47,
+              "body": "```suggestion\r\nsender. Evicting a participant requires each sender to send a fresh sender key\r\n```",
+              "createdAt": "2022-09-19T21:38:02Z",
+              "updatedAt": "2022-09-19T21:40:42Z"
+            },
+            {
+              "originalPosition": 20,
+              "body": "```suggestion\r\nrotate the keys used for SFrame encryption. The key management\r\n```",
+              "createdAt": "2022-09-19T21:38:35Z",
+              "updatedAt": "2022-09-19T21:40:42Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDODz8O_c5DbjX4",
+          "commit": {
+            "abbreviatedOid": "6e3762c"
+          },
+          "author": "murillo128",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2022-10-05T11:46:37Z",
+          "updatedAt": "2022-10-05T11:46:37Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 81,
+      "id": "PR_kwDODz8O_c44F2ky",
+      "title": "Updates",
+      "url": "https://github.com/sframe-wg/sframe/pull/81",
+      "state": "MERGED",
+      "author": "martinthomson",
+      "authorAssociation": "MEMBER",
+      "assignees": [],
+      "labels": [],
+      "body": "This:\r\n\r\n* Changes the name of the draft (I made something up, but you are free to suggest a different name)\r\n* Adds venue information to the draft (working group, area, stream, github, etc...)\r\n* Updates some of the boilerplate stuff (README, CONTRIBUTING, .gitignore, Makefile)\r\n* Adds workflows for CI with GitHub Actions\r\n* Cleans up trailing whitespace (with `make fix-lint`) so that the build runs cleanly\r\n* Updates the Gemfile (I don't use this, but I tried to make it functional for those that do)\r\n\r\nFrom here, you should be able to create a first submission of a draft-ietf-sframe-enc-00 by pushing a tag of draft-ietf-sframe-enc-00 (or making a new release with that name).",
+      "createdAt": "2022-05-19T04:39:44Z",
+      "updatedAt": "2022-07-22T06:31:00Z",
+      "baseRepository": "sframe-wg/sframe",
+      "baseRefName": "master",
+      "baseRefOid": "db23502e9d98ec9b6fc518283f52c93d5b88680d",
+      "headRepository": "martinthomson/sframe",
+      "headRefName": "update",
+      "headRefOid": "a63daa617942448ce886d82804b80e2651ef8e6b",
+      "closedAt": "2022-07-22T06:31:00Z",
+      "mergedAt": "2022-07-22T06:31:00Z",
+      "mergedBy": "murillo128",
+      "mergeCommit": {
+        "oid": "8e3092ea13b33e6b3c86dc414a428b7516b0652e"
+      },
+      "comments": [
+        {
+          "author": "youennf",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Spec changes look ok since they are editorial/\r\n@martinthomson, is this ready to go?\r\n",
+          "createdAt": "2022-05-23T05:56:29Z",
+          "updatedAt": "2022-05-23T05:56:29Z"
+        },
+        {
+          "author": "martinthomson",
+          "authorAssociation": "MEMBER",
+          "body": "You should be able to merge this and use it straight away, if that is what you want to do (the only thing that might need attention is the proposed filename, which I just made up).",
+          "createdAt": "2022-05-23T06:57:07Z",
+          "updatedAt": "2022-05-23T06:57:07Z"
+        }
+      ],
+      "reviews": []
+    },
+    {
+      "number": 82,
+      "id": "PR_kwDODz8O_c48VV0e",
+      "title": "Add Barnes and Fablet as authors",
+      "url": "https://github.com/sframe-wg/sframe/pull/82",
+      "state": "MERGED",
+      "author": "bifurcation",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "",
+      "createdAt": "2022-07-29T17:59:54Z",
+      "updatedAt": "2022-07-29T18:05:04Z",
+      "baseRepository": "sframe-wg/sframe",
+      "baseRefName": "master",
+      "baseRefOid": "8e3092ea13b33e6b3c86dc414a428b7516b0652e",
+      "headRepository": "bifurcation/sframe-protocol",
+      "headRefName": "add-rlb-youenn",
+      "headRefOid": "f59b925ec8368a9dbbcd88de6ac25bfdef4afa35",
+      "closedAt": "2022-07-29T18:05:04Z",
+      "mergedAt": "2022-07-29T18:05:04Z",
+      "mergedBy": "bifurcation",
+      "mergeCommit": {
+        "oid": "40ef3145abad8596fa768f37c547e247d6c5841d"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDODz8O_c4-78Hv",
+          "commit": {
+            "abbreviatedOid": "746c301"
+          },
+          "author": "martinthomson",
+          "authorAssociation": "MEMBER",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2022-07-29T18:00:53Z",
+          "updatedAt": "2022-07-29T18:00:57Z",
+          "comments": [
+            {
+              "originalPosition": 6,
+              "body": "Add role: editor ?",
+              "createdAt": "2022-07-29T18:00:53Z",
+              "updatedAt": "2022-07-29T18:00:57Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 83,
+      "id": "PR_kwDODz8O_c48adyl",
+      "title": "Change terminology from AES-CM to AES-CTR",
+      "url": "https://github.com/sframe-wg/sframe/pull/83",
+      "state": "MERGED",
+      "author": "beurdouche",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "I wasn't sure if CM was meant for \"Counter Mode\", if so, I thought using the standard terminology would be better... : )",
+      "createdAt": "2022-08-01T09:10:35Z",
+      "updatedAt": "2022-10-05T15:32:08Z",
+      "baseRepository": "sframe-wg/sframe",
+      "baseRefName": "main",
+      "baseRefOid": "d87c671cc618909c1a2e3d1d5993969a023aba96",
+      "headRepository": "beurdouche/sframe",
+      "headRefName": "main",
+      "headRefOid": "f63fa76f81436082dadef60e986c2bf628dd340b",
+      "closedAt": "2022-10-05T15:32:08Z",
+      "mergedAt": "2022-10-05T15:32:08Z",
+      "mergedBy": "youennf",
+      "mergeCommit": {
+        "oid": "60e3af6775e70678c8a548790e6e480b470e8c30"
+      },
+      "comments": [
+        {
+          "author": "FredericJacobs",
+          "authorAssociation": "NONE",
+          "body": "I also originally got very confused by the CM acronym so definitely suggest taking the change.",
+          "createdAt": "2022-08-01T15:56:48Z",
+          "updatedAt": "2022-08-01T15:56:48Z"
+        },
+        {
+          "author": "youennf",
+          "authorAssociation": "COLLABORATOR",
+          "body": "@beurdouche, would you be able to rebase your commit?",
+          "createdAt": "2022-09-15T16:52:30Z",
+          "updatedAt": "2022-09-15T16:52:30Z"
+        },
+        {
+          "author": "beurdouche",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "@youennf Should be good now. (~Note that I did not update the label in `derive_subkeys(sframe_key)` to avoid affecting the test vectors.~ Pushed a commit with updated test vectors.)",
+          "createdAt": "2022-09-15T17:10:18Z",
+          "updatedAt": "2022-09-15T17:26:57Z"
+        }
+      ],
+      "reviews": [
+        {
+          "id": "PRR_kwDODz8O_c5A-nYh",
+          "commit": {
+            "abbreviatedOid": "0ef2264"
+          },
+          "author": "youennf",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "LGTM.\r\nThis might conflict with https://github.com/sframe-wg/sframe/pull/68 depending on which PR gets merged first.",
+          "createdAt": "2022-08-30T11:40:00Z",
+          "updatedAt": "2022-08-30T11:40:00Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDODz8O_c5DcnCw",
+          "commit": {
+            "abbreviatedOid": "f63fa76"
+          },
+          "author": "bifurcation",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "This PR looks good to me.  I agree with the terminology change and the changes to the known-answer test generator.  I re-ran the known-answer test generator locally and confirmed that it produced the test vectors in the PR.",
+          "createdAt": "2022-10-05T14:52:22Z",
+          "updatedAt": "2022-10-05T14:52:22Z",
+          "comments": []
+        }
+      ]
+    }
+  ]
+}

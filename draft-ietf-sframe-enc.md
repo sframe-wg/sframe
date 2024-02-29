@@ -416,7 +416,7 @@ value in the SFrame Header.
 A given key MUST NOT be used for encryption by multiple senders.  Such reuse
 would result in multiple encrypted frames being generated with the same (key,
 nonce) pair, which harms the protections provided by many AEAD algorithms.
-Implementations SHOULD mark each key as usable for encryption or decryption,
+Implementations MUST mark each key as usable for encryption or decryption,
 never both.
 
 Note that the set of available keys might change over the lifetime of a
@@ -984,8 +984,8 @@ In a typical SFrame usage in a real-time media application, there are a few
 approaches to mitigating this risk:
 
 * Receivers only accept SFrame ciphertexts over HBH-secure channels (e.g., SRTP
-  security associations or QUIC connections).  So only an entity that is part of
-  such a channel can mount the above attack.
+  security associations or QUIC connections).  If this is the case, only an
+  entity that is part of such a channel can mount the above attack.
 
 * The expected packet rate for a media stream is very predictable (and typically
   far lower than the above example).  On the one hand, attacks at this rate will
@@ -1017,12 +1017,12 @@ rather than add the additional defenses necessary to safely use short tags.
 
 # IANA Considerations
 
-This document requests the creation of the following new IANA registries:
+This document requests the creation of the following new IANA registry:
 
 * SFrame Cipher Suites ({{sframe-cipher-suites}})
 
-This registries should be under a heading of "SFrame",
-and assignments are made via the Specification Required policy {{!RFC8126}}.
+This registry should be under a heading of "SFrame", and assignments are made
+via the Specification Required policy {{!RFC8126}}.
 
 RFC EDITOR: Please replace XXXX throughout with the RFC number assigned to
 this document
@@ -1039,7 +1039,7 @@ Template:
 
 * Name: The name of the cipher suite
 
-* Reference: The document where this wire format is defined
+* Reference: The document where this cipher suite is defined
 
 Initial contents:
 
@@ -1102,7 +1102,9 @@ As mentioned in {{replay}}, senders MUST reject requests to encrypt multiple tim
 with the same key and nonce.
 
 It is not mandatory to implement anti-replay on the receiver side. Receivers MAY
-apply time or counter based anti-replay mitigations.
+apply time or counter based anti-replay mitigations.  For example, {{Section
+3.3.2 of ?RFC3711}} specifies a counter-based anti-replay mitigation, which
+could be adapted to use with SFrame, using the CTR field as the counter.
 
 ## Metadata
 

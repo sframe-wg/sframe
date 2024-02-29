@@ -326,8 +326,8 @@ Extended Key Id Flag (X, 1 bit):
 : Indicates if the K field contains the key id or the Key ID length.
 
 Key or Key Length (K, 3 bits):
-: This field contains the Key ID (KID) if the X flag is set to 0, or the key id
-length, minus one, if set to 1.
+: If the X flag is set to 0, this field contains the Key ID.  If the X flag is
+set to 1, then it contains the length of the Key ID, minus one.
 
 Extended Counter Flag (Y, 1 bit):
 : Indicates if the C field contains the counter or the counter length.
@@ -396,9 +396,9 @@ Each SFrame encryption or decryption operation is premised on a single secret
 `base_key`, which is labeled with an integer KID value signaled in the SFrame
 header.
 
-The sender and receivers need to agree on which key should be used for a given
-KID.  Moreover, senders and receivers need to agree on whether keys will be used
-for encryption or decryption only. The process for provisioning keys and their KID
+The sender and receivers need to agree on which `base_key` should be used for a given
+KID.  Moreover, senders and receivers need to agree on whether a `base_key` will be used
+for encryption or decryption only. The process for provisioning `base_key` values and their KID
 values is beyond the scope of this specification, but its security properties will
 bound the assurances that SFrame provides.  For example, if SFrame is used to
 provide E2E security against intermediary media nodes, then SFrame keys need to
@@ -413,10 +413,10 @@ and the counter is incremented after successful encryption.  When decrypting,
 the `base_key` for decryption is selected from the available keys using the KID
 value in the SFrame Header.
 
-A given key MUST NOT be used for encryption by multiple senders.  Such reuse
+A given `base_key` MUST NOT be used for encryption by multiple senders.  Such reuse
 would result in multiple encrypted frames being generated with the same (key,
 nonce) pair, which harms the protections provided by many AEAD algorithms.
-Implementations SHOULD mark each key as usable for encryption or decryption,
+Implementations SHOULD mark each `base_key` as usable for encryption or decryption,
 never both.
 
 Note that the set of available keys might change over the lifetime of a
@@ -428,7 +428,7 @@ all receivers have acknowledged receipt of the new key or (b) a timeout expires.
 
 ### Key Derivation
 
-SFrame encrytion and decryption use a key and salt derived from the `base_key`
+SFrame encryption and decryption use a key and salt derived from the `base_key`
 associated to a KID.  Given a `base_key` value, the key and salt are derived
 using HKDF {{!RFC5869}} as follows:
 
@@ -472,9 +472,13 @@ with application-provided metadata about the encrypted media (see {{metadata}}).
 def encrypt(CTR, KID, metadata, plaintext):
   sframe_key, sframe_salt = key_store[KID]
 
+  # encode_big_endian(x, n) produces an n-byte string encoding the integer x in
+  # big-endian byte order.
   ctr = encode_big_endian(CTR, AEAD.Nn)
   nonce = xor(sframe_salt, CTR)
 
+  # encode_sframe_header produces a byte string encoding the provided KID and
+  # CTR values into an SFrame Header.
   header = encode_sframe_header(CTR, KID)
   aad = header + metadata
 

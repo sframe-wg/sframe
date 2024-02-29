@@ -376,7 +376,7 @@ KID >= 8, CTR >= 8:
 
 SFrame encryption uses an AEAD encryption algorithm and hash function defined by
 the cipher suite in use (see {{cipher-suites}}).  We will refer to the following
-aspects of the AEAD algorithm below:
+aspects of the AEAD and the hash algorithm below:
 
 * `AEAD.Encrypt` and `AEAD.Decrypt` - The encryption and decryption functions
   for the AEAD.  We follow the convention of RFC 5116 {{!RFC5116}} and consider
@@ -389,6 +389,12 @@ aspects of the AEAD algorithm below:
 
 * `AEAD.Nt` - The overhead in bytes of the encryption algorithm (typically the
   size of a "tag" that is added to the plaintext)
+
+* `AEAD.Nka` - For cipher suites using the compound AEAD described in
+  {{aes-ctr-with-sha2}}, the size in bytes of a key for the underlying AES-CTR
+  algorithm
+
+* `Hash.Nh` - The size in bytes of the output of the hash function
 
 ### Key Selection
 
@@ -416,7 +422,7 @@ value in the SFrame Header.
 A given `base_key` MUST NOT be used for encryption by multiple senders.  Such reuse
 would result in multiple encrypted frames being generated with the same (key,
 nonce) pair, which harms the protections provided by many AEAD algorithms.
-Implementations SHOULD mark each `base_key` as usable for encryption or decryption,
+Implementations MUST mark each `base_key` as usable for encryption or decryption,
 never both.
 
 Note that the set of available keys might change over the lifetime of a
@@ -620,13 +626,13 @@ primitives:
 This document defines the following cipher suites, with the constants defined in
 {{encryption-schema}}:
 
-| Name                          | Nh | Nk | Nn | Nt |
-|:------------------------------|:---|----|:---|:---|
-| `AES_128_CTR_HMAC_SHA256_80`  | 32 | 48 | 12 | 10 |
-| `AES_128_CTR_HMAC_SHA256_64`  | 32 | 48 | 12 |  8 |
-| `AES_128_CTR_HMAC_SHA256_32`  | 32 | 48 | 12 |  4 |
-| `AES_128_GCM_SHA256_128`      | 32 | 16 | 12 | 16 |
-| `AES_256_GCM_SHA512_128`      | 64 | 32 | 12 | 16 |
+| Name                          | Nh | Nka | Nk | Nn | Nt |
+|:------------------------------|:---|:----|:---|:---|:---|
+| `AES_128_CTR_HMAC_SHA256_80`  | 32 | 16  | 48 | 12 | 10 |
+| `AES_128_CTR_HMAC_SHA256_64`  | 32 | 16  | 48 | 12 |  8 |
+| `AES_128_CTR_HMAC_SHA256_32`  | 32 | 16  | 48 | 12 |  4 |
+| `AES_128_GCM_SHA256_128`      | 32 | n/a | 16 | 12 | 16 |
+| `AES_256_GCM_SHA512_128`      | 64 | n/a | 32 | 12 | 16 |
 {: #cipher-suite-constants title="SFrame cipher suite constants" }
 
 Numeric identifiers for these cipher suites are defined in the IANA registry
@@ -925,6 +931,11 @@ policies, that new key frame could take some time to be generated.
 If the sender sends a key frame after the new E2EE key is in use, the time
 required for the new participant to display the video is minimized.
 
+Note that this issue does not arise for media streams that do not have
+dependencies among frames, e.g., audio streams.  In these streams, each frame is
+independently decodeable, so there is never a need to process two frames
+together which might be on two sides of a key rotation.
+
 ## Partial Decoding
 
 Some codecs support partial decoding, where individual packets can be decoded
@@ -988,8 +999,8 @@ In a typical SFrame usage in a real-time media application, there are a few
 approaches to mitigating this risk:
 
 * Receivers only accept SFrame ciphertexts over HBH-secure channels (e.g., SRTP
-  security associations or QUIC connections).  So only an entity that is part of
-  such a channel can mount the above attack.
+  security associations or QUIC connections).  If this is the case, only an
+  entity that is part of such a channel can mount the above attack.
 
 * The expected packet rate for a media stream is very predictable (and typically
   far lower than the above example).  On the one hand, attacks at this rate will
@@ -1021,12 +1032,12 @@ rather than add the additional defenses necessary to safely use short tags.
 
 # IANA Considerations
 
-This document requests the creation of the following new IANA registries:
+This document requests the creation of the following new IANA registry:
 
 * SFrame Cipher Suites ({{sframe-cipher-suites}})
 
-This registries should be under a heading of "SFrame",
-and assignments are made via the Specification Required policy {{!RFC8126}}.
+This registry should be under a heading of "SFrame", and assignments are made
+via the Specification Required policy {{!RFC8126}}.
 
 RFC EDITOR: Please replace XXXX throughout with the RFC number assigned to
 this document
@@ -1043,13 +1054,14 @@ Template:
 
 * Name: The name of the cipher suite
 
-* Reference: The document where this wire format is defined
+* Reference: The document where this cipher suite is defined
 
 Initial contents:
 
 
 | Value           | Name                          | Reference |
 |:----------------|:------------------------------|:----------|
+| 0x0000          | Reserved                      | RFC XXXX  |
 | 0x0001          | `AES_128_CTR_HMAC_SHA256_80`  | RFC XXXX  |
 | 0x0002          | `AES_128_CTR_HMAC_SHA256_64`  | RFC XXXX  |
 | 0x0003          | `AES_128_CTR_HMAC_SHA256_32`  | RFC XXXX  |
@@ -1065,6 +1077,19 @@ encryption and decryption operations, and how SFrame ciphertexts are delivered
 from sender to receiver (including any fragmentation and reassembly).  In this
 section, we lay out additional requirements that an integration must meet in
 order for SFrame to operate securely.
+
+In general, an application using SFrame is responsible for configuring SFrame.
+The application must first define when SFrame is applied at all.  When SFrame is
+applied, the application must define which cipher suite is to be used.  If new
+versions of SFrame are defined in the future, it will be up to the application
+to determine which version should be used.
+
+This division of responsibilities is similar to the way other media parameters
+(e.g., codecs) are typically handled in media applications, in the sense that
+they are set up in some signaling protocol, and then not described in the media.
+Applications might find it useful to extend the protocols used for negotiating
+other media parameters (e.g., SDP {{?RFC4566}}) to also negotiate parameters for
+SFrame.
 
 ## Header Value Uniqueness
 
@@ -1106,7 +1131,9 @@ As mentioned in {{replay}}, senders MUST reject requests to encrypt multiple tim
 with the same key and nonce.
 
 It is not mandatory to implement anti-replay on the receiver side. Receivers MAY
-apply time or counter based anti-replay mitigations.
+apply time or counter based anti-replay mitigations.  For example, {{Section
+3.3.2 of ?RFC3711}} specifies a counter-based anti-replay mitigation, which
+could be adapted to use with SFrame, using the CTR field as the counter.
 
 ## Metadata
 

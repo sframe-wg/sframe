@@ -247,7 +247,7 @@ Alice |          (per-frame)         (per-packet)   |        |       |
       |  +--------+      +-------------+      +-----------+  |
       |                                                      |
       +------------------------------------------------------+
-~~~~~
+~~~
 {: #media-stack "Two options for integrating SFrame in a typical media stack" }
 
 Like SRTP, SFrame does not define how the keys used for SFrame are exchanged by
@@ -286,7 +286,7 @@ are determined by the AEAD algorithm in use.
 |                                                             |
 |                                                             |
 +--- Encrypted Portion               Authenticated Portion ---+
-~~~~~
+~~~
 
 When SFrame is applied per-packet, the payload of each packet will be an SFrame
 ciphertext.  When SFrame is applied per-frame, the SFrame ciphertext
@@ -307,7 +307,7 @@ Applications MUST ensure that each (KID, CTR) combination is used for exactly
 one SFrame encryption operation. A typical approach to achieving this guarantee is
 outlined in {{header-value-uniqueness}}.
 
-~~~~~ aasvg
+~~~ aasvg
    Config Byte
         |
  .-----' '-----.
@@ -316,7 +316,7 @@ outlined in {{header-value-uniqueness}}.
 +-+-+-+-+-+-+-+-+------------+------------+
 |X|  K  |Y|  C  |   KID...   |   CTR...   |
 +-+-+-+-+-+-+-+-+------------+------------+
-~~~~~
+~~~
 {: #fig-sframe-header title="SFrame header"}
 
 The SFrame Header has the overall structure shown in {{fig-sframe-header}}.  The
@@ -349,7 +349,7 @@ This allows a 3-bit length field to represent the value lengths 1-8.
 The SFrame header can thus take one of the four forms shown in
 {{fig-sframe-header-cases}}, depending on which of the X and Y flags are set.
 
-~~~~~ aasvg
+~~~ aasvg
 KID < 8, CTR < 8:
 +-+-----+-+-----+
 |0| KID |0| CTR |
@@ -369,7 +369,7 @@ KID >= 8, CTR >= 8:
 +-+-----+-+-----+------------------------+------------------------+
 |1|KLEN |1|CLEN |  KID... (length=KLEN)  |  CTR... (length=CLEN)  |
 +-+-----+-+-----+------------------------+------------------------+
-~~~~~
+~~~
 {: #fig-sframe-header-cases title="Forms of Encoded SFrame Header" }
 
 ## Encryption Schema
@@ -438,7 +438,7 @@ SFrame encryption and decryption use a key and salt derived from the `base_key`
 associated to a KID.  Given a `base_key` value, the key and salt are derived
 using HKDF {{!RFC5869}} as follows:
 
-~~~~~
+~~~ pseudocode
 def derive_key_salt(KID, base_key):
   sframe_secret = HKDF-Extract("", base_key)
 
@@ -449,7 +449,7 @@ def derive_key_salt(KID, base_key):
   sframe_salt = HKDF-Expand(sframe_secret, info, AEAD.Nn)
 
   return sframe_key, sframe_salt
-~~~~~
+~~~
 
 In the derivation of `sframe_secret`:
 
@@ -474,7 +474,7 @@ The encryptor forms an SFrame header using the CTR, and KID values provided.
 The encoded header is provided as AAD to the AEAD encryption operation, together
 with application-provided metadata about the encrypted media (see {{metadata}}).
 
-~~~~~
+~~~ pseudocode
 def encrypt(CTR, KID, metadata, plaintext):
   sframe_key, sframe_salt = key_store[KID]
 
@@ -490,7 +490,7 @@ def encrypt(CTR, KID, metadata, plaintext):
 
   ciphertext = AEAD.Encrypt(sframe_key, nonce, aad, plaintext)
   return header + ciphertext
-~~~~~
+~~~
 
 For example, the metadata input to encryption allows for frame metadata to be
 authenticated when SFrame is applied per-frame.  After encoding the frame and
@@ -498,7 +498,7 @@ before packetizing it, the necessary media metadata will be moved out of the
 encoded frame buffer, to be sent in some channel visible to the SFU (e.g., an
 RTP header extension).
 
-~~~~~ aasvg
+~~~ aasvg
                                   +---------------+
                                   |               |
                                   |               |
@@ -535,7 +535,7 @@ Header |   | KID |  |                     |
                     |               |
                     |               |
                     +---------------+
-~~~~~
+~~~
 {: title="Encrypting an SFrame Ciphertext" }
 
 ### Decryption
@@ -552,7 +552,7 @@ The KID field in the SFrame header is used to find the right key and salt for
 the encrypted frame, and the CTR field is used to construct the nonce. The SFrame
 decryption procedure is as follows:
 
-~~~~~
+~~~ pseudocode
 def decrypt(metadata, sframe_ciphertext):
   KID, CTR, header, ciphertext = parse_ciphertext(sframe_ciphertext)
 
@@ -563,7 +563,7 @@ def decrypt(metadata, sframe_ciphertext):
   aad = header + metadata
 
   return AEAD.Decrypt(sframe_key, nonce, aad, ciphertext)
-~~~~~
+~~~
 
 If a ciphertext fails to decrypt because there is no key available for the KID
 in the SFrame header, the client MAY buffer the ciphertext and retry decryption
@@ -572,7 +572,7 @@ other reason, the client MUST discard the ciphertext. Invalid ciphertexts SHOULD
 discarded in a way that is indistinguishable (to an external observer) from having
 processed a valid ciphertext.
 
-~~~~~ aasvg
+~~~ aasvg
                     SFrame Ciphertext
                     +---------------+
     +---------------| SFrame Header |
@@ -610,7 +610,7 @@ processed a valid ciphertext.
                                   |               |
                                   |               |
                                   +---------------+
-~~~~~
+~~~
 {: title="Decrypting an SFrame Ciphertext" }
 
 ## Cipher Suites
@@ -661,18 +661,18 @@ represents the output size of the hash function  (as in {{iana-cipher-suites}}).
 The encryption subkey comprises the first `Nka` bytes and the authentication
 subkey comprises the remaining `Nh` bytes.
 
-~~~~~
+~~~ pseudocode
 def derive_subkeys(sframe_key):
   enc_key = sframe_key[..Nka]
   auth_key = sframe_key[Nka..]
   return enc_key, auth_key
-~~~~~
+~~~
 
 The AEAD encryption and decryption functions are then composed of individual
 calls to the CTR encrypt function and HMAC.  The resulting MAC value is truncated
 to a number of bytes `Nt` fixed by the cipher suite.
 
-~~~~~
+~~~ pseudocode
 def truncate(tag, n):
   # Take the first `n` bytes of `tag`
   return tag[..n]
@@ -702,7 +702,7 @@ def AEAD.Decrypt(key, nonce, aad, ct):
 
   initial_counter = nonce + 0x00000000 # append four zero bytes
   return AES-CTR.Decrypt(enc_key, initial_counter, inner_ct)
-~~~~~
+~~~
 
 # Key Management
 
@@ -732,11 +732,11 @@ Both are unsigned integers that begin at zero.  The key generation increments
 each time the sender distributes a new key to receivers.  The "ratchet step" is
 incremented each time the sender ratchets their key forward for forward secrecy:
 
-~~~~~ pseudocode
+~~~ pseudocode
 base_key[i+1] = HKDF-Expand(
                   HKDF-Extract("", base_key[i]),
                   "SFrame 1.0 Ratchet", CipherSuite.Nh)
-~~~~~
+~~~
 
 For compactness, we do not send the whole ratchet step.  Instead, we send only
 its low-order `R` bits, where `R` is a value set by the application.  Different
@@ -747,9 +747,9 @@ re-ordering window, since no more than 2<sup>`R`</sup> ratchet steps can be
 active at a given time.  The key generation is sent in the remaining `64 - R`
 bits of the key ID.
 
-~~~~~ pseudocode
+~~~ pseudocode
 KID = (key_generation << R) + (ratchet_step % (1 << R))
-~~~~~
+~~~
 
 ~~~ aasvg
      64-R bits         R bits
@@ -801,9 +801,9 @@ assigned a set of KID values, so that each member has a unique `sframe_key` and
 within their assigned set of KID values, e.g., to allow a single sender to send
 multiple uncoordinated outbound media streams.
 
-~~~~~ pseudocode
+~~~ pseudocode
 base_key = MLS-Exporter("SFrame 1.0 Base Key", "", AEAD.Nk)
-~~~~~
+~~~
 
 For compactness, we do not send the whole epoch number.  Instead, we send only
 its low-order `E` bits, where `E` is a value set by the application.  `E`
@@ -818,9 +818,9 @@ is encoded in the `S` bits above the epoch.  The remaining `64 - S - E` bits of
 the KID value are a `context` value chosen by the sender (context value `0` will
 produce the shortest encoded KID).
 
-~~~~~ pseudocode
+~~~ pseudocode
 KID = (context << (S + E)) + (sender_index << E) + (epoch % (1 << E))
-~~~~~
+~~~
 
 ~~~ aasvg
   64-S-E bits   S bits   E bits
@@ -863,7 +863,7 @@ Epoch 17 +--+-- index=33 --> KID = 0x211
          |
          |
   ...
-~~~~~
+~~~
 {: #mls-evolution title="An example sequence of KIDs for an MLS-based SFrame
 session (E=4; S=6, allowing for 64 group members)" }
 
@@ -1404,7 +1404,7 @@ as proposed in {{?I-D.codec-agnostic-rtp-payload-format}}.
 |  +---------------------------------------------------------------+  |
 |                                                                     |
 +--- SRTP Encrypted Portion             SRTP Authenticated Portion ---+
-~~~~~
+~~~
 {: #sframe-packet title="SRTP packet with SFrame-protected payload"}
 
 ~~~ aasvg
@@ -1445,7 +1445,7 @@ as proposed in {{?I-D.codec-agnostic-rtp-payload-format}}.
 |  payload 1/N  |      |               |     |               |
 |               |      |               |     |               |
 +---------------+      +---------------+     +---------------+
-~~~~~
+~~~
 {: #sframe-multi-packet title="Encryption flow with per-frame encryption for RTP" }
 
 # Test Vectors

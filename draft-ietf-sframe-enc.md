@@ -1088,7 +1088,7 @@ This division of responsibilities is similar to the way other media parameters
 (e.g., codecs) are typically handled in media applications, in the sense that
 they are set up in some signaling protocol, and then not described in the media.
 Applications might find it useful to extend the protocols used for negotiating
-other media parameters (e.g., SDP {{?RFC4566}}) to also negotiate parameters for
+other media parameters (e.g., SDP {{?RFC8866}}) to also negotiate parameters for
 SFrame.
 
 ## Header Value Uniqueness
@@ -1371,7 +1371,7 @@ In order for these media payloads to be properly interpreted by receivers,
 receivers will need to be configured to know which of the above schemes the
 sender has  applied to a given sequence of RTP packets. SFrame does not provide
 a mechanism for distributing this configuration information. In applications
-that use SDP for negotiating RTP media streams {{?RFC4566}}, an appropriate
+that use SDP for negotiating RTP media streams {{?RFC8866}}, an appropriate
 extension to SDP could provide this function.
 
 Applying SFrame per-frame also requires that packetization and depacketization

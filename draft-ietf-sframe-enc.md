@@ -108,7 +108,7 @@ possible if all RTP/RTCP traffic is end-to-end encrypted.
 As such, two layers of encryption and authentication are required:
 
   1. Hop-by-hop (HBH) encryption of media, metadata, and feedback messages
-     between the the endpoints and SFU
+     between the endpoints and SFU
   2. End-to-end (E2E) encryption (E2EE) of media between the endpoints
 
 The Secure Real-Time Protocol (SRTP) is already widely used for HBH encryption
@@ -543,7 +543,7 @@ Header |   | KID |  |                     |
 Before decrypting, a receiver needs to assemble a full SFrame ciphertext. When
 an SFrame ciphertext may be fragmented into multiple parts for transport (e.g.,
 a whole encrypted frame sent in multiple SRTP packets), the receiving client
-collects all the fragments of the ciphertext, using an appropriate sequencing
+collects all the fragments of the ciphertext, using appropriate sequencing
 and start/end markers in the transport. Once all of the required fragments are
 available, the client reassembles them into the SFrame ciphertext, then passes
 the ciphertext to SFrame for decryption.
@@ -641,7 +641,7 @@ created in {{sframe-cipher-suites}}.
 
 In the suite names, the length of the authentication tag is indicated by
 the last value: "\_128" indicates a hundred-twenty-eight-bit tag, "\_80" indicates
-a eighty-bit tag, "\_64" indicates a sixty-four-bit tag and "\_32" indicates a
+an eighty-bit tag, "\_64" indicates a sixty-four-bit tag and "\_32" indicates a
 thirty-two-bit tag.
 
 In a session that uses multiple media streams, different cipher suites might be
@@ -732,7 +732,7 @@ In this scheme, it is assumed that receivers have a signal outside of SFrame for
 which client has sent a given frame (e.g., an RTP SSRC).  SFrame KID
 values are then used to distinguish between versions of the sender's `base_key`.
 
-Key IDs in this scheme have two parts, a "key generation" and a "ratchet step".
+Key IDs in this scheme have two parts: a "key generation" and a "ratchet step".
 Both are unsigned integers that begin at zero.  The key generation increments
 each time the sender distributes a new key to receivers.  The "ratchet step" is
 incremented each time the sender ratchets their key forward for forward secrecy:
@@ -780,7 +780,7 @@ It is up to the application to decide when sender keys are updated.  A sender
 key may be updated by sending a new `base_key` (updating the key generation) or
 by hashing the current `base_key` (updating the ratchet step).  Ratcheting the
 key forward is useful when adding new receivers to an SFrame-based interaction,
-since it assures that the new receivers can't decrypt any media encrypted before
+since it ensures that the new receivers can't decrypt any media encrypted before
 they were added.  If a sender wishes to assure the opposite property when
 removing a receiver (i.e., ensuring that the receiver can't decrypt media after
 they are removed), then the sender will need to distribute a new sender key.

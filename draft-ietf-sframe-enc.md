@@ -443,10 +443,10 @@ def derive_key_salt(KID, base_key):
   sframe_secret = HKDF-Extract("", base_key)
 
   sframe_key_label = "SFrame 1.0 Secret key " + KID + cipher_suite
-  sframe_key = HKDF-Expand(sframe_secret, info, AEAD.Nk)
+  sframe_key = HKDF-Expand(sframe_secret, sframe_key_label, AEAD.Nk)
 
   sframe_salt_label = "SFrame 1.0 Secret salt " + KID + cipher_suite
-  sframe_salt = HKDF-Expand(sframe_secret, info, AEAD.Nn)
+  sframe_salt = HKDF-Expand(sframe_secret, sframe_salt_label, AEAD.Nn)
 
   return sframe_key, sframe_salt
 ~~~
@@ -664,8 +664,12 @@ subkey comprises the remaining `Nh` bytes.
 
 ~~~ pseudocode
 def derive_subkeys(sframe_key):
+  # The encryption key comprises the first Nka bytes
   enc_key = sframe_key[..Nka]
+
+  # The authentication key comprises Nh remaining bytes
   auth_key = sframe_key[Nka..]
+
   return enc_key, auth_key
 ~~~
 
@@ -1105,6 +1109,14 @@ done by assigning each sender a KID or set of KIDs, then having each sender use
 the CTR field as a monotonic counter, incrementing for each plaintext that is
 encrypted. In addition to its simplicity, this scheme minimizes overhead by
 keeping CTR values as small as possible.
+
+In applications where an SFrame context might be written to persistent storage,
+this context needs to include the last used CTR value.  When the context is used
+later, the application should use the stored CTR value to determine the next CTR
+value to be used in an encryption operation, and then write the next CTR value
+back to storage before using the CTR value for encryption.  Storing the CTR
+value before usage (vs. after) helps ensure that a storage failure will not
+cause reuse of the same (`base_key`, KID, CTR) combination.
 
 ## Key Management Framework
 

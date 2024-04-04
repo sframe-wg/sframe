@@ -570,7 +570,8 @@ in the SFrame header, the client MAY buffer the ciphertext and retry decryption
 once a key with that KID is received.  If a ciphertext fails to decrypt for any
 other reason, the client MUST discard the ciphertext. Invalid ciphertexts SHOULD be
 discarded in a way that is indistinguishable (to an external observer) from having
-processed a valid ciphertext.
+processed a valid ciphertext.  In other words, the SFrame decrypt operation
+should be constant-time, regardless of whether decryption succeeds or fails.
 
 ~~~~~ aasvg
                     SFrame Ciphertext

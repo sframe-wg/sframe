@@ -2930,7 +2930,12 @@ suites are in the range 0x0000 to 0xFFFF.<a href="#section-8.1-1" class="pilcrow
             <p id="section-8.1-3.2.1">Name: The name of the cipher suite<a href="#section-8.1-3.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.1-3.3">
-            <p id="section-8.1-3.3.1">Reference: The document where this cipher suite is defined<a href="#section-8.1-3.3.1" class="pilcrow">¶</a></p>
+            <p id="section-8.1-3.3.1">Recommended: Whether support for this cipher suite is recommended by the IETF.
+This column is to be managed in the same way as the corresponding column in
+the MLS Ciphersuites registry, as defined in <span>[<a href="#RFC9420" class="cite xref">RFC9420</a>]</span>.<a href="#section-8.1-3.3.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.1-3.4">
+            <p id="section-8.1-3.4.1">Reference: The document where this cipher suite is defined<a href="#section-8.1-3.4.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-8.1-4">Initial contents:<a href="#section-8.1-4" class="pilcrow">¶</a></p>
@@ -2944,6 +2949,7 @@ suites are in the range 0x0000 to 0xFFFF.<a href="#section-8.1-1" class="pilcrow
             <tr>
               <th class="text-left" rowspan="1" colspan="1">Value</th>
               <th class="text-left" rowspan="1" colspan="1">Name</th>
+              <th class="text-left" rowspan="1" colspan="1">R</th>
               <th class="text-left" rowspan="1" colspan="1">Reference</th>
             </tr>
           </thead>
@@ -2951,6 +2957,7 @@ suites are in the range 0x0000 to 0xFFFF.<a href="#section-8.1-1" class="pilcrow
             <tr>
               <td class="text-left" rowspan="1" colspan="1">0x0000</td>
               <td class="text-left" rowspan="1" colspan="1">Reserved</td>
+              <td class="text-left" rowspan="1" colspan="1">-</td>
               <td class="text-left" rowspan="1" colspan="1">RFC XXXX</td>
             </tr>
             <tr>
@@ -2958,6 +2965,7 @@ suites are in the range 0x0000 to 0xFFFF.<a href="#section-8.1-1" class="pilcrow
               <td class="text-left" rowspan="1" colspan="1">
                 <code>AES_128_CTR_HMAC_SHA256_80</code>
 </td>
+              <td class="text-left" rowspan="1" colspan="1">Y</td>
               <td class="text-left" rowspan="1" colspan="1">RFC XXXX</td>
             </tr>
             <tr>
@@ -2965,6 +2973,7 @@ suites are in the range 0x0000 to 0xFFFF.<a href="#section-8.1-1" class="pilcrow
               <td class="text-left" rowspan="1" colspan="1">
                 <code>AES_128_CTR_HMAC_SHA256_64</code>
 </td>
+              <td class="text-left" rowspan="1" colspan="1">Y</td>
               <td class="text-left" rowspan="1" colspan="1">RFC XXXX</td>
             </tr>
             <tr>
@@ -2972,6 +2981,7 @@ suites are in the range 0x0000 to 0xFFFF.<a href="#section-8.1-1" class="pilcrow
               <td class="text-left" rowspan="1" colspan="1">
                 <code>AES_128_CTR_HMAC_SHA256_32</code>
 </td>
+              <td class="text-left" rowspan="1" colspan="1">Y</td>
               <td class="text-left" rowspan="1" colspan="1">RFC XXXX</td>
             </tr>
             <tr>
@@ -2979,6 +2989,7 @@ suites are in the range 0x0000 to 0xFFFF.<a href="#section-8.1-1" class="pilcrow
               <td class="text-left" rowspan="1" colspan="1">
                 <code>AES_128_GCM_SHA256_128</code>
 </td>
+              <td class="text-left" rowspan="1" colspan="1">Y</td>
               <td class="text-left" rowspan="1" colspan="1">RFC XXXX</td>
             </tr>
             <tr>
@@ -2986,11 +2997,13 @@ suites are in the range 0x0000 to 0xFFFF.<a href="#section-8.1-1" class="pilcrow
               <td class="text-left" rowspan="1" colspan="1">
                 <code>AES_256_GCM_SHA512_128</code>
 </td>
+              <td class="text-left" rowspan="1" colspan="1">Y</td>
               <td class="text-left" rowspan="1" colspan="1">RFC XXXX</td>
             </tr>
             <tr>
               <td class="text-left" rowspan="1" colspan="1">0xF000 - 0xFFFF</td>
               <td class="text-left" rowspan="1" colspan="1">Reserved for private use</td>
+              <td class="text-left" rowspan="1" colspan="1">-</td>
               <td class="text-left" rowspan="1" colspan="1">RFC XXXX</td>
             </tr>
           </tbody>
@@ -3181,6 +3194,10 @@ decryption has authenticated the application data.<a href="#section-9.4-2" class
 <dt id="RFC8723">[RFC8723]</dt>
         <dd>
 <span class="refAuthor">Jennings, C.</span>, <span class="refAuthor">Jones, P.</span>, <span class="refAuthor">Barnes, R.</span>, and <span class="refAuthor">A.B. Roach</span>, <span class="refTitle">"Double Encryption Procedures for the Secure Real-Time Transport Protocol (SRTP)"</span>, <span class="seriesInfo">RFC 8723</span>, <span class="seriesInfo">DOI 10.17487/RFC8723</span>, <time datetime="2020-04" class="refDate">April 2020</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8723">https://www.rfc-editor.org/rfc/rfc8723</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC9420">[RFC9420]</dt>
+        <dd>
+<span class="refAuthor">Barnes, R.</span>, <span class="refAuthor">Beurdouche, B.</span>, <span class="refAuthor">Robert, R.</span>, <span class="refAuthor">Millican, J.</span>, <span class="refAuthor">Omara, E.</span>, and <span class="refAuthor">K. Cohn-Gordon</span>, <span class="refTitle">"The Messaging Layer Security (MLS) Protocol"</span>, <span class="seriesInfo">RFC 9420</span>, <span class="seriesInfo">DOI 10.17487/RFC9420</span>, <time datetime="2023-07" class="refDate">July 2023</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9420">https://www.rfc-editor.org/rfc/rfc9420</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="TestVectors">[TestVectors]</dt>
       <dd>

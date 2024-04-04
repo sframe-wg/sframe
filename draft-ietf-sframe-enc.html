@@ -1368,7 +1368,7 @@ possible if all RTP/RTCP traffic is end-to-end encrypted.<a href="#section-1-1" 
 <ol start="1" type="1" class="normal type-1" id="section-1-3">
 <li id="section-1-3.1">
           <p id="section-1-3.1.1">Hop-by-hop (HBH) encryption of media, metadata, and feedback messages
-between the the endpoints and SFU<a href="#section-1-3.1.1" class="pilcrow">¶</a></p>
+between the endpoints and SFU<a href="#section-1-3.1.1" class="pilcrow">¶</a></p>
 </li>
         <li id="section-1-3.2">
           <p id="section-1-3.2.1">End-to-end (E2E) encryption (E2EE) of media between the endpoints<a href="#section-1-3.2.1" class="pilcrow">¶</a></p>
@@ -2128,7 +2128,7 @@ RTP header extension).<a href="#section-4.4.3-4" class="pilcrow">¶</a></p>
 <p id="section-4.4.4-1">Before decrypting, a receiver needs to assemble a full SFrame ciphertext. When
 an SFrame ciphertext may be fragmented into multiple parts for transport (e.g.,
 a whole encrypted frame sent in multiple SRTP packets), the receiving client
-collects all the fragments of the ciphertext, using an appropriate sequencing
+collects all the fragments of the ciphertext, using appropriate sequencing
 and start/end markers in the transport. Once all of the required fragments are
 available, the client reassembles them into the SFrame ciphertext, then passes
 the ciphertext to SFrame for decryption.<a href="#section-4.4.4-1" class="pilcrow">¶</a></p>
@@ -2323,7 +2323,7 @@ with a truncated authentication tag<a href="#section-4.5-2.2.1" class="pilcrow">
 created in <a href="#sframe-cipher-suites" class="auto internal xref">Section 8.1</a>.<a href="#section-4.5-5" class="pilcrow">¶</a></p>
 <p id="section-4.5-6">In the suite names, the length of the authentication tag is indicated by
 the last value: "_128" indicates a hundred-twenty-eight-bit tag, "_80" indicates
-a eighty-bit tag, "_64" indicates a sixty-four-bit tag and "_32" indicates a
+an eighty-bit tag, "_64" indicates a sixty-four-bit tag and "_32" indicates a
 thirty-two-bit tag.<a href="#section-4.5-6" class="pilcrow">¶</a></p>
 <p id="section-4.5-7">In a session that uses multiple media streams, different cipher suites might be
 configured for different media streams.  For example, in order to conserve
@@ -2427,7 +2427,7 @@ the E2E-secure channel to send their encryption key to the other participants.<a
 <p id="section-5.1-2">In this scheme, it is assumed that receivers have a signal outside of SFrame for
 which client has sent a given frame (e.g., an RTP SSRC).  SFrame KID
 values are then used to distinguish between versions of the sender's <code>base_key</code>.<a href="#section-5.1-2" class="pilcrow">¶</a></p>
-<p id="section-5.1-3">Key IDs in this scheme have two parts, a "key generation" and a "ratchet step".
+<p id="section-5.1-3">Key IDs in this scheme have two parts: a "key generation" and a "ratchet step".
 Both are unsigned integers that begin at zero.  The key generation increments
 each time the sender distributes a new key to receivers.  The "ratchet step" is
 incremented each time the sender ratchets their key forward for forward secrecy:<a href="#section-5.1-3" class="pilcrow">¶</a></p>
@@ -2497,7 +2497,7 @@ a fresh sender key to all receivers.<a href="#section-5.1-9" class="pilcrow">¶<
 key may be updated by sending a new <code>base_key</code> (updating the key generation) or
 by hashing the current <code>base_key</code> (updating the ratchet step).  Ratcheting the
 key forward is useful when adding new receivers to an SFrame-based interaction,
-since it assures that the new receivers can't decrypt any media encrypted before
+since it ensures that the new receivers can't decrypt any media encrypted before
 they were added.  If a sender wishes to assure the opposite property when
 removing a receiver (i.e., ensuring that the receiver can't decrypt media after
 they are removed), then the sender will need to distribute a new sender key.<a href="#section-5.1-10" class="pilcrow">¶</a></p>

@@ -1138,9 +1138,11 @@ Alice |          (per-frame)         (per-packet)   |        |       |
    *  Name: The name of the cipher suite
 
    *  Recommended: Whether support for this cipher suite is recommended
-      by the IETF.  This column is to be managed in the same way as the
-      corresponding column in the MLS Ciphersuites registry, as defined
-      in [RFC9420].
+      by the IETF.  Valid values are "Y", "N", and "D", as described in
+      Section 17.1 of [MLS-PROTO].  The default value of the
+      "Recommended" column is "N".  Setting the Recommended item to "Y"
+      or "D", or changing an item whose current value is "Y" or "D",
+      requires Standards Action [RFC8126].
 
    *  Reference: The document where this cipher suite is defined
 
@@ -1365,11 +1367,6 @@ Alice |          (per-frame)         (per-packet)   |        |       |
               Session Description Protocol", RFC 8866,
               DOI 10.17487/RFC8866, January 2021,
               <https://www.rfc-editor.org/rfc/rfc8866>.
-
-   [RFC9420]  Barnes, R., Beurdouche, B., Robert, R., Millican, J.,
-              Omara, E., and K. Cohn-Gordon, "The Messaging Layer
-              Security (MLS) Protocol", RFC 9420, DOI 10.17487/RFC9420,
-              July 2023, <https://www.rfc-editor.org/rfc/rfc9420>.
 
    [TestVectors]
               "SFrame Test Vectors", 2023,

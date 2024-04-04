@@ -527,21 +527,21 @@ Alice |          (per-frame)         (per-packet)   |        |       |
    encryption operation, together with application-provided metadata
    about the encrypted media (see Section 9.4).
 
-def encrypt(CTR, KID, metadata, plaintext):
-  sframe_key, sframe_salt = key_store[KID]
+   def encrypt(CTR, KID, metadata, plaintext):
+     sframe_key, sframe_salt = key_store[KID]
 
-  # encode_big_endian(x, n) produces an n-byte string encoding the integer x in
-  # big-endian byte order.
-  ctr = encode_big_endian(CTR, AEAD.Nn)
-  nonce = xor(sframe_salt, CTR)
+     # encode_big_endian(x, n) produces an n-byte string encoding the integer x in
+     # big-endian byte order.
+     ctr = encode_big_endian(CTR, AEAD.Nn)
+     nonce = xor(sframe_salt, CTR)
 
-  # encode_sframe_header produces a byte string encoding the provided KID and
-  # CTR values into an SFrame Header.
-  header = encode_sframe_header(CTR, KID)
-  aad = header + metadata
+     # encode_sframe_header produces a byte string encoding the provided KID and
+     # CTR values into an SFrame Header.
+     header = encode_sframe_header(CTR, KID)
+     aad = header + metadata
 
-  ciphertext = AEAD.Encrypt(sframe_key, nonce, aad, plaintext)
-  return header + ciphertext
+     ciphertext = AEAD.Encrypt(sframe_key, nonce, aad, plaintext)
+     return header + ciphertext
 
    For example, the metadata input to encryption allows for frame
    metadata to be authenticated when SFrame is applied per-frame.  After
@@ -1183,7 +1183,7 @@ def encrypt(CTR, KID, metadata, plaintext):
    applications, in the sense that they are set up in some signaling
    protocol, and then not described in the media.  Applications might
    find it useful to extend the protocols used for negotiating other
-   media parameters (e.g., SDP [RFC4566]) to also negotiate parameters
+   media parameters (e.g., SDP [RFC8866]) to also negotiate parameters
    for SFrame.
 
 9.1.  Header Value Uniqueness
@@ -1328,10 +1328,6 @@ def encrypt(CTR, KID, metadata, plaintext):
               RFC 3711, DOI 10.17487/RFC3711, March 2004,
               <https://www.rfc-editor.org/rfc/rfc3711>.
 
-   [RFC4566]  Handley, M., Jacobson, V., and C. Perkins, "SDP: Session
-              Description Protocol", RFC 4566, DOI 10.17487/RFC4566,
-              July 2006, <https://www.rfc-editor.org/rfc/rfc4566>.
-
    [RFC6716]  Valin, JM., Vos, K., and T. Terriberry, "Definition of the
               Opus Audio Codec", RFC 6716, DOI 10.17487/RFC6716,
               September 2012, <https://www.rfc-editor.org/rfc/rfc6716>.
@@ -1351,6 +1347,11 @@ def encrypt(CTR, KID, metadata, plaintext):
               Transport Protocol (SRTP)", RFC 8723,
               DOI 10.17487/RFC8723, April 2020,
               <https://www.rfc-editor.org/rfc/rfc8723>.
+
+   [RFC8866]  Begen, A., Kyzivat, P., Perkins, C., and M. Handley, "SDP:
+              Session Description Protocol", RFC 8866,
+              DOI 10.17487/RFC8866, January 2021,
+              <https://www.rfc-editor.org/rfc/rfc8866>.
 
    [RFC9420]  Barnes, R., Beurdouche, B., Robert, R., Millican, J.,
               Omara, E., and K. Cohn-Gordon, "The Messaging Layer
@@ -1631,7 +1632,7 @@ C.5.  SFrame over RTP
    above schemes the sender has applied to a given sequence of RTP
    packets.  SFrame does not provide a mechanism for distributing this
    configuration information.  In applications that use SDP for
-   negotiating RTP media streams [RFC4566], an appropriate extension to
+   negotiating RTP media streams [RFC8866], an appropriate extension to
    SDP could provide this function.
 
    Applying SFrame per-frame also requires that packetization and

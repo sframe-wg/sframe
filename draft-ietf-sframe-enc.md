@@ -1055,20 +1055,24 @@ Template:
 
 * Name: The name of the cipher suite
 
+* Recommended: Whether support for this cipher suite is recommended by the IETF.
+  This column is to be managed in the same way as the corresponding column in
+  the MLS Ciphersuites registry, as defined in {{?RFC9420}}.
+
 * Reference: The document where this cipher suite is defined
 
 Initial contents:
 
 
-| Value           | Name                          | Reference |
-|:----------------|:------------------------------|:----------|
-| 0x0000          | Reserved                      | RFC XXXX  |
-| 0x0001          | `AES_128_CTR_HMAC_SHA256_80`  | RFC XXXX  |
-| 0x0002          | `AES_128_CTR_HMAC_SHA256_64`  | RFC XXXX  |
-| 0x0003          | `AES_128_CTR_HMAC_SHA256_32`  | RFC XXXX  |
-| 0x0004          | `AES_128_GCM_SHA256_128`      | RFC XXXX  |
-| 0x0005          | `AES_256_GCM_SHA512_128`      | RFC XXXX  |
-| 0xF000 - 0xFFFF | Reserved for private use      | RFC XXXX  |
+| Value           | Name                          | R | Reference |
+|:----------------|:------------------------------|:--|:----------|
+| 0x0000          | Reserved                      | - | RFC XXXX  |
+| 0x0001          | `AES_128_CTR_HMAC_SHA256_80`  | Y | RFC XXXX  |
+| 0x0002          | `AES_128_CTR_HMAC_SHA256_64`  | Y | RFC XXXX  |
+| 0x0003          | `AES_128_CTR_HMAC_SHA256_32`  | Y | RFC XXXX  |
+| 0x0004          | `AES_128_GCM_SHA256_128`      | Y | RFC XXXX  |
+| 0x0005          | `AES_256_GCM_SHA512_128`      | Y | RFC XXXX  |
+| 0xF000 - 0xFFFF | Reserved for private use      | - | RFC XXXX  |
 {: #iana-cipher-suites title="SFrame cipher suites" }
 
 # Application Responsibilities

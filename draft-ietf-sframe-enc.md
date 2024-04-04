@@ -1060,8 +1060,10 @@ Template:
 * Name: The name of the cipher suite
 
 * Recommended: Whether support for this cipher suite is recommended by the IETF.
-  This column is to be managed in the same way as the corresponding column in
-  the MLS Ciphersuites registry, as defined in {{?RFC9420}}.
+  Valid values are "Y", "N", and "D", as described in {{Section 17.1 of
+  MLS-PROTO}}. The default value of the "Recommended" column is "N". Setting the
+  Recommended item to "Y" or "D", or changing an item whose current value is "Y"
+  or "D", requires Standards Action {{RFC8126}}.
 
 * Reference: The document where this cipher suite is defined
 

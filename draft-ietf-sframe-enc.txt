@@ -1061,7 +1061,7 @@ Alice |          (per-frame)         (per-packet)   |        |       |
    Assuming that the authentication properties of the ciphersuite are
    robust, the only attack that an attacker can mount is an attempt to
    find an acceptable (ciphertext, tag) combination through brute force.
-   Such a brute-force attack will have an expected sucess rate of the
+   Such a brute-force attack will have an expected success rate of the
    following form:
 
    attacker_success_rate = attempts_per_second / 2^(8*Nt)

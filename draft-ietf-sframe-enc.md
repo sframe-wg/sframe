@@ -7,15 +7,9 @@ category: std
 ipr: trust200902
 stream: IETF
 area: "Applications and Real-Time"
+wg: sframe
 keyword: Internet-Draft
 v: 3
-venue:
-  group: "Secure Media Frames"
-  type: "Working Group"
-  mail: "sframe@ietf.org"
-  arch: "https://mailarchive.ietf.org/arch/browse/sframe/"
-  github: "sframe-wg/sframe"
-  latest: "https://sframe-wg.github.io/sframe/draft-ietf-sframe-enc.html"
 
 author:
  -
@@ -75,19 +69,27 @@ contributor:
 informative:
   TestVectors:
     title: "SFrame Test Vectors"
-    target: https://github.com/eomara/sframe/blob/master/test-vectors.json
-    date: 2023
+    refcontent: commit 025d568
+    target: https://github.com/sframe-wg/sframe/blob/main/test-vectors/test-vectors.json
+    date: 2023-09
 
 
 --- abstract
+<!--[rfced] Please insert any keywords (beyond those that appear in the title) for use on https://www.rfc-editor.org/search. -->
+<!--[rfced] Richard, do prefer "R. L. Barnes, Ed." (current) or "R. Barnes, Ed." (as used in other RFCs) in the header of the document? -->
+<!--[rfced] May we make the title more descriptive? We note that a web search on "SFrame" returns pages describing different technologies.
 
+Current: Secure Frame (SFrame)
+
+Perhaps: Secure Frame (SFrame): an Encryption and Authentication Mechanism for Media Frames
+-->
 This document describes the Secure Frame (SFrame) end-to-end encryption and
 authentication mechanism for media frames in a multiparty conference call, in
-which central media servers (selective forwarding units or SFUs) can access the
+which central media servers (Selective Forwarding Units or SFUs) can access the
 media metadata needed to make forwarding decisions without having access to the
 actual media.
 
-The proposed mechanism differs from the Secure Real-Time Protocol (SRTP) in that
+This mechanism differs from the Secure Real-Time Protocol (SRTP) in that
 it is independent of RTP (thus compatible with non-RTP media transport) and can
 be applied to whole media frames in order to be more bandwidth efficient.
 
@@ -96,11 +98,11 @@ be applied to whole media frames in order to be more bandwidth efficient.
 
 # Introduction
 
-Modern multi-party video call systems use Selective Forwarding Unit (SFU)
+Modern multiparty video call systems use Selective Forwarding Unit (SFU)
 servers to efficiently route media streams to call endpoints based on factors such
 as available bandwidth, desired video size, codec support, and other factors. An
 SFU typically does not need access to the media content of the conference,
-allowing for the media to be "end-to-end" encrypted so that it cannot be
+which allows the media to be encrypted "end to end" so that it cannot be
 decrypted by the SFU. In order for the SFU to work properly, though, it usually
 needs to be able to access RTP metadata and RTCP feedback messages, which is not
 possible if all RTP/RTCP traffic is end-to-end encrypted.
@@ -124,20 +126,16 @@ of transport.
 
 # Terminology
 
-The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
-"SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and
-"OPTIONAL" in this document are to be interpreted as described in
-BCP 14 {{!RFC2119}} {{!RFC8174}} when, and only when, they appear in all
-capitals, as shown here.
+{::boilerplate bcp14-tagged}
 
 MAC:
 : Message Authentication Code
 
 E2EE:
-: End to End Encryption
+: End-to-End Encryption
 
 HBH:
-: Hop By Hop
+: Hop-By-Hop
 
 We use "Selective Forwarding Unit (SFU)" and "media stream" in a less formal sense
 than in {{?RFC7656}}.  An SFU is a selective switching function for media
@@ -145,10 +143,34 @@ payloads, and a media stream a sequence of media payloads, in both cases
 regardless of whether those media payloads are transported over RTP or some
 other protocol.
 
+<!--[rfced] Section 2. We're having difficulty parsing the following sentence. Would it be clearer to remove "in both cases"?:
+
+Original:
+   An SFU is a selective switching
+   function for media payloads, and a media stream a sequence of media
+   payloads, in both cases regardless of whether those media payloads
+   are transported over RTP or some other protocol.
+
+Perhaps:
+   An SFU is a selective switching
+   function for media payloads, and a media stream is a sequence of media
+   payloads, regardless of whether those media payloads
+   are transported over RTP or some other protocol.-->
+
 # Goals
 
 SFrame is designed to be a suitable E2EE protection scheme for conference call
 media in a broad range of scenarios, as outlined by the following goals:
+
+<!--[rfced] Section 3. May we make the following list entry parallel with other entries, which start with a verb?
+
+Original:
+   4.  Independence from the underlying transport, including use in non-
+       RTP transports, e.g., WebTransport
+
+Perhaps:
+   4.  Provide independence from the underlying transport, by including
+       the use in non-RTP transports, e.g., WebTransport-->
 
 1. Provide a secure E2EE mechanism for audio and video in conference calls
    that can be used with arbitrary SFU servers.
@@ -162,8 +184,8 @@ media in a broad range of scenarios, as outlined by the following goals:
 4. Independence from the underlying transport, including use in non-RTP
    transports, e.g., WebTransport {{?I-D.ietf-webtrans-overview}}.
 
-5. When used with RTP and its associated error resilience mechanisms, i.e., RTX
-   and FEC, require no special handling for RTX and FEC packets.
+5. When used with RTP and its associated error-resilience mechanisms, i.e., RTX
+   and Forward Error Correction (FEC), require no special handling for RTX and FEC packets.
 
 6. Minimize the changes needed in SFU servers.
 
@@ -177,7 +199,7 @@ media in a broad range of scenarios, as outlined by the following goals:
 This document defines an encryption mechanism that provides effective E2EE,
 is simple to implement, has no dependencies on RTP, and minimizes
 encryption bandwidth overhead. This section describes how the mechanism
-works, including details of how applications utilize SFrame for media protection,
+works and includes details of how applications utilize SFrame for media protection
 as well as the actual mechanics of E2EE for protecting media.
 
 ## Application Context
@@ -187,27 +209,27 @@ layer over an underlying HBH-encrypted transport such as SRTP or QUIC
 {{RFC3711}}{{?I-D.ietf-moq-transport}}.
 
 The scale at which SFrame encryption is applied to media determines the overall
-amount of overhead that SFrame adds to the media stream, as well as the
+amount of overhead that SFrame adds to the media stream as well as the
 engineering complexity involved in integrating SFrame into a particular
-environment. Two patterns are common: Either using SFrame to encrypt whole
-media frames (per-frame) or individual transport-level media payloads
-(per-packet).
+environment. Two patterns are common: using SFrame to encrypt either whole
+media frames (per frame) or individual transport-level media payloads
+(per packet).
 
 For example, {{media-stack}} shows a typical media sender stack that takes media
 from some source, encodes it into frames, divides those frames into media
 packets, and then sends those payloads in SRTP packets. The receiver stack
 performs the reverse operations, reassembling frames from SRTP packets and
 decoding.  Arrows indicate two different ways that SFrame protection could be
-integrated into this media stack, to encrypt whole frames or individual media
+integrated into this media stack: to encrypt whole frames or individual media
 packets.
 
-Applying SFrame per-frame in this system offers higher efficiency, but may
+Applying SFrame per frame in this system offers higher efficiency but may
 require a more complex integration in environments where depacketization relies
-on the content of media packets. Applying SFrame per-packet avoids this
-complexity, at the cost of higher bandwidth consumption.  Some quantitative
+on the content of media packets. Applying SFrame per packet avoids this
+complexity at the cost of higher bandwidth consumption.  Some quantitative
 discussion of these trade-offs is provided in {{overhead-analysis}}.
 
-As noted above, however, SFrame is a general media encapsulation, and can be
+As noted above, however, SFrame is a general media encapsulation and can be
 applied in other scenarios.  The important thing is that the sender and
 receivers of an SFrame-encrypted object agree on that object's semantics.
 SFrame does not provide this agreement; it must be arranged by the application.
@@ -223,7 +245,7 @@ SFrame does not provide this agreement; it must be arranged by the application.
 / + \ |               |                   |         ^        |       |
  / \  |            SFrame              SFrame       |        |       |
 /   \ |            Protect             Protect      |        |       |
-Alice |          (per-frame)         (per-packet)   |        |       |
+Alice |          (per frame)         (per packet)   |        |       |
       |               ^                   ^         |        |       |
       |               |                   |         |        |       |
       +---------------|-------------------|---------|--------+       |
@@ -238,7 +260,7 @@ Alice |          (per-frame)         (per-packet)   |        |       |
       |               V                   V         |        |       |
  .-.  |            SFrame               SFrame      |        |       |
 |   | |           Unprotect            Unprotect    |        |       |
- '+'  |          (per-frame)          (per-packet)  |        |       |
+ '+'  |          (per frame)          (per packet)  |        |       |
  /|\  |               |                    |        V        |       |
 / + \ |  +--------+   |  +-------------+   |  +-----------+  |       |
  / \  |  |        |   V  |             |   V  |    HBH    |  |       |
@@ -248,24 +270,25 @@ Alice |          (per-frame)         (per-packet)   |        |       |
       |                                                      |
       +------------------------------------------------------+
 ~~~
-{: #media-stack "Two options for integrating SFrame in a typical media stack" }
+{: #media-stack title="Two Options for Integrating SFrame in a Typical Media Stack" }
 
 Like SRTP, SFrame does not define how the keys used for SFrame are exchanged by
 the parties in the conference.  Keys for SFrame might be distributed over an
-existing E2E-secure channel (see {{sender-keys}}), or derived from an E2E-secure
+existing E2E-secure channel (see {{sender-keys}}) or derived from an E2E-secure
 shared secret (see {{mls}}).  The key management system MUST ensure that each
-key used for encrypting media is used by exactly one media sender, in order to
+key used for encrypting media is used by exactly one media sender in order to
 avoid reuse of nonces.
 
 ## SFrame Ciphertext
 
 An SFrame ciphertext comprises an SFrame header followed by the output of an
-AEAD encryption of the plaintext {{!RFC5116}}, with the header provided as additional
+Authenticated Encryption with Associated Data (AEAD) encryption of the plaintext {{!RFC5116}}, with the header provided as additional
 authenticated data (AAD).
 
 The SFrame header is a variable-length structure described in detail in
 {{sframe-header}}.  The structure of the encrypted data and authentication tag
 are determined by the AEAD algorithm in use.
+<!--[rfced] Would you like to provide a title for the figure given in Section 4.2? -->
 
 ~~~ aasvg
    +-+----+-+----+--------------------+--------------------+<-+
@@ -288,8 +311,8 @@ are determined by the AEAD algorithm in use.
 +--- Encrypted Portion               Authenticated Portion ---+
 ~~~
 
-When SFrame is applied per-packet, the payload of each packet will be an SFrame
-ciphertext.  When SFrame is applied per-frame, the SFrame ciphertext
+When SFrame is applied per packet, the payload of each packet will be an SFrame
+ciphertext.  When SFrame is applied per frame, the SFrame ciphertext
 representing an encrypted frame will span several packets, with the header
 appearing in the first packet and the authentication tag in the last packet.
 It is the responsibility of the application to reassemble an encrypted frame from
@@ -304,7 +327,7 @@ derived:
 * A counter (CTR) that is used to construct the nonce for the encryption
 
 Applications MUST ensure that each (KID, CTR) combination is used for exactly
-one SFrame encryption operation. A typical approach to achieving this guarantee is
+one SFrame encryption operation. A typical approach to achieve this guarantee is
 outlined in {{header-value-uniqueness}}.
 
 ~~~ aasvg
@@ -317,13 +340,13 @@ outlined in {{header-value-uniqueness}}.
 |X|  K  |Y|  C  |   KID...   |   CTR...   |
 +-+-+-+-+-+-+-+-+------------+------------+
 ~~~
-{: #fig-sframe-header title="SFrame header"}
+{: #fig-sframe-header title="SFrame Header"}
 
-The SFrame Header has the overall structure shown in {{fig-sframe-header}}.  The
+The SFrame header has the overall structure shown in {{fig-sframe-header}}.  The
 first byte is a "config byte", with the following fields:
 
-Extended Key Id Flag (X, 1 bit):
-: Indicates if the K field contains the key id or the Key ID length.
+Extended Key ID Flag (X, 1 bit):
+: Indicates if the K field contains the Key ID or the Key ID length.
 
 Key or Key Length (K, 3 bits):
 : If the X flag is set to 0, this field contains the Key ID.  If the X flag is
@@ -341,7 +364,7 @@ network (big-endian) byte order.  If the value of one of these fields is in the
 range 0-7, then the value is carried in the corresponding bits of the config
 byte (K or C) and the corresponding flag (X or Y) is set to zero.  Otherwise,
 the value MUST be encoded with the minimum number of bytes required and
-appended after the configuration byte, with the Key ID first and Counter second.
+appended after the config byte, with the Key ID first and Counter second.
 The header field (K or C) is set to the number of bytes in the encoded value,
 minus one.  The value 000 represents a length of 1, 001 a length of 2, etc.
 This allows a 3-bit length field to represent the value lengths 1-8.
@@ -391,7 +414,7 @@ aspects of the AEAD and the hash algorithm below:
   size of a "tag" that is added to the plaintext)
 
 * `AEAD.Nka` - For cipher suites using the compound AEAD described in
-  {{aes-ctr-with-sha2}}, the size in bytes of a key for the underlying AES-CTR
+  {{aes-ctr-with-sha2}}, the size in bytes of a key for the underlying Advanced Encryption Standard Counter Mode (AES-CTR)
   algorithm
 
 * `Hash.Nh` - The size in bytes of the output of the hash function
@@ -417,7 +440,7 @@ the next counter value CTR to be used when encrypting (initially 0).
 When encrypting a plaintext, the application specifies which KID is to be used,
 and the counter is incremented after successful encryption.  When decrypting,
 the `base_key` for decryption is selected from the available keys using the KID
-value in the SFrame Header.
+value in the SFrame header.
 
 A given `base_key` MUST NOT be used for encryption by multiple senders.  Such reuse
 would result in multiple encrypted frames being generated with the same (key,
@@ -430,13 +453,19 @@ real-time session.  In such cases, the client will need to manage key usage to
 avoid media loss due to a key being used to encrypt before all receivers are
 able to use it to decrypt.  For example, an application may make decryption-only
 keys available immediately, but delay the use of keys for encryption until (a)
-all receivers have acknowledged receipt of the new key or (b) a timeout expires.
+all receivers have acknowledged receipt of the new key, or (b) a timeout expires.
 
 ### Key Derivation
 
 SFrame encryption and decryption use a key and salt derived from the `base_key`
-associated to a KID.  Given a `base_key` value, the key and salt are derived
-using HKDF {{!RFC5869}} as follows:
+associated with a KID.  Given a `base_key` value, the key and salt are derived
+using HMAC-based Key Derivation Function (HKDF) {{!RFC5869}} as follows:
+
+<!--[rfced] Section 4.4.2. The following line exceeds the 72-character limit. Please let us know how this line can be modified.
+
+Current:
+     sframe_salt = HKDF-Expand(sframe_secret, sframe_salt_label, AEAD.Nn)
+-->
 
 ~~~ pseudocode
 def derive_key_salt(KID, base_key):
@@ -464,13 +493,24 @@ In the derivation of `sframe_secret`:
 The hash function used for HKDF is determined by the cipher suite in use.
 
 ### Encryption
+<!--[rfced] Section 4.4.3. In the following sentence, is the nonce encoded or is the counter encoded?
 
+Current:
+   The key for the encryption is the sframe_key and the
+   nonce is formed by XORing the sframe_salt with the current counter,
+   encoded as a big-endian integer of length AEAD.Nn.
+
+Perhaps:
+   The key for the encryption is the sframe_key, and the
+   nonce is formed by XORing the sframe_salt with the current counter
+   and encoding it as a big-endian integer of length AEAD.Nn.
+-->
 SFrame encryption uses the AEAD encryption algorithm for the cipher suite in use.
 The key for the encryption is the `sframe_key` and the nonce is formed by XORing
 the `sframe_salt` with the current counter, encoded as a big-endian integer of
 length `AEAD.Nn`.
 
-The encryptor forms an SFrame header using the CTR, and KID values provided.
+The encryptor forms an SFrame header using the CTR and KID values provided.
 The encoded header is provided as AAD to the AEAD encryption operation, together
 with application-provided metadata about the encrypted media (see {{metadata}}).
 
@@ -478,13 +518,13 @@ with application-provided metadata about the encrypted media (see {{metadata}}).
 def encrypt(CTR, KID, metadata, plaintext):
   sframe_key, sframe_salt = key_store[KID]
 
-  # encode_big_endian(x, n) produces an n-byte string encoding the integer x in
-  # big-endian byte order.
+  # encode_big_endian(x, n) produces an n-byte string encoding the
+  # integer x in big-endian byte order.
   ctr = encode_big_endian(CTR, AEAD.Nn)
   nonce = xor(sframe_salt, CTR)
 
-  # encode_sframe_header produces a byte string encoding the provided KID and
-  # CTR values into an SFrame Header.
+  # encode_sframe_header produces a byte string encoding the
+  # provided KID and CTR values into an SFrame header.
   header = encode_sframe_header(CTR, KID)
   aad = header + metadata
 
@@ -493,9 +533,9 @@ def encrypt(CTR, KID, metadata, plaintext):
 ~~~
 
 For example, the metadata input to encryption allows for frame metadata to be
-authenticated when SFrame is applied per-frame.  After encoding the frame and
+authenticated when SFrame is applied per frame.  After encoding the frame and
 before packetizing it, the necessary media metadata will be moved out of the
-encoded frame buffer, to be sent in some channel visible to the SFU (e.g., an
+encoded frame buffer to be sent in some channel visible to the SFU (e.g., an
 RTP header extension).
 
 ~~~ aasvg
@@ -541,11 +581,11 @@ Header |   | KID |  |                     |
 ### Decryption
 
 Before decrypting, a receiver needs to assemble a full SFrame ciphertext. When
-an SFrame ciphertext may be fragmented into multiple parts for transport (e.g.,
+an SFrame ciphertext is fragmented into multiple parts for transport (e.g.,
 a whole encrypted frame sent in multiple SRTP packets), the receiving client
 collects all the fragments of the ciphertext, using appropriate sequencing
 and start/end markers in the transport. Once all of the required fragments are
-available, the client reassembles them into the SFrame ciphertext, then passes
+available, the client reassembles them into the SFrame ciphertext, then it passes
 the ciphertext to SFrame for decryption.
 
 The KID field in the SFrame header is used to find the right key and salt for
@@ -571,7 +611,7 @@ once a key with that KID is received.  If a ciphertext fails to decrypt for any
 other reason, the client MUST discard the ciphertext. Invalid ciphertexts SHOULD be
 discarded in a way that is indistinguishable (to an external observer) from having
 processed a valid ciphertext.  In other words, the SFrame decrypt operation
-should be constant-time, regardless of whether decryption succeeds or fails.
+should be constant time, regardless of whether decryption succeeds or fails.
 
 ~~~ aasvg
                     SFrame Ciphertext
@@ -634,20 +674,40 @@ This document defines the following cipher suites, with the constants defined in
 | `AES_128_CTR_HMAC_SHA256_32`  | 32 | 16  | 48 | 12 |  4 |
 | `AES_128_GCM_SHA256_128`      | 32 | n/a | 16 | 12 | 16 |
 | `AES_256_GCM_SHA512_128`      | 64 | n/a | 32 | 12 | 16 |
-{: #cipher-suite-constants title="SFrame cipher suite constants" }
+{: #cipher-suite-constants title="SFrame Cipher Suite Constants" }
 
 Numeric identifiers for these cipher suites are defined in the IANA registry
 created in {{sframe-cipher-suites}}.
 
+<!--[rfced] Section 4.5. We have updated the following text to use numerals. Please let us know if any updates are necessary.
+
+Original:
+   ... "_128" indicates a hundred-twenty-eight-bit tag,
+   "_80" indicates an eighty-bit tag, "_64" indicates a sixty-four-bit
+   tag and "_32" indicates a thirty-two-bit tag.
+
+   ... a session might use a cipher suite
+   with eighty-bit tags for video frames and another cipher suite with
+   thirty-two-bit tags for audio frames.
+
+Current:
+   ... "_128" indicates a 128-bit tag,
+   "_80" indicates an 80-bit tag, "_64" indicates a 64-bit
+   tag, and "_32" indicates a 32-bit tag.
+
+   ... a session might use a cipher suite
+   with 80-bit tags for video frames and another cipher suite with
+   32-bit tags for audio frames.-->
+
 In the suite names, the length of the authentication tag is indicated by
-the last value: "\_128" indicates a hundred-twenty-eight-bit tag, "\_80" indicates
-an eighty-bit tag, "\_64" indicates a sixty-four-bit tag and "\_32" indicates a
-thirty-two-bit tag.
+the last value: "\_128" indicates a 128-bit tag, "\_80" indicates
+an 80-bit tag, "\_64" indicates a 64-bit tag, and "\_32" indicates a
+32-bit tag.
 
 In a session that uses multiple media streams, different cipher suites might be
 configured for different media streams.  For example, in order to conserve
-bandwidth, a session might use a cipher suite with eighty-bit tags for video frames
-and another cipher suite with thirty-two-bit tags for audio frames.
+bandwidth, a session might use a cipher suite with 80-bit tags for video frames
+and another cipher suite with 32-bit tags for audio frames.
 
 ### AES-CTR with SHA2
 
@@ -658,7 +718,7 @@ authentication.  We use an encrypt-then-MAC approach, as in SRTP {{?RFC3711}}.
 Before encryption or decryption, encryption and authentication subkeys are
 derived from the single AEAD key.  The overall length of the AEAD key is `Nka +
 Nh`, where `Nka` represents the key size for the AES block cipher in use and `Nh`
-represents the output size of the hash function  (as in {{iana-cipher-suites}}).
+represents the output size of the hash function  (as in {{cipher-suite-constants}}).
 The encryption subkey comprises the first `Nka` bytes and the authentication
 subkey comprises the remaining `Nh` bytes.
 
@@ -723,17 +783,17 @@ framework, as described in {{key-management-framework}}.
 
 ## Sender Keys
 
-If the participants in a call have a pre-existing E2E-secure channel, they can
+If the participants in a call have a preexisting E2E-secure channel, they can
 use it to distribute SFrame keys.  Each client participating in a call generates
 a fresh `base_key` value that it will use to encrypt media. The client then uses
 the E2E-secure channel to send their encryption key to the other participants.
 
 In this scheme, it is assumed that receivers have a signal outside of SFrame for
-which client has sent a given frame (e.g., an RTP SSRC).  SFrame KID
+which client has sent a given frame (e.g., an RTP synchronization source (SSRC)).  SFrame KID
 values are then used to distinguish between versions of the sender's `base_key`.
 
 Key IDs in this scheme have two parts: a "key generation" and a "ratchet step".
-Both are unsigned integers that begin at zero.  The key generation increments
+Both are unsigned integers that begin at zero.  The "key generation" increments
 each time the sender distributes a new key to receivers.  The "ratchet step" is
 incremented each time the sender ratchets their key forward for forward secrecy:
 
@@ -748,9 +808,9 @@ its low-order `R` bits, where `R` is a value set by the application.  Different
 senders may use different values of `R`, but each receiver of a given sender
 needs to know what value of `R` is used by the sender so that they can recognize
 when they need to ratchet (vs. expecting a new key).  `R` effectively defines a
-re-ordering window, since no more than 2<sup>`R`</sup> ratchet steps can be
+reordering window, since no more than 2<sup>`R`</sup> ratchet steps can be
 active at a given time.  The key generation is sent in the remaining `64 - R`
-bits of the key ID.
+bits of the Key ID.
 
 ~~~ pseudocode
 KID = (key_generation << R) + (ratchet_step % (1 << R))
@@ -763,7 +823,7 @@ KID = (key_generation << R) + (ratchet_step % (1 << R))
 | Key Generation  | Ratchet Step |
 +-----------------+--------------+
 ~~~
-{: #sender-keys-kid title="Structure of a KID in the Sender Keys scheme" }
+{: #sender-keys-kid title="Structure of a KID in the Sender Keys Scheme" }
 
 The sender signals such a ratchet step update by sending with a KID value in
 which the ratchet step has been incremented.  A receiver who receives from a
@@ -801,18 +861,30 @@ group.
 
 To generate keys and nonces for SFrame, we use the MLS exporter function to
 generate a `base_key` value for each MLS epoch.  Each member of the group is
-assigned a set of KID values, so that each member has a unique `sframe_key` and
+assigned a set of KID values so that each member has a unique `sframe_key` and
 `sframe_salt` that it uses to encrypt with.  Senders may choose any KID value
 within their assigned set of KID values, e.g., to allow a single sender to send
-multiple uncoordinated outbound media streams.
+multiple, uncoordinated outbound media streams.
 
 ~~~ pseudocode
 base_key = MLS-Exporter("SFrame 1.0 Base Key", "", AEAD.Nk)
 ~~~
 
+<!-- [rfced] Section 5.2. We are having difficulty parsing the following. Does the Receiver remove the old epoch? Should "the same E lower bits" be "the same low-order E bits"?
+
+Original:
+   Receivers MUST
+   be prepared for the epoch counter to roll over, removing an old epoch
+   when a new epoch with the same E lower bits is introduced.
+
+Perhaps:
+   Receivers MUST
+   be prepared for the epoch counter to roll over and remove an old epoch
+   when a new epoch with the same low-order E bits is introduced. -->
+
 For compactness, we do not send the whole epoch number.  Instead, we send only
 its low-order `E` bits, where `E` is a value set by the application.  `E`
-effectively defines a re-ordering window, since no more than 2<sup>`E`</sup>
+effectively defines a reordering window, since no more than 2<sup>`E`</sup>
 epochs can be active at a given time.  Receivers MUST be prepared for the epoch
 counter to roll over, removing an old epoch when a new epoch with the same E
 lower bits is introduced.
@@ -838,7 +910,7 @@ KID = (context << (S + E)) + (sender_index << E) + (epoch % (1 << E))
 
 Once an SFrame stack has been provisioned with the `sframe_epoch_secret` for an
 epoch, it can compute the required KID values on demand (as well as the
-resulting SFrame keys/nonces derived from the `base_key` and KID), as it needs
+resulting SFrame keys/nonces derived from the `base_key` and KID) as it needs
 to encrypt or decrypt for a given member.
 
 ~~~ aasvg
@@ -869,24 +941,26 @@ Epoch 17 +--+-- index=33 --> KID = 0x211
          |
   ...
 ~~~
-{: #mls-evolution title="An example sequence of KIDs for an MLS-based SFrame
-session (E=4; S=6, allowing for 64 group members)" }
+{: #mls-evolution title="An Example Sequence of KIDs for an MLS-based SFrame
+Session (E=4; S=6, Allowing for 64 Group Members)" }
 
 # Media Considerations
 
 ## Selective Forwarding Units
 
-Selective Forwarding Units (SFUs) (e.g., those described in {{Section 3.7 of
+SFUs (e.g., those described in {{Section 3.7 of
 ?RFC7667}}) receive the media streams from each participant and select which
 ones should be forwarded to each of the other participants.  There are several
 approaches for stream selection, but in general, the SFU needs to access
-metadata associated to each frame and modify the RTP information of the incoming
+metadata associated with each frame and modify the RTP information of the incoming
 packets when they are transmitted to the received participants.
 
-This section describes how this normal SFU modes of operation interact with the
+This section describes how these normal SFU modes of operation interact with the
 E2EE provided by SFrame.
 
-### LastN and RTP stream reuse
+### LastN and RTP Stream Reuse
+
+<!--[rfced] Section 6.1.1. The term "LastN" is used in the title of the section ("LastN and RTP Stream Reuse"), but it is not expanded or otherwise explained within the section. How may we make this term clearer to the reader? -->
 
 The SFU may choose to send only a certain number of streams based on the voice
 activity of the participants. To avoid the overhead involved in establishing new
@@ -894,8 +968,36 @@ transport streams, the SFU may decide to reuse previously existing streams or
 even pre-allocate a predefined number of streams and choose in each moment in
 time which participant media will be sent through it.
 
+<!--[rfced] Section 6.1.1. The clause in the following sentence appears to be missing a subject: it's unclear what is carrying the media.
+
+Original:
+   This means that in the same transport-level stream (e.g., an RTP
+   stream defined by either SSRC or MID) may carry media from different
+   streams of different participants.
+
+Perhaps (removing the preposition "in" so that "the same transport-level stream" becomes the subject and expanding "MID"):
+   This means that the same transport-level stream (e.g., an RTP
+   stream defined by either SSRC or Media Identification (MID)) may
+   carry media from different streams of different participants. -->
+
+<!--[rfced] Section 6.1.1. Does the following proposed update improve the readability of the sentence?
+
+Original:
+   As different keys are used by each participant for encoding their media,
+   the receiver will be able to verify which is the sender of the media
+   coming within the RTP stream at any given point in time, preventing the
+   SFU trying to impersonate any of the participants with another
+   participant's media.
+
+Perhaps:
+   Because each participant uses a different key to encode their media,
+   the receiver will be able to verify the sender of the media within
+   the RTP stream at any given point in time, which prevents any attempt
+   by the SFU to impersonate a participant with another participant's
+   media. -->
+
 This means that in the same transport-level stream (e.g., an RTP stream defined
-by either SSRC or MID) may carry media from different streams of different
+by either SSRC or Media Identification (MID)) may carry media from different streams of different
 participants. As different keys are used by each participant for encoding their
 media, the receiver will be able to verify which is the sender of the media
 coming within the RTP stream at any given point in time, preventing the SFU
@@ -908,29 +1010,29 @@ protect against such attacks.
 ### Simulcast
 
 When using simulcast, the same input image will produce N different encoded
-frames (one per simulcast layer) which would be processed independently by the
+frames (one per simulcast layer), which would be processed independently by the
 frame encryptor and assigned an unique counter for each.
 
 ### SVC
 
 In both temporal and spatial scalability, the SFU may choose to drop layers in
-order to match a certain bitrate or forward specific media sizes or frames per
+order to match a certain bitrate or to forward specific media sizes or frames per
 second. In order to support the SFU selectively removing layers, the sender MUST
 encapsulate each layer in a different SFrame ciphertext.
 
 ## Video Key Frames
 
-Forward Security and Post-Compromise Security require that the E2EE keys (base keys)
+Forward security and post-compromise security require that the E2EE keys (base keys)
 are updated any time a participant joins or leaves the call.
 
 The key exchange happens asynchronously and on a different path than the SFU signaling
-and media. So it may happen that when a new participant joins the call and the
+and media. So it may happen that, when a new participant joins the call and the
 SFU side requests a key frame, the sender generates the E2EE frame
-with a key not known by the receiver, so it will be discarded. When the sender
+with a key that is not known by the receiver, so it will be discarded. When the sender
 updates his sending key with the new key, it will send it in a non-key frame, so
 the receiver will be able to decrypt it, but not decode it.
 
-The new Receiver will then re-request a key frame, but due to sender and SFU
+The new receiver will then re-request a key frame, but due to sender and SFU
 policies, that new key frame could take some time to be generated.
 
 If the sender sends a key frame after the new E2EE key is in use, the time
@@ -938,29 +1040,29 @@ required for the new participant to display the video is minimized.
 
 Note that this issue does not arise for media streams that do not have
 dependencies among frames, e.g., audio streams.  In these streams, each frame is
-independently decodeable, so there is never a need to process two frames
-together which might be on two sides of a key rotation.
+independently decodable, so there is never a need to process together two frames
+that might be on two sides of a key rotation.
 
 ## Partial Decoding
 
 Some codecs support partial decoding, where individual packets can be decoded
-without waiting for the full frame to arrive.  When SFrame is applied per-frame,
-this won't be possible because the decoder cannot access data until an entire
+without waiting for the full frame to arrive.  When SFrame is applied per frame,
+partial decoding is not possible because the decoder cannot access data until an entire
 frame has arrived and has been decrypted.
 
 # Security Considerations
 
 ## No Header Confidentiality
 
-SFrame provides integrity protection to the SFrame Header (the key ID and
-counter values), but does not provide confidentiality protection.  Parties that
+SFrame provides integrity protection to the SFrame header (the Key ID and
+counter values), but it does not provide confidentiality protection.  Parties that
 can observe the SFrame header may learn, for example, which parties are sending
 SFrame payloads (from KID values) and at what rates (from CTR values).  In cases
 where SFrame is used for end-to-end security on top of hop-by-hop protections
 (e.g., running over SRTP as described in {{sframe-over-rtp}}), the hop-by-hop security
 mechanisms provide confidentiality protection of the SFrame header between hops.
 
-## No Per-Sender Authentication
+## No per-Sender Authentication
 
 SFrame does not provide per-sender authentication of media data.  Any sender in
 a session can send media that will be associated with any other sender.  This is
@@ -969,24 +1071,24 @@ receiver also has the keys required to encrypt packets for the sender.
 
 ## Key Management
 
-Key exchange mechanism is out of scope of this document, however every client
-SHOULD change their keys when new clients joins or leaves the call for forward
-secrecy and post compromise security.
+The key exchange mechanism is out of scope of this document; however, every client
+SHOULD change their keys when new clients join or leave the call for forward
+secrecy and post-compromise security.
 
 ## Replay
 
 The handling of replay is out of the scope of this document. However, senders
-MUST reject requests to encrypt multiple times with the same key and nonce,
+MUST reject requests to encrypt multiple times with the same key and nonce
 since several AEAD algorithms fail badly in such cases (see, e.g., {{Section 5.1.1 of RFC5116}}).
 
-## Risks due to Short Tags
+## Risks Due to Short Tags
 
-The SFrame ciphersuites based on AES-CTR allow for the use of short
+The SFrame cipher suites based on AES-CTR allow for the use of short
 authentication tags, which bring a higher risk that an attacker will be
 able to cause an SFrame receiver to accept an SFrame ciphertext of the
 attacker's choosing.
 
-Assuming that the authentication properties of the ciphersuite are robust, the
+Assuming that the authentication properties of the cipher suite are robust, the
 only attack that an attacker can mount is an attempt to find an acceptable
 (ciphertext, tag) combination through brute force.  Such a brute-force attack
 will have an expected success rate of the following form:
@@ -995,10 +1097,10 @@ will have an expected success rate of the following form:
 attacker_success_rate = attempts_per_second / 2^(8*Nt)
 ```
 
-For example, a gigabit ethernet connection is able to transmit roughly 2^20
+For example, a gigabit Ethernet connection is able to transmit roughly 2<sup>20</sup>
 packets per second.  If an attacker saturated such a link with guesses against a
 32-bit authentication tag (`Nt=4`), then the attacker would succeed on average
-roughly once every 2^12 seconds, or about once an hour.
+roughly once every 2<sup>12</sup> seconds, or about once an hour.
 
 In a typical SFrame usage in a real-time media application, there are a few
 approaches to mitigating this risk:
@@ -1010,83 +1112,97 @@ approaches to mitigating this risk:
 * The expected packet rate for a media stream is very predictable (and typically
   far lower than the above example).  On the one hand, attacks at this rate will
   succeed even less often than the high-rate attack described above.  On the
-  other hand, the application may use an elevated packet arrival rate as a
+  other hand, the application may use an elevated packet-arrival rate as a
   signal of a brute-force attack.  This latter approach is common in other
   settings, e.g., mitigating brute-force attacks on passwords.
 
 * Media applications typically do not provide feedback to media senders as to
-  which media packets failed to decrypt.  When media quality feedback
+  which media packets failed to decrypt.  When media-quality feedback
   mechanisms are used, decryption failures will typically appear as packet
   losses, but only at an aggregate level.
 
-* Anti-replay mechanisms (see {{replay}}) prevent the attacker from re-using
+* Anti-replay mechanisms (see {{replay}}) prevent the attacker from reusing
   valid ciphertexts (either observed or guessed by the attacker).  A receiver
   applying anti-replay controls will only accept one valid plaintext per CTR
   value.  Since the CTR value is covered by SFrame authentication, an attacker
   has to do a fresh search for a valid tag for every forged ciphertext, even if
-  the encrypted content is unchanged.  In other words, when the above brute
-  force attack succeeds, it only allows the attacker to send a single SFrame
+  the encrypted content is unchanged.  In other words, when the above brute-force
+  attack succeeds, it only allows the attacker to send a single SFrame
   ciphertext; the ciphertext cannot be reused because either it will have the
   same CTR value and be discarded as a replay, or else it will have a different
-  CTR value its tag will no longer be valid.
+  CTR value and its tag will no longer be valid.
 
 Nonetheless, without these mitigations, an application that makes use of short
 tags will be at heightened risk of forgery attacks.  In many cases, it is
-simpler to use full-size tags and tolerate slightly higher bandwidth usage
-rather than add the additional defenses necessary to safely use short tags.
+simpler to use full-size tags and tolerate slightly higher-bandwidth usage
+rather than to add the additional defenses necessary to safely use short tags.
 
 # IANA Considerations
 
-This document requests the creation of the following new IANA registry:
-
-* SFrame Cipher Suites ({{sframe-cipher-suites}})
-
-This registry should be under a heading of "SFrame", and assignments are made
+IANA has created a new registry called "SFrame Cipher Suites" ({{sframe-cipher-suites}})
+under the "SFrame" group registry heading.  Assignments are made
 via the Specification Required policy {{!RFC8126}}.
 
-RFC EDITOR: Please replace XXXX throughout with the RFC number assigned to
-this document
+<!-- [rfced] IANA Considerations. The text indicates the that registration policy for the "SFrame Cipher Suites" is Specification Required.  However, it later refers to Standards Action and Private Use, and the IANA registry includes ranges for Standards Action and Private Use.  Are the ranges as defined on the IANA page correct?  For clarity, may we specify the ranges as follows?  In addition, perhaps the text should be moved to Section 8.1, appearing after the valid range of cipher suites is noted.
+
+Original:
+   This registry should be under a heading of "SFrame", and assignments
+   are made via the Specification Required policy [RFC8126].
+
+Perhaps:
+   IANA has created a new registry called "SFrame Cipher Suites" (Section 8.1)
+   under the "SFrame" group registry heading.  Assignments are made per the following
+   registration procedures [RFC8126]:
+
+   0-0xEFFF  Specification Required
+   0-0xEFFF  Standards Action
+   0xF000-0xFFFF  Private Use
+-->
 
 ## SFrame Cipher Suites
 
-This registry lists identifiers for SFrame cipher suites, as defined in
+The "SFrame Cipher Suites" registry lists identifiers for SFrame cipher suites as defined in
 {{cipher-suites}}.  The cipher suite field is two bytes wide, so the valid cipher
 suites are in the range 0x0000 to 0xFFFF.
 
-Template:
+The registration template is as follows:
 
 * Value: The numeric value of the cipher suite
 
 * Name: The name of the cipher suite
 
 * Recommended: Whether support for this cipher suite is recommended by the IETF.
-  Valid values are "Y", "N", and "D", as described in {{Section 17.1 of
+  Valid values are "Y", "N", and "D" as described in {{Section 17.1 of
   MLS-PROTO}}. The default value of the "Recommended" column is "N". Setting the
   Recommended item to "Y" or "D", or changing an item whose current value is "Y"
   or "D", requires Standards Action {{RFC8126}}.
 
 * Reference: The document where this cipher suite is defined
 
+* Change Controller: Who is authorized to update the row in the registry
+
+<!--[rfced] IANA Considerations. FYI, we have added "Change Controller" to the registry template and table as IANA has added this column to the "SFrame Cipher Suites" registry. Please review. -->
+
 Initial contents:
 
 
-| Value           | Name                          | R | Reference |
-|:----------------|:------------------------------|:--|:----------|
-| 0x0000          | Reserved                      | - | RFC XXXX  |
-| 0x0001          | `AES_128_CTR_HMAC_SHA256_80`  | Y | RFC XXXX  |
-| 0x0002          | `AES_128_CTR_HMAC_SHA256_64`  | Y | RFC XXXX  |
-| 0x0003          | `AES_128_CTR_HMAC_SHA256_32`  | Y | RFC XXXX  |
-| 0x0004          | `AES_128_GCM_SHA256_128`      | Y | RFC XXXX  |
-| 0x0005          | `AES_256_GCM_SHA512_128`      | Y | RFC XXXX  |
-| 0xF000 - 0xFFFF | Reserved for private use      | - | RFC XXXX  |
-{: #iana-cipher-suites title="SFrame cipher suites" }
+| Value           | Name                          | R | Reference | Change Controller |
+|:----------------|:------------------------------|:--|:----------|:------------------|
+| 0x0000          | Reserved                      | - | RFC 9605  | IETF              |
+| 0x0001          | `AES_128_CTR_HMAC_SHA256_80`  | Y | RFC 9605  | IETF              |
+| 0x0002          | `AES_128_CTR_HMAC_SHA256_64`  | Y | RFC 9605  | IETF              |
+| 0x0003          | `AES_128_CTR_HMAC_SHA256_32`  | Y | RFC 9605  | IETF              |
+| 0x0004          | `AES_128_GCM_SHA256_128`      | Y | RFC 9605  | IETF              |
+| 0x0005          | `AES_256_GCM_SHA512_128`      | Y | RFC 9605  | IETF              |
+| 0xF000 - 0xFFFF | Reserved for Private Use      | - | RFC 9605  | IETF              |
+{: #iana-cipher-suites title="SFrame Cipher Suites" }
 
 # Application Responsibilities
 
 To use SFrame, an application needs to define the inputs to the SFrame
 encryption and decryption operations, and how SFrame ciphertexts are delivered
 from sender to receiver (including any fragmentation and reassembly).  In this
-section, we lay out additional requirements that an integration must meet in
+section, we lay out additional requirements that an implementation must meet in
 order for SFrame to operate securely.
 
 In general, an application using SFrame is responsible for configuring SFrame.
@@ -1097,9 +1213,9 @@ to determine which version should be used.
 
 This division of responsibilities is similar to the way other media parameters
 (e.g., codecs) are typically handled in media applications, in the sense that
-they are set up in some signaling protocol, and then not described in the media.
+they are set up in some signaling protocol and not described in the media.
 Applications might find it useful to extend the protocols used for negotiating
-other media parameters (e.g., SDP {{?RFC8866}}) to also negotiate parameters for
+other media parameters (e.g., Session Description Protocol (SDP) {{?RFC8866}}) to also negotiate parameters for
 SFrame.
 
 ## Header Value Uniqueness
@@ -1113,7 +1229,7 @@ encrypted. In addition to its simplicity, this scheme minimizes overhead by
 keeping CTR values as small as possible.
 
 In applications where an SFrame context might be written to persistent storage,
-this context needs to include the last used CTR value.  When the context is used
+this context needs to include the last-used CTR value.  When the context is used
 later, the application should use the stored CTR value to determine the next CTR
 value to be used in an encryption operation, and then write the next CTR value
 back to storage before using the CTR value for encryption.  Storing the CTR
@@ -1130,11 +1246,11 @@ assure the non-reuse properties discussed in {{header-value-uniqueness}}.
 
 It is also up to the application to define a rotation schedule for keys.  For
 example, one application might have an ephemeral group for every call and keep
-rotating keys when end points join or leave the call, while another application
+rotating keys when endpoints join or leave the call, while another application
 could have a persistent group that can be used for multiple calls and simply
 derives ephemeral symmetric keys for a specific call.
 
-It should be noted that KID values are not encrypted by SFrame, and are thus
+It should be noted that KID values are not encrypted by SFrame and are thus
 visible to any application-layer intermediaries that might handle an SFrame
 ciphertext.  If there are application semantics included in KID values, then
 this information would be exposed to intermediaries.  For example, in the scheme
@@ -1150,11 +1266,17 @@ As mentioned in {{replay}}, senders MUST reject requests to encrypt multiple tim
 with the same key and nonce.
 
 It is not mandatory to implement anti-replay on the receiver side. Receivers MAY
-apply time or counter based anti-replay mitigations.  For example, {{Section
+apply time- or counter-based anti-replay mitigations.  For example, {{Section
 3.3.2 of ?RFC3711}} specifies a counter-based anti-replay mitigation, which
 could be adapted to use with SFrame, using the CTR field as the counter.
 
 ## Metadata
+
+<!--[rfced] Section 9.4. It is unclear what "pure" means in the following sentence. Is the metadata only specified by the application? Please help us clarify.
+
+Original:
+   The metadata input to SFrame operations is pure application-specified
+   data. -->
 
 The `metadata` input to SFrame operations is pure application-specified data. As
 such, it is up to the application to define what information should go in the
@@ -1168,20 +1290,19 @@ processing pipeline, but only to prepare for SFrame decryption.
 For example, consider an application where SFrame is used to encrypt audio
 frames that are sent over SRTP, with some application data included in the RTP
 header extension. Suppose the application also includes this application data in
-the SFrame metadata, so that the SFU is allowed to read, but not modify the
+the SFrame metadata, so that the SFU is allowed to read, but not modify, the
 application data.  A receiver can use the application data in the RTP header
-extension as part of the standard SRTP decryption process, since this is
+extension as part of the standard SRTP decryption process since this is
 required to recover the SFrame ciphertext carried in the SRTP payload.  However,
 the receiver MUST NOT use the application data for other purposes before SFrame
 decryption has authenticated the application data.
 
 --- back
-
-# Acknowledgements
-
-The authors wish to specially thank Dr. Alex Gouaillard as one of the early
-contributors to the document. His passion and energy were key to the design and
-development of SFrame.
+<!--Informative References:
+[I-D.codec-agnostic-rtp-payload-format] replaced by draft-gouaillard-avtcore-codec-agn-rtp-payload, which is expired.
+[I-D.ietf-moq-transport] Active WG document
+[I-D.ietf-webtrans-overview] Active WG document
+[MLS-ARCH] Active WG document -->
 
 # Example API
 
@@ -1201,16 +1322,16 @@ context to be used for sending also tracks the next CTR value to be used.
 
 The primary operations on an SFrame context are as follows:
 
-* **Create an SFrame context:** The context is initialized with a ciphersuite and
+* **Create an SFrame context:** The context is initialized with a cipher suite and
   no KID mappings.
-* **Adding a key for sending:** The key and salt are derived from the base key, and
-  used to initialize a send context, together with a zero counter value.
-* **Adding a key for receiving:** The key and salt are derived from the base key, and
-  used to initialize a send context.
+* **Add a key for sending:** The key and salt are derived from the base key, and
+  are used to initialize a send context, together with a zero counter value.
+* **Add a key for receiving:** The key and salt are derived from the base key, and
+  are used to initialize a send context.
 * **Encrypt a plaintext:** Encrypt a given plaintext using the key for a given KID,
   including the specified metadata.
 * **Decrypt an SFrame ciphertext:** Decrypt an SFrame ciphertext with the KID
-  and CTR values specified in the SFrame Header, and the provided metadata.
+  and CTR values specified in the SFrame header, and the provided metadata.
 
 {{rust-api}} shows an example of the types of structures and methods that could
 be used to create an SFrame API in Rust.
@@ -1254,8 +1375,8 @@ Any use of SFrame will impose overhead in terms of the amount of bandwidth
 necessary to transmit a given media stream.  Exactly how much overhead will be added
 depends on several factors:
 
-* How many senders are involved in a conference (length of KID)
-* How long the conference has been going on (length of CTR)
+* The number of senders involved in a conference (length of KID)
+* The duration of the conference (length of CTR)
 * The cipher suite in use (length of authentication tag)
 * Whether SFrame is used to encrypt packets, whole frames, or some other unit
 
@@ -1270,27 +1391,34 @@ Here the constant value `1` reflects the fixed SFrame header; `|CTR|` and
 overhead; and `CTPerSecond` reflects the number of SFrame ciphertexts
 sent per second (e.g., packets or frames per second).
 
-In the remainder of this secton, we compute overhead estimates for a collection
+In the remainder of this section, we compute overhead estimates for a collection
 of common scenarios.
 
 ## Assumptions
 
 In the below calculations, we make conservative assumptions about SFrame
-overhead, so that the overhead amounts we compute here are likely to be an upper
-bound on those seen in practice.
+overhead so that the overhead amounts we compute here are likely to be an upper
+bound of those seen in practice.
+
+<!--[rfced] Section B.1. FYI, we added a title to Table 3.
+
+Current:
+  Table 3:  Overhead Analysis Assumptions
+-->
 
 | Field           | Bytes | Explanation                                       |
 |:----------------|------:|:--------------------------------------------------|
 | Fixed header    | 1     | Fixed                                             |
 | Key ID (KID)    | 2     | >255 senders; or MLS epoch (E=4) and >16 senders  |
 | Counter (CTR)   | 3     | More than 24 hours of media in common cases       |
-| Cipher overhead | 16    | Full GCM tag (longest defined here)               |
+| Cipher overhead | 16    | Full Galois/Counter Mode (GCM) tag (longest defined here)  |
+{: #analysis-assumptions title="Overhead Analysis Assumptions" }
 
 In total, then, we assume that each SFrame encryption will add 22 bytes of
 overhead.
 
-We consider two scenarios, applying SFrame per-frame and per-packet.  In each
-scenario, we compute the SFrame overhead in absolute terms (Kbps) and as a
+We consider two scenarios: applying SFrame per frame and per packet.  In each
+scenario, we compute the SFrame overhead in absolute terms (kbps) and as a
 percentage of the base bandwidth.
 
 ## Audio
@@ -1299,49 +1427,49 @@ In audio streams, there is typically a one-to-one relationship between frames
 and packets, so the overhead is the same whether one uses SFrame at a per-packet
 or per-frame level.
 
-The below table considers three scenarios, based on recommended configurations
+{{audio-overhead}} considers three scenarios that are based on recommended configurations
 of the Opus codec {{?RFC6716}}:
 
-* Narrow-band speech: 120ms packets, 8Kbps
-* Full-band speech: 20ms packets, 32Kbps
-* Full-band stereo music: 10ms packets, 128Kbps
+* Narrow-band (NB) speech: 120 ms packets, 8 kbps
+* Full-band (FB) speech: 20 ms packets, 32 kbps
+* Full-band stereo music: 10 ms packets, 128 kbps
 
-| Scenario                 | fps | Base Kbps | Overhead Kbps | Overhead % |
-|:-------------------------|:---:|:---------:|:-------------:|:----------:|
-| NB speech, 120ms packets | 8.3 |         8 |           1.4 |      17.9% |
-| FB speech, 20ms packets  |  50 |        32 |           8.6 |      26.9% |
-| FB stereo, 10ms packets  | 100 |       128 |          17.2 |      13.4% |
-{: #audio-overhead title="SFrame overhead for audio streams" }
+| Scenario                  | Frames per Second (fps) | Base kbps | Overhead kbps | Overhead % |
+|:--------------------------|:---:|:---------:|:-------------:|:----------:|
+| NB speech, 120 ms packets | 8.3 |         8 |           1.4 |      17.9% |
+| FB speech, 20 ms packets  |  50 |        32 |           8.6 |      26.9% |
+| FB stereo, 10 ms packets  | 100 |       128 |          17.2 |      13.4% |
+{: #audio-overhead title="SFrame Overhead for Audio Streams" }
 
 ## Video
 
 Video frames can be larger than an MTU and thus are commonly split across
 multiple frames.  {{video-overhead-per-frame}} and {{video-overhead-per-packet}}
 show the estimated overhead of encrypting a video stream, where SFrame is
-applied per-frame and per-packet, respectively.  The choices of resolution,
-frames per second, and bandwidth are chosen to roughly reflect the capabilities of
-modern video codecs across a range from very low to very high quality.
+applied per frame and per packet, respectively.  The choices of resolution,
+frames per second, and bandwidth roughly reflect the capabilities of
+modern video codecs across a range from very-low to very-high quality.
 
-| Scenario    | fps | Base Kbps | Overhead Kbps | Overhead % |
+| Scenario    | fps | Base kbps | Overhead kbps | Overhead % |
 |:------------|:---:|:---------:|:-------------:|:----------:|
 | 426 x 240   | 7.5 |        45 |           1.3 |       2.9% |
 | 640 x 360   |  15 |       200 |           2.6 |       1.3% |
 | 640 x 360   |  30 |       400 |           5.2 |       1.3% |
 | 1280 x 720  |  30 |      1500 |           5.2 |       0.3% |
 | 1920 x 1080 |  60 |      7200 |          10.3 |       0.1% |
-{: #video-overhead-per-frame title="SFrame overhead for a video stream encrypted per-frame" }
+{: #video-overhead-per-frame title="SFrame Overhead for a Video Stream Encrypted per Frame" }
 
-| Scenario    | fps | pps | Base Kbps | Overhead Kbps | Overhead % |
+| Scenario    | fps | Packets per Second (pps) | Base kbps | Overhead kbps | Overhead % |
 |:------------|:---:|:---:|:---------:|:-------------:|:----------:|
 | 426 x 240   | 7.5 | 7.5 |        45 |           1.3 |       2.9% |
 | 640 x 360   |  15 |  30 |       200 |           5.2 |       2.6% |
 | 640 x 360   |  30 |  60 |       400 |          10.3 |       2.6% |
 | 1280 x 720  |  30 | 180 |      1500 |          30.9 |       2.1% |
 | 1920 x 1080 |  60 | 780 |      7200 |         134.1 |       1.9% |
-{: #video-overhead-per-packet title="SFrame overhead for a video stream encrypted per-packet" }
+{: #video-overhead-per-packet title="SFrame Overhead for a Video Stream Encrypted per Packet" }
 
 In the per-frame case, the SFrame percentage overhead approaches zero as the
-quality of the video goes up, since bandwidth is driven more by picture size
+quality of the video improves since bandwidth is driven more by picture size
 than frame rate.  In the per-packet case, the SFrame percentage overhead
 approaches the ratio between the SFrame overhead per packet and the MTU (here 22
 bytes of SFrame overhead divided by an assumed 1200-byte MTU, or about 1.8%).
@@ -1349,15 +1477,15 @@ bytes of SFrame overhead divided by an assumed 1200-byte MTU, or about 1.8%).
 ## Conferences
 
 Real conferences usually involve several audio and video streams.  The overhead
-of SFrame in such a conference is the aggregate of the overhead over all the
+of SFrame in such a conference is the aggregate of the overhead of all the
 individual streams.  Thus, while SFrame incurs a large percentage overhead on an
 audio stream, if the conference also involves a video stream, then the audio
 overhead is likely negligible relative to the overall bandwidth of the
 conference.
 
-For example, {{conference-overhead}} shows the overhead estimates for a two
-person conference where one person is sending low-quality media and the other
-sending high-quality.  (And we assume that SFrame is applied per-frame.)  The
+For example, {{conference-overhead}} shows the overhead estimates for a two-person
+conference where one person is sending low-quality media and the other is
+sending high-quality media.  (And we assume that SFrame is applied per frame.)  The
 video streams dominate the bandwidth at the SFU, so the total bandwidth overhead
 is only around 1%.
 
@@ -1368,7 +1496,7 @@ is only around 1%.
 | Participant 2 audio    |        32 |           9   |      26.9% |
 | Participant 2 video    |      1500 |           5   |       0.3% |
 | Total at SFU           |      1585 |          16.5 |       1.0% |
-{: #conference-overhead title="SFrame overhead for a two-person conference" }
+{: #conference-overhead title="SFrame Overhead for a Two-Person Conference" }
 
 ## SFrame over RTP
 
@@ -1378,11 +1506,11 @@ integration between SFrame and RTP could be done, and some of the challenges
 that would need to be overcome.
 
 As discussed in {{application-context}}, there are two natural patterns for
-integrating SFrame into an application: applying SFrame per-frame or per-packet.
-In RTP-based applications, applying SFrame per-packet means that the payload of
-each RTP packet will be an SFrame ciphertext, starting with an SFrame Header, as
-shown in {{sframe-packet}}.  Applying SFrame per-frame means that different
-RTP payloads will have different formats: The first payload of a frame will
+integrating SFrame into an application: applying SFrame per frame or per packet.
+In RTP-based applications, applying SFrame per packet means that the payload of
+each RTP packet will be an SFrame ciphertext, starting with an SFrame header, as
+shown in {{sframe-packet}}.  Applying SFrame per frame means that different
+RTP payloads will have different formats: the first payload of a frame will
 contain the SFrame headers, and subsequent payloads will contain further chunks
 of the ciphertext, as shown in {{sframe-multi-packet}}.
 
@@ -1393,11 +1521,19 @@ a mechanism for distributing this configuration information. In applications
 that use SDP for negotiating RTP media streams {{?RFC8866}}, an appropriate
 extension to SDP could provide this function.
 
-Applying SFrame per-frame also requires that packetization and depacketization
+<!--[rfced] Section B.5. draft-codec-agnostic-rtp-payload-format has been replaced by draft-gouaillard-avtcore-codec-agn-rtp-payload (which expired Sept 2021). Do you want to replace the reference?
+
+Original:
+   In order for such a generic packetization scheme to work
+   interoperably one would have to be defined, e.g., as proposed in
+   [I-D.codec-agnostic-rtp-payload-format].
+-->
+
+Applying SFrame per frame also requires that packetization and depacketization
 be done in a generic manner that does not depend on the media content of the
-packets, since the content being packetized / depacketized will be opaque
+packets, since the content being packetized/depacketized will be opaque
 ciphertext (except for the SFrame header).  In order for such a generic
-packetization scheme to work interoperably one would have to be defined, e.g.,
+packetization scheme to work interoperably, one would have to be defined, e.g.,
 as proposed in {{?I-D.codec-agnostic-rtp-payload-format}}.
 
 ~~~ aasvg
@@ -1424,7 +1560,7 @@ as proposed in {{?I-D.codec-agnostic-rtp-payload-format}}.
 |                                                                     |
 +--- SRTP Encrypted Portion             SRTP Authenticated Portion ---+
 ~~~
-{: #sframe-packet title="SRTP packet with SFrame-protected payload"}
+{: #sframe-packet title="SRTP Packet with SFrame-Protected Payload"}
 
 ~~~ aasvg
    +----------------+  +---------------+
@@ -1465,7 +1601,7 @@ as proposed in {{?I-D.codec-agnostic-rtp-payload-format}}.
 |               |      |               |     |               |
 +---------------+      +---------------+     +---------------+
 ~~~
-{: #sframe-multi-packet title="Encryption flow with per-frame encryption for RTP" }
+{: #sframe-multi-packet title="Encryption Flow with per-Frame Encryption for RTP" }
 
 # Test Vectors
 
@@ -1487,7 +1623,7 @@ These test vectors are also available in JSON format at {{TestVectors}}.  In the
 JSON test vectors, numeric values are JSON numbers and byte string values are
 JSON strings containing the hex encoding of the byte strings.
 
-## Header encoding/decoding
+## Header Encoding/Decoding
 
 For each case, we provide:
 
@@ -1503,7 +1639,7 @@ An implementation should verify that:
 {::include test-vectors/header.md}
 
 
-## AEAD encryption/decryption using AES-CTR and HMAC
+## AEAD Encryption/Decryption Using AES-CTR and HMAC
 
 For each case, we provide:
 
@@ -1528,7 +1664,7 @@ facilitate debugging of test failures.
 
 {::include test-vectors/aes-ctr-hmac.md}
 
-## SFrame encryption/decryption
+## SFrame Encryption/Decryption
 
 For each case, we provide:
 
@@ -1557,3 +1693,85 @@ The other values in the test vector are intermediate values provided to
 facilitate debugging of test failures.
 
 {::include test-vectors/sframe.md}
+
+# Acknowledgements
+{: numbered="false"}
+
+The authors wish to specially thank {{{Dr. Alex Gouaillard}}} as one of the early
+contributors to the document. His passion and energy were key to the design and
+development of SFrame.
+
+<!--[rfced] Terminology.
+
+a) FYI, we have added expansions for abbreviations upon first use per Section 3.6 of RFC 7322 ("RFC Style Guide"). Please review each expansion in the document carefully to ensure correctness.
+
+b) Please help us expand or define the following term:
+
+   SVC
+
+c) May we make the use of the acronym KID consistent?
+
+   Key ID (13) / KID (85)
+
+d) Please help us make the capitalization of the following terms consistent
+
+   counter (22) / Counter (9) - We note that Key ID is capitalized.
+                                Should CTR be used instead?
+
+e) Please review the use of fixed-width format for the following terms and let us know if any updates are necessary:
+
+   context, when referring to a value
+   CTR
+   key, when referring to input
+   KID
+   nonce
+
+f) As "up to" may be difficult for ESL readers to understand, may we update the use of the phrase "it is up to the application" to "it is the application's responsibility"?
+
+Original:
+Section 5.1:
+   It is up to the application to decide when sender keys are updated.
+
+Section 9:
+   If new versions of SFrame are
+   defined in the future, it will be up to the application to determine
+   which version should be used.
+
+Section 9.2:
+   It is up to the application to provision SFrame with a mapping of KID
+   values to base_key values and the resulting keys and salts.
+   ...
+   It is also up to the application to define a rotation schedule for
+   keys.
+
+Section 9.4:
+   As such, it is up to the application to define what
+   information should go in the metadata input and ensure that it is
+   provided to the encryption and decryption functions at the
+   appropriate points.
+
+Perhaps:
+Section 5.1:
+   It is the application's responsibility to decide when sender keys are updated.
+
+Section 9:
+   If new versions of SFrame are
+   defined in the future, it is the application's responsibility to determine
+   which version should be used.
+
+Section 9.2:
+   It is the application's responsibility to provision SFrame with a mapping of KID
+   values to base_key values and the resulting keys and salts.
+   ...
+   It is also the application's responsibility to define a rotation schedule for
+   keys.
+
+Section 9.4:
+   As such, it the application's responsibility to define what
+   information should go in the metadata input and ensure that it is
+   provided to the encryption and decryption functions at the
+   appropriate points.
+-->
+
+<!--[rfced] Please review the "Inclusive Language" portion of the online Style Guide <https://www.rfc-editor.org/styleguide/part2/#inclusive_language> and let us know if any changes are needed. For example, please consider whether the following should be updated: whitespace
+-->

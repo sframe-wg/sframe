@@ -708,7 +708,7 @@ framework, as described in {{key-management-framework}}.
 
 ## Sender Keys
 
-If the participants in a call have a pre-existing E2E-secure channel, they can
+If the participants in a call have a preexisting E2E-secure channel, they can
 use it to distribute SFrame keys.  Each client participating in a call generates
 a fresh `base_key` value that it will use to encrypt media. The client then uses
 the E2E-secure channel to send their encryption key to the other participants.

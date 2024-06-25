@@ -16,17 +16,14 @@ v: 3
 
 author:
  -
-    ins: E. Omara
     name: Emad Omara
     organization: Apple
     email: eomara@apple.com
  -
-    ins: J. Uberti
     name: Justin Uberti
     organization: Google
     email: juberti@google.com
  -
-    ins: S. Murillo
     name: Sergio Garcia Murillo
     organization: CoSMo Software
     email: sergio.garcia.murillo@cosmosoftware.io
@@ -36,34 +33,28 @@ author:
     email: rlb@ipv.sx
     role: editor
  -
-    ins: Y. Fablet
     name: Youenn Fablet
     organization: Apple
     email: youenn@apple.com
 
 contributor:
  -
-    ins: F. Jacobs
-    name: Frederic Jacobs
+    name: Frédéric Jacobs
     organization: Apple
     email: frederic.jacobs@apple.com
  -
-    ins: M. Mularczyk
     name: Marta Mularczyk
     organization: Amazon
     email: mulmarta@amazon.com
  -
-    ins: S. Nandakumar
     name: Suhas Nandakumar
     organization: Cisco
     email: snandaku@cisco.com
  -
-    ins: T. Rigaux
     name: Tomas Rigaux
     organization: Cisco
     email: trigaux@cisco.com
  -
-    ins: R. Robert
     name: Raphael Robert
     organization: Phoenix R&D
     email: ietf@raphaelrobert.com
@@ -1285,17 +1276,13 @@ and packets, so the overhead is the same whether one uses SFrame at a per-packet
 or per-frame level.
 
 {{audio-overhead}} considers three scenarios that are based on recommended configurations
-of the Opus codec {{?RFC6716}}:
+of the Opus codec {{?RFC6716}} (where "fps" stands for "frames per second"):
 
-* Narrow-band (NB) speech: 120 ms packets (8 frames per second (fps)), 8 kbps
-* Full-band (FB) speech: 20 ms packets (32 fps), 32 kbps
-* Full-band stereo music: 10 ms packets (100 fps), 128 kbps
-
-| Scenario                  | fps | Base kbps | Overhead kbps | Overhead % |
-|:--------------------------|:---:|:---------:|:-------------:|:----------:|
-| NB speech, 120 ms packets | 8.3 |         8 |           1.4 |      17.9% |
-| FB speech, 20 ms packets  |  50 |        32 |           8.6 |      26.9% |
-| FB stereo, 10 ms packets  | 100 |       128 |          17.2 |      13.4% |
+| Scenario               | Frame length | fps | Base kbps | Overhead kbps | Overhead % |
+|:-----------------------|:------------:|:---:|:---------:|:-------------:|:----------:|
+| Narrow-band speech     |       120 ms | 8.3 |         8 |           1.4 |      17.9% |
+| Full-band speech       |        20 ms |  50 |        32 |           8.6 |      26.9% |
+| Full-band stereo music |        10 ms | 100 |       128 |          17.2 |      13.4% |
 {: #audio-overhead title="SFrame Overhead for Audio Streams" }
 
 ## Video

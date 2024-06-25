@@ -1,5 +1,5 @@
 ---
-title: Secure Frame (SFrame)
+title: "Secure Frame (SFrame): Lightweight Authenticated Encryption for Real-Time Media"
 abbrev: SFrame
 docname: draft-ietf-sframe-enc-latest
 category: std
@@ -31,8 +31,8 @@ author:
     organization: CoSMo Software
     email: sergio.garcia.murillo@cosmosoftware.io
  -
-    ins: R.L. Barnes
-    name: Richard L. Barnes
+    ins: R. Barnes
+    name: Richard Barnes
     organization: Cisco
     email: rlb@ipv.sx
     role: editor
@@ -78,13 +78,7 @@ informative:
 
 
 --- abstract
-<!--[rfced] Richard, do prefer "R. L. Barnes, Ed." (current) or "R. Barnes, Ed." (as used in other RFCs) in the header of the document? -->
-<!--[rfced] May we make the title more descriptive? We note that a web search on "SFrame" returns pages describing different technologies.
 
-Current: Secure Frame (SFrame)
-
-Perhaps: Secure Frame (SFrame): an Encryption and Authentication Mechanism for Media Frames
--->
 This document describes the Secure Frame (SFrame) end-to-end encryption and
 authentication mechanism for media frames in a multiparty conference call, in
 which central media servers (Selective Forwarding Units or SFUs) can access the
@@ -96,7 +90,6 @@ it is independent of RTP (thus compatible with non-RTP media transport) and can
 be applied to whole media frames in order to be more bandwidth efficient.
 
 --- middle
-
 
 # Introduction
 
@@ -332,10 +325,10 @@ Key or Key Length (K, 3 bits):
 set to 1, then it contains the length of the Key ID, minus one.
 
 Extended Counter Flag (Y, 1 bit):
-: Indicates if the C field contains the counter or the counter length.
+: Indicates if the C field contains the Counter or the Counter length.
 
 Counter or Counter Length (C, 3 bits):
-: This field contains the counter (CTR) if the Y flag is set to 0, or the counter
+: This field contains the Counter (CTR) if the Y flag is set to 0, or the counter
 length, minus one, if set to 1.
 
 The Key ID and Counter fields are encoded as compact unsigned integers in
@@ -414,10 +407,10 @@ be negotiated in a way that does not make them accessible to these intermediarie
 
 For each known KID value, the client stores the corresponding symmetric key
 `base_key`.  For keys that can be used for encryption, the client also stores
-the next counter value CTR to be used when encrypting (initially 0).
+the next CTR value to be used when encrypting (initially 0).
 
 When encrypting a plaintext, the application specifies which KID is to be used,
-and the counter is incremented after successful encryption.  When decrypting,
+and the CTR value is incremented after successful encryption.  When decrypting,
 the `base_key` for decryption is selected from the available keys using the KID
 value in the SFrame header.
 
@@ -466,9 +459,10 @@ In the derivation of `sframe_secret`:
 The hash function used for HKDF is determined by the cipher suite in use.
 
 ### Encryption
+
 SFrame encryption uses the AEAD encryption algorithm for the cipher suite in use.
 The key for the encryption is the `sframe_key`.  The nonce is formed by first XORing
-the `sframe_salt` with the current counter, and then encoding the result as a big-endian integer of
+the `sframe_salt` with the current CTR value, and then encoding the result as a big-endian integer of
 length `AEAD.Nn`.
 
 The encryptor forms an SFrame header using the CTR and KID values provided.
@@ -733,7 +727,7 @@ In this scheme, it is assumed that receivers have a signal outside of SFrame for
 which client has sent a given frame (e.g., an RTP synchronization source (SSRC)).  SFrame KID
 values are then used to distinguish between versions of the sender's `base_key`.
 
-Key IDs in this scheme have two parts: a "key generation" and a "ratchet step".
+KID values in this scheme have two parts: a "key generation" and a "ratchet step".
 Both are unsigned integers that begin at zero.  The key generation increments
 each time the sender distributes a new key to receivers.  The ratchet step is
 incremented each time the sender ratchets their key forward for forward secrecy:
@@ -751,7 +745,7 @@ needs to know what value of `R` is used by the sender so that they can recognize
 when they need to ratchet (vs. expecting a new key).  `R` effectively defines a
 reordering window, since no more than 2<sup>`R`</sup> ratchet steps can be
 active at a given time.  The key generation is sent in the remaining `64 - R`
-bits of the Key ID.
+bits of the KID.
 
 ~~~ pseudocode
 KID = (key_generation << R) + (ratchet_step % (1 << R))
@@ -777,7 +771,7 @@ from each sender (a) the current sender key for that sender and (b) the current
 KID value for the sender. Evicting a participant requires each sender to send
 a fresh sender key to all receivers.
 
-It is up to the application to decide when sender keys are updated.  A sender
+It is the application's responsibility to decide when sender keys are updated.  A sender
 key may be updated by sending a new `base_key` (updating the key generation) or
 by hashing the current `base_key` (updating the ratchet step).  Ratcheting the
 key forward is useful when adding new receivers to an SFrame-based interaction,
@@ -821,7 +815,7 @@ E bits is introduced.
 Let `S` be the number of bits required to encode a member index in the group,
 i.e., the smallest value such that `group_size <= (1 << S)`.  The sender index
 is encoded in the `S` bits above the epoch.  The remaining `64 - S - E` bits of
-the KID value are a `context` value chosen by the sender (context value `0` will
+the KID value are a `context` value chosen by the sender (`context` value `0` will
 produce the shortest encoded KID).
 
 ~~~ pseudocode
@@ -895,28 +889,13 @@ transport streams, the SFU may decide to reuse previously existing streams or
 even pre-allocate a predefined number of streams and choose in each moment in
 time which participant media will be sent through it.
 
-<!--[rfced] Section 6.1.1. Does the following proposed update improve the readability of the sentence?
-
-Original:
-   As different keys are used by each participant for encoding their media,
-   the receiver will be able to verify which is the sender of the media
-   coming within the RTP stream at any given point in time, preventing the
-   SFU trying to impersonate any of the participants with another
-   participant's media.
-
-Perhaps:
-   Because each participant uses a different key to encode their media,
-   the receiver will be able to verify the sender of the media within
-   the RTP stream at any given point in time, which prevents any attempt
-   by the SFU to impersonate a participant with another participant's
-   media. -->
-
 This means that in the same transport-level stream (e.g., an RTP stream defined
-by either SSRC or Media Identification (MID)) may carry media from different streams of different
-participants. As different keys are used by each participant for encoding their
-media, the receiver will be able to verify which is the sender of the media
-coming within the RTP stream at any given point in time, preventing the SFU
-trying to impersonate any of the participants with another participant's media.
+by either SSRC or Media Identification (MID)) may carry media from different
+streams of different participants. Because each participant uses a different key
+to encrypt their media, the receiver will be able to verify the sender of the
+media within the RTP stream at any given point in time. Thus the receiver will
+correctly associate the media with the sender indicated by the authenticated
+SFrame KID value, irrespective of how the SFU transmits the media to the client.
 
 Note that in order to prevent impersonation by a malicious participant (not the
 SFU), a mechanism based on digital signature would be required. SFrame does not
@@ -926,7 +905,7 @@ protect against such attacks.
 
 When using simulcast, the same input image will produce N different encoded
 frames (one per simulcast layer), which would be processed independently by the
-frame encryptor and assigned an unique counter for each.
+frame encryptor and assigned an unique CTR value for each.
 
 ### Scalable Video Coding (SVC)
 
@@ -969,8 +948,8 @@ frame has arrived and has been decrypted.
 
 ## No Header Confidentiality
 
-SFrame provides integrity protection to the SFrame header (the Key ID and
-counter values), but it does not provide confidentiality protection.  Parties that
+SFrame provides integrity protection to the SFrame header (the KID and
+CTR values), but it does not provide confidentiality protection.  Parties that
 can observe the SFrame header may learn, for example, which parties are sending
 SFrame payloads (from KID values) and at what rates (from CTR values).  In cases
 where SFrame is used for end-to-end security on top of hop-by-hop protections
@@ -1058,22 +1037,6 @@ IANA has created a new registry called "SFrame Cipher Suites" ({{sframe-cipher-s
 under the "SFrame" group registry heading.  Assignments are made
 via the Specification Required policy {{!RFC8126}}.
 
-<!-- [rfced] IANA Considerations. The text indicates the that registration policy for the "SFrame Cipher Suites" is Specification Required.  However, it later refers to Standards Action and Private Use, and the IANA registry includes ranges for Standards Action and Private Use.  Are the ranges as defined on the IANA page correct?  For clarity, may we specify the ranges as follows?  In addition, perhaps the text should be moved to Section 8.1, appearing after the valid range of cipher suites is noted.
-
-Original:
-   This registry should be under a heading of "SFrame", and assignments
-   are made via the Specification Required policy [RFC8126].
-
-Perhaps:
-   IANA has created a new registry called "SFrame Cipher Suites" (Section 8.1)
-   under the "SFrame" group registry heading.  Assignments are made per the following
-   registration procedures [RFC8126]:
-
-   0-0xEFFF  Specification Required
-   0-0xEFFF  Standards Action
-   0xF000-0xFFFF  Private Use
--->
-
 ## SFrame Cipher Suites
 
 The "SFrame Cipher Suites" registry lists identifiers for SFrame cipher suites as defined in
@@ -1120,7 +1083,7 @@ order for SFrame to operate securely.
 In general, an application using SFrame is responsible for configuring SFrame.
 The application must first define when SFrame is applied at all.  When SFrame is
 applied, the application must define which cipher suite is to be used.  If new
-versions of SFrame are defined in the future, it will be up to the application
+versions of SFrame are defined in the future, it will be the application's responsibility
 to determine which version should be used.
 
 This division of responsibilities is similar to the way other media parameters
@@ -1150,13 +1113,13 @@ cause reuse of the same (`base_key`, KID, CTR) combination.
 
 ## Key Management Framework
 
-It is up to the application to provision SFrame with a mapping of KID values to
+The application is responsible for provisioning SFrame with a mapping of KID values to
 `base_key` values and the resulting keys and salts.  More importantly, the
 application specifies which KID values are used for which purposes (e.g., by
 which senders).  An application's KID assignment strategy MUST be structured to
 assure the non-reuse properties discussed in {{header-value-uniqueness}}.
 
-It is also up to the application to define a rotation schedule for keys.  For
+The application is also responsible for defining a rotation schedule for keys.  For
 example, one application might have an ephemeral group for every call and keep
 rotating keys when endpoints join or leave the call, while another application
 could have a persistent group that can be used for multiple calls and simply
@@ -1185,7 +1148,7 @@ could be adapted to use with SFrame, using the CTR field as the counter.
 ## Metadata
 
 The `metadata` input to SFrame operations an opaque byte string specified by the application. As
-such, it is up to the application to define what information should go in the
+such, the application needs to define what information should go in the
 `metadata` input and ensure that it is provided to the encryption and decryption
 functions at the appropriate points.  A receiver MUST NOT use SFrame-authenticated
 metadata until after the SFrame decrypt function has authenticated it, unless
@@ -1204,11 +1167,6 @@ the receiver MUST NOT use the application data for other purposes before SFrame
 decryption has authenticated the application data.
 
 --- back
-<!--Informative References:
-[I-D.codec-agnostic-rtp-payload-format] replaced by draft-gouaillard-avtcore-codec-agn-rtp-payload, which is expired.
-[I-D.ietf-moq-transport] Active WG document
-[I-D.ietf-webtrans-overview] Active WG document
-[MLS-ARCH] Active WG document -->
 
 # Example API
 
@@ -1231,7 +1189,7 @@ The primary operations on an SFrame context are as follows:
 * **Create an SFrame context:** The context is initialized with a cipher suite and
   no KID mappings.
 * **Add a key for sending:** The key and salt are derived from the base key and
-  used to initialize a send context, together with a zero counter value.
+  used to initialize a send context, together with a zero CTR value.
 * **Add a key for receiving:** The key and salt are derived from the base key and
   used to initialize a send context.
 * **Encrypt a plaintext:** Encrypt a given plaintext using the key for a given KID,
@@ -1330,11 +1288,11 @@ or per-frame level.
 {{audio-overhead}} considers three scenarios that are based on recommended configurations
 of the Opus codec {{?RFC6716}}:
 
-* Narrow-band (NB) speech: 120 ms packets, 8 kbps
-* Full-band (FB) speech: 20 ms packets, 32 kbps
-* Full-band stereo music: 10 ms packets, 128 kbps
+* Narrow-band (NB) speech: 120 ms packets (8 frames per second (fps)), 8 kbps
+* Full-band (FB) speech: 20 ms packets (32 fps), 32 kbps
+* Full-band stereo music: 10 ms packets (100 fps), 128 kbps
 
-| Scenario                  | Frames per Second (fps) | Base kbps | Overhead kbps | Overhead % |
+| Scenario                  | fps | Base kbps | Overhead kbps | Overhead % |
 |:--------------------------|:---:|:---------:|:-------------:|:----------:|
 | NB speech, 120 ms packets | 8.3 |         8 |           1.4 |      17.9% |
 | FB speech, 20 ms packets  |  50 |        32 |           8.6 |      26.9% |
@@ -1592,78 +1550,3 @@ facilitate debugging of test failures.
 The authors wish to specially thank {{{Dr. Alex Gouaillard}}} as one of the early
 contributors to the document. His passion and energy were key to the design and
 development of SFrame.
-
-<!--[rfced] Terminology.
-
-a) FYI, we have added expansions for abbreviations upon first use per Section 3.6 of RFC 7322 ("RFC Style Guide"). Please review each expansion in the document carefully to ensure correctness.
-
-b) Please help us expand or define the following term:
-
-   SVC
-
-c) May we make the use of the acronym KID consistent?
-
-   Key ID (13) / KID (85)
-
-d) Please help us make the capitalization of the following terms consistent
-
-   counter (22) / Counter (9) - We note that Key ID is capitalized.
-                                Should CTR be used instead?
-
-e) Please review the use of fixed-width format for the following terms and let us know if any updates are necessary:
-
-   context, when referring to a value
-   CTR
-   key, when referring to input
-   KID
-   nonce
-
-f) As "up to" may be difficult for ESL readers to understand, may we update the use of the phrase "it is up to the application" to "it is the application's responsibility"?
-
-Original:
-Section 5.1:
-   It is up to the application to decide when sender keys are updated.
-
-Section 9:
-   If new versions of SFrame are
-   defined in the future, it will be up to the application to determine
-   which version should be used.
-
-Section 9.2:
-   It is up to the application to provision SFrame with a mapping of KID
-   values to base_key values and the resulting keys and salts.
-   ...
-   It is also up to the application to define a rotation schedule for
-   keys.
-
-Section 9.4:
-   As such, it is up to the application to define what
-   information should go in the metadata input and ensure that it is
-   provided to the encryption and decryption functions at the
-   appropriate points.
-
-Perhaps:
-Section 5.1:
-   It is the application's responsibility to decide when sender keys are updated.
-
-Section 9:
-   If new versions of SFrame are
-   defined in the future, it is the application's responsibility to determine
-   which version should be used.
-
-Section 9.2:
-   It is the application's responsibility to provision SFrame with a mapping of KID
-   values to base_key values and the resulting keys and salts.
-   ...
-   It is also the application's responsibility to define a rotation schedule for
-   keys.
-
-Section 9.4:
-   As such, it the application's responsibility to define what
-   information should go in the metadata input and ensure that it is
-   provided to the encryption and decryption functions at the
-   appropriate points.
--->
-
-<!--[rfced] Please review the "Inclusive Language" portion of the online Style Guide <https://www.rfc-editor.org/styleguide/part2/#inclusive_language> and let us know if any changes are needed. For example, please consider whether the following should be updated: whitespace
--->

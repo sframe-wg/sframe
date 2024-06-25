@@ -798,7 +798,7 @@ base_key = MLS-Exporter("SFrame 1.0 Base Key", "", AEAD.Nk)
 For compactness, we do not send the whole epoch number.  Instead, we send only
 its low-order `E` bits, where `E` is a value set by the application.  `E`
 effectively defines a reordering window, since no more than 2<sup>`E`</sup>
-epochs can be active at a given time.  To handle roll-over of the epoch counter,
+epochs can be active at a given time.  To handle rollover of the epoch counter,
 receivers MUST remove an old epoch when a new epoch with the same low-order
 E bits is introduced.
 

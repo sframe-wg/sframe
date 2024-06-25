@@ -1072,7 +1072,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <div class="org">Google</div>
 </div>
 <div class="author">
-      <div class="author-name">S. Murillo</div>
+      <div class="author-name">S. G. Murillo</div>
 <div class="org">CoSMo Software</div>
 </div>
 <div class="author">
@@ -3393,18 +3393,7 @@ percentage of the base bandwidth.<a href="#appendix-B.1-4" class="pilcrow">¶</a
 and packets, so the overhead is the same whether one uses SFrame at a per-packet
 or per-frame level.<a href="#appendix-B.2-1" class="pilcrow">¶</a></p>
 <p id="appendix-B.2-2"><a href="#audio-overhead" class="auto internal xref">Table 4</a> considers three scenarios that are based on recommended configurations
-of the Opus codec <span>[<a href="#RFC6716" class="cite xref">RFC6716</a>]</span>:<a href="#appendix-B.2-2" class="pilcrow">¶</a></p>
-<ul class="normal">
-<li class="normal" id="appendix-B.2-3.1">
-            <p id="appendix-B.2-3.1.1">Narrow-band (NB) speech: 120 ms packets (8 frames per second (fps)), 8 kbps<a href="#appendix-B.2-3.1.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="appendix-B.2-3.2">
-            <p id="appendix-B.2-3.2.1">Full-band (FB) speech: 20 ms packets (32 fps), 32 kbps<a href="#appendix-B.2-3.2.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="appendix-B.2-3.3">
-            <p id="appendix-B.2-3.3.1">Full-band stereo music: 10 ms packets (100 fps), 128 kbps<a href="#appendix-B.2-3.3.1" class="pilcrow">¶</a></p>
-</li>
-        </ul>
+of the Opus codec <span>[<a href="#RFC6716" class="cite xref">RFC6716</a>]</span> (where "fps" stands for "frames per second"):<a href="#appendix-B.2-2" class="pilcrow">¶</a></p>
 <span id="name-sframe-overhead-for-audio-s"></span><div id="audio-overhead">
 <table class="center" id="table-4">
           <caption>
@@ -3414,6 +3403,7 @@ of the Opus codec <span>[<a href="#RFC6716" class="cite xref">RFC6716</a>]</span
 <thead>
             <tr>
               <th class="text-left" rowspan="1" colspan="1">Scenario</th>
+              <th class="text-center" rowspan="1" colspan="1">Frame length</th>
               <th class="text-center" rowspan="1" colspan="1">fps</th>
               <th class="text-center" rowspan="1" colspan="1">Base kbps</th>
               <th class="text-center" rowspan="1" colspan="1">Overhead kbps</th>
@@ -3422,21 +3412,24 @@ of the Opus codec <span>[<a href="#RFC6716" class="cite xref">RFC6716</a>]</span
           </thead>
           <tbody>
             <tr>
-              <td class="text-left" rowspan="1" colspan="1">NB speech, 120 ms packets</td>
+              <td class="text-left" rowspan="1" colspan="1">Narrow-band speech</td>
+              <td class="text-center" rowspan="1" colspan="1">120 ms</td>
               <td class="text-center" rowspan="1" colspan="1">8.3</td>
               <td class="text-center" rowspan="1" colspan="1">8</td>
               <td class="text-center" rowspan="1" colspan="1">1.4</td>
               <td class="text-center" rowspan="1" colspan="1">17.9%</td>
             </tr>
             <tr>
-              <td class="text-left" rowspan="1" colspan="1">FB speech, 20 ms packets</td>
+              <td class="text-left" rowspan="1" colspan="1">Full-band speech</td>
+              <td class="text-center" rowspan="1" colspan="1">20 ms</td>
               <td class="text-center" rowspan="1" colspan="1">50</td>
               <td class="text-center" rowspan="1" colspan="1">32</td>
               <td class="text-center" rowspan="1" colspan="1">8.6</td>
               <td class="text-center" rowspan="1" colspan="1">26.9%</td>
             </tr>
             <tr>
-              <td class="text-left" rowspan="1" colspan="1">FB stereo, 10 ms packets</td>
+              <td class="text-left" rowspan="1" colspan="1">Full-band stereo music</td>
+              <td class="text-center" rowspan="1" colspan="1">10 ms</td>
               <td class="text-center" rowspan="1" colspan="1">100</td>
               <td class="text-center" rowspan="1" colspan="1">128</td>
               <td class="text-center" rowspan="1" colspan="1">17.2</td>
@@ -6224,7 +6217,7 @@ development of SFrame.<a href="#appendix-D-1" class="pilcrow">¶</a></p>
 <a href="#name-contributors" class="section-name selfRef">Contributors</a>
       </h2>
 <address class="vcard">
-        <div dir="auto" class="left"><span class="fn nameRole">Frederic Jacobs</span></div>
+        <div dir="auto" class="left"><span class="fn nameRole">Frédéric Jacobs</span></div>
 <div dir="auto" class="left"><span class="org">Apple</span></div>
 <div class="email">
 <span>Email:</span>

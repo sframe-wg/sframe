@@ -6,7 +6,7 @@ sframe                                                          E. Omara
 Internet-Draft                                                     Apple
 Intended status: Standards Track                               J. Uberti
 Expires: 27 December 2024                                         Google
-                                                              S. Murillo
+                                                           S. G. Murillo
                                                           CoSMo Software
                                                           R. Barnes, Ed.
                                                                    Cisco
@@ -1501,29 +1501,24 @@ B.2.  Audio
    uses SFrame at a per-packet or per-frame level.
 
    Table 4 considers three scenarios that are based on recommended
-   configurations of the Opus codec [RFC6716]:
+   configurations of the Opus codec [RFC6716] (where "fps" stands for
+   "frames per second"):
 
-   *  Narrow-band (NB) speech: 120 ms packets (8 frames per second
-      (fps)), 8 kbps
+    +==============+==============+=====+======+==========+==========+
+    | Scenario     | Frame length | fps | Base | Overhead | Overhead |
+    |              |              |     | kbps |   kbps   |    %     |
+    +==============+==============+=====+======+==========+==========+
+    | Narrow-band  |    120 ms    | 8.3 |  8   |   1.4    |  17.9%   |
+    | speech       |              |     |      |          |          |
+    +--------------+--------------+-----+------+----------+----------+
+    | Full-band    |    20 ms     |  50 |  32  |   8.6    |  26.9%   |
+    | speech       |              |     |      |          |          |
+    +--------------+--------------+-----+------+----------+----------+
+    | Full-band    |    10 ms     | 100 | 128  |   17.2   |  13.4%   |
+    | stereo music |              |     |      |          |          |
+    +--------------+--------------+-----+------+----------+----------+
 
-   *  Full-band (FB) speech: 20 ms packets (32 fps), 32 kbps
-
-   *  Full-band stereo music: 10 ms packets (100 fps), 128 kbps
-
-     +================+=====+===========+===============+============+
-     | Scenario       | fps | Base kbps | Overhead kbps | Overhead % |
-     +================+=====+===========+===============+============+
-     | NB speech, 120 | 8.3 |     8     |      1.4      |   17.9%    |
-     | ms packets     |     |           |               |            |
-     +----------------+-----+-----------+---------------+------------+
-     | FB speech, 20  |  50 |     32    |      8.6      |   26.9%    |
-     | ms packets     |     |           |               |            |
-     +----------------+-----+-----------+---------------+------------+
-     | FB stereo, 10  | 100 |    128    |      17.2     |   13.4%    |
-     | ms packets     |     |           |               |            |
-     +----------------+-----+-----------+---------------+------------+
-
-                 Table 4: SFrame Overhead for Audio Streams
+                Table 4: SFrame Overhead for Audio Streams
 
 B.3.  Video
 
@@ -3164,7 +3159,7 @@ Acknowledgements
 
 Contributors
 
-   Frederic Jacobs
+   Frédéric Jacobs
    Apple
    Email: frederic.jacobs@apple.com
 

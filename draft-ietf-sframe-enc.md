@@ -31,7 +31,6 @@ author:
     organization: CoSMo Software
     email: sergio.garcia.murillo@cosmosoftware.io
  -
-    ins: R. Barnes
     name: Richard Barnes
     organization: Cisco
     email: rlb@ipv.sx

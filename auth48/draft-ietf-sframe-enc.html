@@ -13,7 +13,6 @@
 <meta content="
        
  
- 
  This document describes the Secure Frame (SFrame) end-to-end encryption and
 authentication mechanism for media frames in a multiparty conference call, in
 which central media servers (Selective Forwarding Units or SFUs) can access the
@@ -24,7 +23,9 @@ it is independent of RTP (thus compatible with non-RTP media transport) and can
 be applied to whole media frames in order to be more bandwidth efficient. 
     " name="description">
 <meta content="xml2rfc 3.21.0" name="generator">
-<meta content="Internet-Draft" name="keyword">
+<meta content="security" name="keyword">
+<meta content="real-time media encryption" name="keyword">
+<meta content="end-to-end encryption" name="keyword">
 <meta content="draft-ietf-sframe-enc-latest" name="ietf.draft">
 <!-- Generator version information:
   xml2rfc 3.21.0
@@ -1043,7 +1044,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Omara, et al.</td>
-<td class="center">Expires 26 December 2024</td>
+<td class="center">Expires 27 December 2024</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1056,12 +1057,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ietf-sframe-enc-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2024-06-24" class="published">24 June 2024</time>
+<time datetime="2024-06-25" class="published">25 June 2024</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2024-12-26">26 December 2024</time></dd>
+<dd class="expires"><time datetime="2024-12-27">27 December 2024</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1119,7 +1120,7 @@ be applied to whole media frames in order to be more bandwidth efficient.<a href
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 26 December 2024.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 27 December 2024.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1214,13 +1215,13 @@ be applied to whole media frames in order to be more bandwidth efficient.<a href
                 <p id="section-toc.1-1.6.2.1.1"><a href="#section-6.1" class="auto internal xref">6.1</a>.  <a href="#name-selective-forwarding-units" class="internal xref">Selective Forwarding Units</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.1.2.1">
-                    <p id="section-toc.1-1.6.2.1.2.1.1"><a href="#section-6.1.1" class="auto internal xref">6.1.1</a>.  <a href="#name-lastn-and-rtp-stream-reuse" class="internal xref">LastN and RTP Stream Reuse</a></p>
+                    <p id="section-toc.1-1.6.2.1.2.1.1"><a href="#section-6.1.1" class="auto internal xref">6.1.1</a>.  <a href="#name-rtp-stream-reuse" class="internal xref">RTP Stream Reuse</a></p>
 </li>
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.1.2.2">
                     <p id="section-toc.1-1.6.2.1.2.2.1"><a href="#section-6.1.2" class="auto internal xref">6.1.2</a>.  <a href="#name-simulcast" class="internal xref">Simulcast</a></p>
 </li>
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.1.2.3">
-                    <p id="section-toc.1-1.6.2.1.2.3.1"><a href="#section-6.1.3" class="auto internal xref">6.1.3</a>.  <a href="#name-svc" class="internal xref">SVC</a></p>
+                    <p id="section-toc.1-1.6.2.1.2.3.1"><a href="#section-6.1.3" class="auto internal xref">6.1.3</a>.  <a href="#name-scalable-video-coding-svc" class="internal xref">Scalable Video Coding (SVC)</a></p>
 </li>
                 </ul>
 </li>
@@ -1239,7 +1240,7 @@ be applied to whole media frames in order to be more bandwidth efficient.<a href
                 <p id="section-toc.1-1.7.2.1.1"><a href="#section-7.1" class="auto internal xref">7.1</a>.  <a href="#name-no-header-confidentiality" class="internal xref">No Header Confidentiality</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.2">
-                <p id="section-toc.1-1.7.2.2.1"><a href="#section-7.2" class="auto internal xref">7.2</a>.  <a href="#name-no-per-sender-authenticatio" class="internal xref">No per-Sender Authentication</a></p>
+                <p id="section-toc.1-1.7.2.2.1"><a href="#section-7.2" class="auto internal xref">7.2</a>.  <a href="#name-no-per-sender-authenticatio" class="internal xref">No Per-Sender Authentication</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.3">
                 <p id="section-toc.1-1.7.2.3.1"><a href="#section-7.3" class="auto internal xref">7.3</a>.  <a href="#name-key-management-2" class="internal xref">Key Management</a></p>
@@ -1394,13 +1395,13 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
         <dd class="break"></dd>
 <dt id="section-2-2.5">HBH:</dt>
         <dd style="margin-left: 1.5em" id="section-2-2.6">
-          <p id="section-2-2.6.1">Hop-By-Hop<a href="#section-2-2.6.1" class="pilcrow">¶</a></p>
+          <p id="section-2-2.6.1">Hop-by-Hop<a href="#section-2-2.6.1" class="pilcrow">¶</a></p>
 </dd>
       <dd class="break"></dd>
 </dl>
 <p id="section-2-3">We use "Selective Forwarding Unit (SFU)" and "media stream" in a less formal sense
 than in <span>[<a href="#RFC7656" class="cite xref">RFC7656</a>]</span>.  An SFU is a selective switching function for media
-payloads, and a media stream a sequence of media payloads, in both cases
+payloads, and a media stream is a sequence of media payloads,
 regardless of whether those media payloads are transported over RTP or some
 other protocol.<a href="#section-2-3" class="pilcrow">¶</a></p>
 </section>
@@ -1426,8 +1427,9 @@ with an arbitrary key management system.<a href="#section-3-2.2.1" class="pilcro
 network conditions as possible.<a href="#section-3-2.3.1" class="pilcrow">¶</a></p>
 </li>
         <li id="section-3-2.4">
-          <p id="section-3-2.4.1">Independence from the underlying transport, including use in non-RTP
-transports, e.g., WebTransport <span>[<a href="#I-D.ietf-webtrans-overview" class="cite xref">I-D.ietf-webtrans-overview</a>]</span>.<a href="#section-3-2.4.1" class="pilcrow">¶</a></p>
+          <p id="section-3-2.4.1">Decouple the media encryption framework from the underlying transport,
+allowing use in non-RTP, e.g., WebTransport
+<span>[<a href="#I-D.ietf-webtrans-overview" class="cite xref">I-D.ietf-webtrans-overview</a>]</span>.<a href="#section-3-2.4.1" class="pilcrow">¶</a></p>
 </li>
         <li id="section-3-2.5">
           <p id="section-3-2.5.1">When used with RTP and its associated error-resilience mechanisms, i.e., RTX
@@ -1649,47 +1651,53 @@ authenticated data (AAD).<a href="#section-4.2-1" class="pilcrow">¶</a></p>
 <p id="section-4.2-2">The SFrame header is a variable-length structure described in detail in
 <a href="#sframe-header" class="auto internal xref">Section 4.3</a>.  The structure of the encrypted data and authentication tag
 are determined by the AEAD algorithm in use.<a href="#section-4.2-2" class="pilcrow">¶</a></p>
-<div id="section-4.2-3">
-          <div class="alignLeft art-svg artwork" id="section-4.2-3.1">
+<span id="name-structure-of-an-sframe-ciph"></span><div id="sframe-ciphertext-struct">
+<figure id="figure-2">
+          <div id="section-4.2-3.1">
+            <div class="alignLeft art-svg artwork" id="section-4.2-3.1.1">
 <svg xmlns="http://www.w3.org/2000/svg" version="1.1" height="320" width="512" viewBox="0 0 512 320" class="diagram" text-anchor="middle" font-family="monospace" font-size="13px" stroke-linecap="round">
-              <path d="M 8,64 L 8,304" fill="none" stroke="black"></path>
-              <path d="M 32,32 L 32,256" fill="none" stroke="black"></path>
-              <path d="M 48,32 L 48,64" fill="none" stroke="black"></path>
-              <path d="M 88,32 L 88,64" fill="none" stroke="black"></path>
-              <path d="M 104,32 L 104,64" fill="none" stroke="black"></path>
-              <path d="M 144,32 L 144,64" fill="none" stroke="black"></path>
-              <path d="M 312,32 L 312,64" fill="none" stroke="black"></path>
-              <path d="M 480,32 L 480,256" fill="none" stroke="black"></path>
-              <path d="M 504,32 L 504,304" fill="none" stroke="black"></path>
-              <path d="M 32,32 L 504,32" fill="none" stroke="black"></path>
-              <path d="M 8,64 L 480,64" fill="none" stroke="black"></path>
-              <path d="M 8,224 L 504,224" fill="none" stroke="black"></path>
-              <path d="M 32,256 L 480,256" fill="none" stroke="black"></path>
-              <path d="M 8,304 L 32,304" fill="none" stroke="black"></path>
-              <path d="M 480,304 L 504,304" fill="none" stroke="black"></path>
-              <polygon class="arrowhead" points="496,224 484,218.4 484,229.6" fill="black" transform="rotate(180,488,224)"></polygon>
-              <polygon class="arrowhead" points="496,32 484,26.4 484,37.6" fill="black" transform="rotate(180,488,32)"></polygon>
-              <polygon class="arrowhead" points="32,224 20,218.4 20,229.6" fill="black" transform="rotate(0,24,224)"></polygon>
-              <polygon class="arrowhead" points="32,64 20,58.4 20,69.6" fill="black" transform="rotate(0,24,64)"></polygon>
-              <g class="text">
-                <text x="40" y="52">K</text>
-                <text x="68" y="52">KLEN</text>
-                <text x="96" y="52">C</text>
-                <text x="124" y="52">CLEN</text>
-                <text x="216" y="52">Key</text>
-                <text x="244" y="52">ID</text>
-                <text x="392" y="52">Counter</text>
-                <text x="224" y="148">Encrypted</text>
-                <text x="284" y="148">Data</text>
-                <text x="228" y="244">Authentication</text>
-                <text x="304" y="244">Tag</text>
-                <text x="80" y="308">Encrypted</text>
-                <text x="152" y="308">Portion</text>
-                <text x="352" y="308">Authenticated</text>
-                <text x="440" y="308">Portion</text>
-              </g>
-            </svg><a href="#section-4.2-3.1" class="pilcrow">¶</a>
+                <path d="M 8,64 L 8,304" fill="none" stroke="black"></path>
+                <path d="M 32,32 L 32,256" fill="none" stroke="black"></path>
+                <path d="M 48,32 L 48,64" fill="none" stroke="black"></path>
+                <path d="M 88,32 L 88,64" fill="none" stroke="black"></path>
+                <path d="M 104,32 L 104,64" fill="none" stroke="black"></path>
+                <path d="M 144,32 L 144,64" fill="none" stroke="black"></path>
+                <path d="M 312,32 L 312,64" fill="none" stroke="black"></path>
+                <path d="M 480,32 L 480,256" fill="none" stroke="black"></path>
+                <path d="M 504,32 L 504,304" fill="none" stroke="black"></path>
+                <path d="M 32,32 L 504,32" fill="none" stroke="black"></path>
+                <path d="M 8,64 L 480,64" fill="none" stroke="black"></path>
+                <path d="M 8,224 L 504,224" fill="none" stroke="black"></path>
+                <path d="M 32,256 L 480,256" fill="none" stroke="black"></path>
+                <path d="M 8,304 L 32,304" fill="none" stroke="black"></path>
+                <path d="M 480,304 L 504,304" fill="none" stroke="black"></path>
+                <polygon class="arrowhead" points="496,224 484,218.4 484,229.6" fill="black" transform="rotate(180,488,224)"></polygon>
+                <polygon class="arrowhead" points="496,32 484,26.4 484,37.6" fill="black" transform="rotate(180,488,32)"></polygon>
+                <polygon class="arrowhead" points="32,224 20,218.4 20,229.6" fill="black" transform="rotate(0,24,224)"></polygon>
+                <polygon class="arrowhead" points="32,64 20,58.4 20,69.6" fill="black" transform="rotate(0,24,64)"></polygon>
+                <g class="text">
+                  <text x="40" y="52">K</text>
+                  <text x="68" y="52">KLEN</text>
+                  <text x="96" y="52">C</text>
+                  <text x="124" y="52">CLEN</text>
+                  <text x="216" y="52">Key</text>
+                  <text x="244" y="52">ID</text>
+                  <text x="392" y="52">Counter</text>
+                  <text x="224" y="148">Encrypted</text>
+                  <text x="284" y="148">Data</text>
+                  <text x="228" y="244">Authentication</text>
+                  <text x="304" y="244">Tag</text>
+                  <text x="80" y="308">Encrypted</text>
+                  <text x="152" y="308">Portion</text>
+                  <text x="352" y="308">Authenticated</text>
+                  <text x="440" y="308">Portion</text>
+                </g>
+              </svg><a href="#section-4.2-3.1.1" class="pilcrow">¶</a>
 </div>
+</div>
+<figcaption><a href="#figure-2" class="selfRef">Figure 2</a>:
+<a href="#name-structure-of-an-sframe-ciph" class="selfRef">Structure of an SFrame Ciphertext</a>
+          </figcaption></figure>
 </div>
 <p id="section-4.2-4">When SFrame is applied per packet, the payload of each packet will be an SFrame
 ciphertext.  When SFrame is applied per frame, the SFrame ciphertext
@@ -1718,7 +1726,7 @@ derived:<a href="#section-4.3-1" class="pilcrow">¶</a></p>
 one SFrame encryption operation. A typical approach to achieve this guarantee is
 outlined in <a href="#header-value-uniqueness" class="auto internal xref">Section 9.1</a>.<a href="#section-4.3-3" class="pilcrow">¶</a></p>
 <span id="name-sframe-header-2"></span><div id="fig-sframe-header">
-<figure id="figure-2">
+<figure id="figure-3">
           <div id="section-4.3-4.1">
             <div class="alignLeft art-svg artwork" id="section-4.3-4.1.1">
 <svg xmlns="http://www.w3.org/2000/svg" version="1.1" height="160" width="352" viewBox="0 0 352 160" class="diagram" text-anchor="middle" font-family="monospace" font-size="13px" stroke-linecap="round">
@@ -1758,11 +1766,11 @@ outlined in <a href="#header-value-uniqueness" class="auto internal xref">Sectio
               </svg><a href="#section-4.3-4.1.1" class="pilcrow">¶</a>
 </div>
 </div>
-<figcaption><a href="#figure-2" class="selfRef">Figure 2</a>:
+<figcaption><a href="#figure-3" class="selfRef">Figure 3</a>:
 <a href="#name-sframe-header-2" class="selfRef">SFrame Header</a>
           </figcaption></figure>
 </div>
-<p id="section-4.3-5">The SFrame header has the overall structure shown in <a href="#fig-sframe-header" class="auto internal xref">Figure 2</a>.  The
+<p id="section-4.3-5">The SFrame header has the overall structure shown in <a href="#fig-sframe-header" class="auto internal xref">Figure 3</a>.  The
 first byte is a "config byte", with the following fields:<a href="#section-4.3-5" class="pilcrow">¶</a></p>
 <span class="break"></span><dl class="dlParallel" id="section-4.3-6">
           <dt id="section-4.3-6.1">Extended Key ID Flag (X, 1 bit):</dt>
@@ -1798,9 +1806,9 @@ The header field (K or C) is set to the number of bytes in the encoded value,
 minus one.  The value 000 represents a length of 1, 001 a length of 2, etc.
 This allows a 3-bit length field to represent the value lengths 1-8.<a href="#section-4.3-7" class="pilcrow">¶</a></p>
 <p id="section-4.3-8">The SFrame header can thus take one of the four forms shown in
-<a href="#fig-sframe-header-cases" class="auto internal xref">Figure 3</a>, depending on which of the X and Y flags are set.<a href="#section-4.3-8" class="pilcrow">¶</a></p>
+<a href="#fig-sframe-header-cases" class="auto internal xref">Figure 4</a>, depending on which of the X and Y flags are set.<a href="#section-4.3-8" class="pilcrow">¶</a></p>
 <span id="name-forms-of-encoded-sframe-hea"></span><div id="fig-sframe-header-cases">
-<figure id="figure-3">
+<figure id="figure-4">
           <div id="section-4.3-9.1">
             <div class="alignLeft art-svg artwork" id="section-4.3-9.1.1">
 <svg xmlns="http://www.w3.org/2000/svg" version="1.1" height="336" width="544" viewBox="0 0 544 336" class="diagram" text-anchor="middle" font-family="monospace" font-size="13px" stroke-linecap="round">
@@ -1889,7 +1897,7 @@ This allows a 3-bit length field to represent the value lengths 1-8.<a href="#se
               </svg><a href="#section-4.3-9.1.1" class="pilcrow">¶</a>
 </div>
 </div>
-<figcaption><a href="#figure-3" class="selfRef">Figure 3</a>:
+<figcaption><a href="#figure-4" class="selfRef">Figure 4</a>:
 <a href="#name-forms-of-encoded-sframe-hea" class="selfRef">Forms of Encoded SFrame Header</a>
           </figcaption></figure>
 </div>
@@ -1922,7 +1930,7 @@ size of a "tag" that is added to the plaintext)<a href="#section-4.4-2.4.1" clas
 </li>
           <li class="normal" id="section-4.4-2.5">
             <p id="section-4.4-2.5.1"><code>AEAD.Nka</code> - For cipher suites using the compound AEAD described in
-<a href="#aes-ctr-with-sha2" class="auto internal xref">Section 4.5.1</a>, the size in bytes of a key for the underlying Advanced Encryption Standard Counter Mode (AES-CTR)
+<a href="#aes-ctr-with-sha2" class="auto internal xref">Section 4.5.1</a>, the size in bytes of a key for the underlying encryption
 algorithm<a href="#section-4.4-2.5.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-4.4-2.6">
@@ -2009,8 +2017,8 @@ cipher suite in use (see <a href="#sframe-cipher-suites" class="auto internal xr
 <a href="#section-4.4.3" class="section-number selfRef">4.4.3. </a><a href="#name-encryption" class="section-name selfRef">Encryption</a>
           </h4>
 <p id="section-4.4.3-1">SFrame encryption uses the AEAD encryption algorithm for the cipher suite in use.
-The key for the encryption is the <code>sframe_key</code> and the nonce is formed by XORing
-the <code>sframe_salt</code> with the current counter, encoded as a big-endian integer of
+The key for the encryption is the <code>sframe_key</code>.  The nonce is formed by first XORing
+the <code>sframe_salt</code> with the current counter, and then encoding the result as a big-endian integer of
 length <code>AEAD.Nn</code>.<a href="#section-4.4.3-1" class="pilcrow">¶</a></p>
 <p id="section-4.4.3-2">The encryptor forms an SFrame header using the CTR and KID values provided.
 The encoded header is provided as AAD to the AEAD encryption operation, together
@@ -2039,7 +2047,7 @@ authenticated when SFrame is applied per frame.  After encoding the frame and
 before packetizing it, the necessary media metadata will be moved out of the
 encoded frame buffer to be sent in some channel visible to the SFU (e.g., an
 RTP header extension).<a href="#section-4.4.3-4" class="pilcrow">¶</a></p>
-<span id="name-encrypting-an-sframe-cipher"></span><figure id="figure-4">
+<span id="name-encrypting-an-sframe-cipher"></span><figure id="figure-5">
             <div id="section-4.4.3-5.1">
               <div class="alignLeft art-svg artwork" id="section-4.4.3-5.1.1">
 <svg xmlns="http://www.w3.org/2000/svg" version="1.1" height="608" width="416" viewBox="0 0 416 608" class="diagram" text-anchor="middle" font-family="monospace" font-size="13px" stroke-linecap="round">
@@ -2107,7 +2115,7 @@ RTP header extension).<a href="#section-4.4.3-4" class="pilcrow">¶</a></p>
                 </svg><a href="#section-4.4.3-5.1.1" class="pilcrow">¶</a>
 </div>
 </div>
-<figcaption><a href="#figure-4" class="selfRef">Figure 4</a>:
+<figcaption><a href="#figure-5" class="selfRef">Figure 5</a>:
 <a href="#name-encrypting-an-sframe-cipher" class="selfRef">Encrypting an SFrame Ciphertext</a>
             </figcaption></figure>
 </section>
@@ -2122,7 +2130,7 @@ an SFrame ciphertext is fragmented into multiple parts for transport (e.g.,
 a whole encrypted frame sent in multiple SRTP packets), the receiving client
 collects all the fragments of the ciphertext, using appropriate sequencing
 and start/end markers in the transport. Once all of the required fragments are
-available, the client reassembles them into the SFrame ciphertext, then it passes
+available, the client reassembles them into the SFrame ciphertext and passes
 the ciphertext to SFrame for decryption.<a href="#section-4.4.4-1" class="pilcrow">¶</a></p>
 <p id="section-4.4.4-2">The KID field in the SFrame header is used to find the right key and salt for
 the encrypted frame, and the CTR field is used to construct the nonce. The SFrame
@@ -2147,8 +2155,8 @@ once a key with that KID is received.  If a ciphertext fails to decrypt for any
 other reason, the client <span class="bcp14">MUST</span> discard the ciphertext. Invalid ciphertexts <span class="bcp14">SHOULD</span> be
 discarded in a way that is indistinguishable (to an external observer) from having
 processed a valid ciphertext.  In other words, the SFrame decrypt operation
-should be constant time, regardless of whether decryption succeeds or fails.<a href="#section-4.4.4-4" class="pilcrow">¶</a></p>
-<span id="name-decrypting-an-sframe-cipher"></span><figure id="figure-5">
+should take the same amount of time regardless of whether decryption succeeds or fails.<a href="#section-4.4.4-4" class="pilcrow">¶</a></p>
+<span id="name-decrypting-an-sframe-cipher"></span><figure id="figure-6">
             <div id="section-4.4.4-5.1">
               <div class="alignLeft art-svg artwork" id="section-4.4.4-5.1.1">
 <svg xmlns="http://www.w3.org/2000/svg" version="1.1" height="640" width="384" viewBox="0 0 384 640" class="diagram" text-anchor="middle" font-family="monospace" font-size="13px" stroke-linecap="round">
@@ -2216,7 +2224,7 @@ should be constant time, regardless of whether decryption succeeds or fails.<a h
                 </svg><a href="#section-4.4.4-5.1.1" class="pilcrow">¶</a>
 </div>
 </div>
-<figcaption><a href="#figure-5" class="selfRef">Figure 5</a>:
+<figcaption><a href="#figure-6" class="selfRef">Figure 6</a>:
 <a href="#name-decrypting-an-sframe-cipher" class="selfRef">Decrypting an SFrame Ciphertext</a>
             </figcaption></figure>
 </section>
@@ -2332,7 +2340,7 @@ authentication.  We use an encrypt-then-MAC approach, as in SRTP <span>[<a href=
 <p id="section-4.5.1-2">Before encryption or decryption, encryption and authentication subkeys are
 derived from the single AEAD key.  The overall length of the AEAD key is <code>Nka +
 Nh</code>, where <code>Nka</code> represents the key size for the AES block cipher in use and <code>Nh</code>
-represents the output size of the hash function  (as in <a href="#cipher-suite-constants" class="auto internal xref">Table 1</a>).
+represents the output size of the hash function  (as in <a href="#encryption-schema" class="auto internal xref">Section 4.4</a>).
 The encryption subkey comprises the first <code>Nka</code> bytes and the authentication
 subkey comprises the remaining <code>Nh</code> bytes.<a href="#section-4.5.1-2" class="pilcrow">¶</a></p>
 <div class="lang-pseudocode sourcecode" id="section-4.5.1-3">
@@ -2412,7 +2420,7 @@ framework, as described in <a href="#key-management-framework" class="auto inter
         <h3 id="name-sender-keys">
 <a href="#section-5.1" class="section-number selfRef">5.1. </a><a href="#name-sender-keys" class="section-name selfRef">Sender Keys</a>
         </h3>
-<p id="section-5.1-1">If the participants in a call have a preexisting E2E-secure channel, they can
+<p id="section-5.1-1">If the participants in a call have a pre-existing E2E-secure channel, they can
 use it to distribute SFrame keys.  Each client participating in a call generates
 a fresh <code>base_key</code> value that it will use to encrypt media. The client then uses
 the E2E-secure channel to send their encryption key to the other participants.<a href="#section-5.1-1" class="pilcrow">¶</a></p>
@@ -2420,8 +2428,8 @@ the E2E-secure channel to send their encryption key to the other participants.<a
 which client has sent a given frame (e.g., an RTP synchronization source (SSRC)).  SFrame KID
 values are then used to distinguish between versions of the sender's <code>base_key</code>.<a href="#section-5.1-2" class="pilcrow">¶</a></p>
 <p id="section-5.1-3">Key IDs in this scheme have two parts: a "key generation" and a "ratchet step".
-Both are unsigned integers that begin at zero.  The "key generation" increments
-each time the sender distributes a new key to receivers.  The "ratchet step" is
+Both are unsigned integers that begin at zero.  The key generation increments
+each time the sender distributes a new key to receivers.  The ratchet step is
 incremented each time the sender ratchets their key forward for forward secrecy:<a href="#section-5.1-3" class="pilcrow">¶</a></p>
 <div class="lang-pseudocode sourcecode" id="section-5.1-4">
 <pre>
@@ -2444,7 +2452,7 @@ KID = (key_generation &lt;&lt; R) + (ratchet_step % (1 &lt;&lt; R))
 </pre><a href="#section-5.1-6" class="pilcrow">¶</a>
 </div>
 <span id="name-structure-of-a-kid-in-the-s"></span><div id="sender-keys-kid">
-<figure id="figure-6">
+<figure id="figure-7">
           <div id="section-5.1-7.1">
             <div class="alignLeft art-svg artwork" id="section-5.1-7.1.1">
 <svg xmlns="http://www.w3.org/2000/svg" version="1.1" height="112" width="280" viewBox="0 0 280 112" class="diagram" text-anchor="middle" font-family="monospace" font-size="13px" stroke-linecap="round">
@@ -2472,7 +2480,7 @@ KID = (key_generation &lt;&lt; R) + (ratchet_step % (1 &lt;&lt; R))
               </svg><a href="#section-5.1-7.1.1" class="pilcrow">¶</a>
 </div>
 </div>
-<figcaption><a href="#figure-6" class="selfRef">Figure 6</a>:
+<figcaption><a href="#figure-7" class="selfRef">Figure 7</a>:
 <a href="#name-structure-of-a-kid-in-the-s" class="selfRef">Structure of a KID in the Sender Keys Scheme</a>
           </figcaption></figure>
 </div>
@@ -2524,9 +2532,9 @@ base_key = MLS-Exporter("SFrame 1.0 Base Key", "", AEAD.Nk)
 <p id="section-5.2-5">For compactness, we do not send the whole epoch number.  Instead, we send only
 its low-order <code>E</code> bits, where <code>E</code> is a value set by the application.  <code>E</code>
 effectively defines a reordering window, since no more than 2<sup><code>E</code></sup>
-epochs can be active at a given time.  Receivers <span class="bcp14">MUST</span> be prepared for the epoch
-counter to roll over, removing an old epoch when a new epoch with the same E
-lower bits is introduced.<a href="#section-5.2-5" class="pilcrow">¶</a></p>
+epochs can be active at a given time.  To handle roll-over of the epoch counter,
+receivers <span class="bcp14">MUST</span> remove an old epoch when a new epoch with the same low-order
+E bits is introduced.<a href="#section-5.2-5" class="pilcrow">¶</a></p>
 <p id="section-5.2-6">Let <code>S</code> be the number of bits required to encode a member index in the group,
 i.e., the smallest value such that <code>group_size &lt;= (1 &lt;&lt; S)</code>.  The sender index
 is encoded in the <code>S</code> bits above the epoch.  The remaining <code>64 - S - E</code> bits of
@@ -2538,7 +2546,7 @@ KID = (context &lt;&lt; (S + E)) + (sender_index &lt;&lt; E) + (epoch % (1 &lt;&
 </pre><a href="#section-5.2-7" class="pilcrow">¶</a>
 </div>
 <span id="name-structure-of-a-kid-for-an-m"></span><div id="mls-kid">
-<figure id="figure-7">
+<figure id="figure-8">
           <div id="section-5.2-8.1">
             <div class="alignLeft art-svg artwork" id="section-5.2-8.1.1">
 <svg xmlns="http://www.w3.org/2000/svg" version="1.1" height="112" width="264" viewBox="0 0 264 112" class="diagram" text-anchor="middle" font-family="monospace" font-size="13px" stroke-linecap="round">
@@ -2572,7 +2580,7 @@ KID = (context &lt;&lt; (S + E)) + (sender_index &lt;&lt; E) + (epoch % (1 &lt;&
               </svg><a href="#section-5.2-8.1.1" class="pilcrow">¶</a>
 </div>
 </div>
-<figcaption><a href="#figure-7" class="selfRef">Figure 7</a>:
+<figcaption><a href="#figure-8" class="selfRef">Figure 8</a>:
 <a href="#name-structure-of-a-kid-for-an-m" class="selfRef">Structure of a KID for an MLS Sender</a>
           </figcaption></figure>
 </div>
@@ -2581,7 +2589,7 @@ epoch, it can compute the required KID values on demand (as well as the
 resulting SFrame keys/nonces derived from the <code>base_key</code> and KID) as it needs
 to encrypt or decrypt for a given member.<a href="#section-5.2-9" class="pilcrow">¶</a></p>
 <span id="name-an-example-sequence-of-kids"></span><div id="mls-evolution">
-<figure id="figure-8">
+<figure id="figure-9">
           <div id="section-5.2-10.1">
             <div class="alignLeft art-svg artwork" id="section-5.2-10.1.1">
 <svg xmlns="http://www.w3.org/2000/svg" version="1.1" height="448" width="472" viewBox="0 0 472 448" class="diagram" text-anchor="middle" font-family="monospace" font-size="13px" stroke-linecap="round">
@@ -2676,7 +2684,7 @@ to encrypt or decrypt for a given member.<a href="#section-5.2-9" class="pilcrow
               </svg><a href="#section-5.2-10.1.1" class="pilcrow">¶</a>
 </div>
 </div>
-<figcaption><a href="#figure-8" class="selfRef">Figure 8</a>:
+<figcaption><a href="#figure-9" class="selfRef">Figure 9</a>:
 <a href="#name-an-example-sequence-of-kids" class="selfRef">An Example Sequence of KIDs for an MLS-based SFrame Session (E=4; S=6, Allowing for 64 Group Members)</a>
           </figcaption></figure>
 </div>
@@ -2701,10 +2709,10 @@ metadata associated with each frame and modify the RTP information of the incomi
 packets when they are transmitted to the received participants.<a href="#section-6.1-1" class="pilcrow">¶</a></p>
 <p id="section-6.1-2">This section describes how these normal SFU modes of operation interact with the
 E2EE provided by SFrame.<a href="#section-6.1-2" class="pilcrow">¶</a></p>
-<div id="lastn-and-rtp-stream-reuse">
+<div id="rtp-stream-reuse">
 <section id="section-6.1.1">
-          <h4 id="name-lastn-and-rtp-stream-reuse">
-<a href="#section-6.1.1" class="section-number selfRef">6.1.1. </a><a href="#name-lastn-and-rtp-stream-reuse" class="section-name selfRef">LastN and RTP Stream Reuse</a>
+          <h4 id="name-rtp-stream-reuse">
+<a href="#section-6.1.1" class="section-number selfRef">6.1.1. </a><a href="#name-rtp-stream-reuse" class="section-name selfRef">RTP Stream Reuse</a>
           </h4>
 <p id="section-6.1.1-1">The SFU may choose to send only a certain number of streams based on the voice
 activity of the participants. To avoid the overhead involved in establishing new
@@ -2732,10 +2740,10 @@ frames (one per simulcast layer), which would be processed independently by the
 frame encryptor and assigned an unique counter for each.<a href="#section-6.1.2-1" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="svc">
+<div id="scalable-video-coding-svc">
 <section id="section-6.1.3">
-          <h4 id="name-svc">
-<a href="#section-6.1.3" class="section-number selfRef">6.1.3. </a><a href="#name-svc" class="section-name selfRef">SVC</a>
+          <h4 id="name-scalable-video-coding-svc">
+<a href="#section-6.1.3" class="section-number selfRef">6.1.3. </a><a href="#name-scalable-video-coding-svc" class="section-name selfRef">Scalable Video Coding (SVC)</a>
           </h4>
 <p id="section-6.1.3-1">In both temporal and spatial scalability, the SFU may choose to drop layers in
 order to match a certain bitrate or to forward specific media sizes or frames per
@@ -2753,7 +2761,7 @@ encapsulate each layer in a different SFrame ciphertext.<a href="#section-6.1.3-
 <p id="section-6.2-1">Forward security and post-compromise security require that the E2EE keys (base keys)
 are updated any time a participant joins or leaves the call.<a href="#section-6.2-1" class="pilcrow">¶</a></p>
 <p id="section-6.2-2">The key exchange happens asynchronously and on a different path than the SFU signaling
-and media. So it may happen that, when a new participant joins the call and the
+and media. So it may happen that when a new participant joins the call and the
 SFU side requests a key frame, the sender generates the E2EE frame
 with a key that is not known by the receiver, so it will be discarded. When the sender
 updates his sending key with the new key, it will send it in a non-key frame, so
@@ -2803,7 +2811,7 @@ mechanisms provide confidentiality protection of the SFrame header between hops.
 <div id="no-per-sender-authentication">
 <section id="section-7.2">
         <h3 id="name-no-per-sender-authenticatio">
-<a href="#section-7.2" class="section-number selfRef">7.2. </a><a href="#name-no-per-sender-authenticatio" class="section-name selfRef">No per-Sender Authentication</a>
+<a href="#section-7.2" class="section-number selfRef">7.2. </a><a href="#name-no-per-sender-authenticatio" class="section-name selfRef">No Per-Sender Authentication</a>
         </h3>
 <p id="section-7.2-1">SFrame does not provide per-sender authentication of media data.  Any sender in
 a session can send media that will be associated with any other sender.  This is
@@ -2816,7 +2824,7 @@ receiver also has the keys required to encrypt packets for the sender.<a href="#
         <h3 id="name-key-management-2">
 <a href="#section-7.3" class="section-number selfRef">7.3. </a><a href="#name-key-management-2" class="section-name selfRef">Key Management</a>
         </h3>
-<p id="section-7.3-1">The key exchange mechanism is out of scope of this document; however, every client
+<p id="section-7.3-1">The specifics of key management are beyond the scope of this document. However, every client
 <span class="bcp14">SHOULD</span> change their keys when new clients join or leave the call for forward
 secrecy and post-compromise security.<a href="#section-7.3-1" class="pilcrow">¶</a></p>
 </section>
@@ -2863,7 +2871,7 @@ entity that is part of such a channel can mount the above attack.<a href="#secti
             <p id="section-7.5-6.2.1">The expected packet rate for a media stream is very predictable (and typically
 far lower than the above example).  On the one hand, attacks at this rate will
 succeed even less often than the high-rate attack described above.  On the
-other hand, the application may use an elevated packet-arrival rate as a
+other hand, the application may use an elevated packet arrival rate as a
 signal of a brute-force attack.  This latter approach is common in other
 settings, e.g., mitigating brute-force attacks on passwords.<a href="#section-7.5-6.2.1" class="pilcrow">¶</a></p>
 </li>
@@ -2888,7 +2896,7 @@ CTR value and its tag will no longer be valid.<a href="#section-7.5-6.4.1" class
         </ul>
 <p id="section-7.5-7">Nonetheless, without these mitigations, an application that makes use of short
 tags will be at heightened risk of forgery attacks.  In many cases, it is
-simpler to use full-size tags and tolerate slightly higher-bandwidth usage
+simpler to use full-size tags and tolerate slightly higher bandwidth usage
 rather than to add the additional defenses necessary to safely use short tags.<a href="#section-7.5-7" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -2928,10 +2936,10 @@ or "D", requires Standards Action <span>[<a href="#RFC8126" class="cite xref">RF
             <p id="section-8.1-3.4.1">Reference: The document where this cipher suite is defined<a href="#section-8.1-3.4.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.1-3.5">
-            <p id="section-8.1-3.5.1">Change Controller: Who is authorized to update the row in the registry<a href="#section-8.1-3.5.1" class="pilcrow">¶</a></p>
+            <p id="section-8.1-3.5.1">Change Controller: Who is authorized to update the row in the registry
+Initial contents:<a href="#section-8.1-3.5.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-8.1-4">Initial contents:<a href="#section-8.1-4" class="pilcrow">¶</a></p>
 <span id="name-sframe-cipher-suites-2"></span><div id="iana-cipher-suites">
 <table class="center" id="table-2">
           <caption>
@@ -3022,7 +3030,7 @@ or "D", requires Standards Action <span>[<a href="#RFC8126" class="cite xref">RF
 <p id="section-9-1">To use SFrame, an application needs to define the inputs to the SFrame
 encryption and decryption operations, and how SFrame ciphertexts are delivered
 from sender to receiver (including any fragmentation and reassembly).  In this
-section, we lay out additional requirements that an implementation must meet in
+section, we lay out additional requirements that an application must meet in
 order for SFrame to operate securely.<a href="#section-9-1" class="pilcrow">¶</a></p>
 <p id="section-9-2">In general, an application using SFrame is responsible for configuring SFrame.
 The application must first define when SFrame is applied at all.  When SFrame is
@@ -3099,7 +3107,7 @@ could be adapted to use with SFrame, using the CTR field as the counter.<a href=
         <h3 id="name-metadata">
 <a href="#section-9.4" class="section-number selfRef">9.4. </a><a href="#name-metadata" class="section-name selfRef">Metadata</a>
         </h3>
-<p id="section-9.4-1">The <code>metadata</code> input to SFrame operations is pure application-specified data. As
+<p id="section-9.4-1">The <code>metadata</code> input to SFrame operations an opaque byte string specified by the application. As
 such, it is up to the application to define what information should go in the
 <code>metadata</code> input and ensure that it is provided to the encryption and decryption
 functions at the appropriate points.  A receiver <span class="bcp14">MUST NOT</span> use SFrame-authenticated
@@ -3163,9 +3171,9 @@ decryption has authenticated the application data.<a href="#section-9.4-2" class
 <a href="#section-10.2" class="section-number selfRef">10.2. </a><a href="#name-informative-references" class="section-name selfRef">Informative References</a>
         </h3>
 <dl class="references">
-<dt id="I-D.codec-agnostic-rtp-payload-format">[I-D.codec-agnostic-rtp-payload-format]</dt>
+<dt id="I-D.gouaillard-avtcore-codec-agn-rtp-payload">[I-D.gouaillard-avtcore-codec-agn-rtp-payload]</dt>
         <dd>
-<span class="refAuthor">Murillo, S. G.</span> and <span class="refAuthor">A. Gouaillard</span>, <span class="refTitle">"Codec agnostic RTP payload format for video"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-codec-agnostic-rtp-payload-format-00</span>, <time datetime="2021-02-19" class="refDate">19 February 2021</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-codec-agnostic-rtp-payload-format-00">https://datatracker.ietf.org/doc/html/draft-codec-agnostic-rtp-payload-format-00</a>&gt;</span>. </dd>
+<span class="refAuthor">Murillo, S. G.</span>, <span class="refAuthor">Fablet, Y.</span>, and <span class="refAuthor">A. Gouaillard</span>, <span class="refTitle">"Codec agnostic RTP payload format for video"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-gouaillard-avtcore-codec-agn-rtp-payload-01</span>, <time datetime="2021-03-09" class="refDate">9 March 2021</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-gouaillard-avtcore-codec-agn-rtp-payload-01">https://datatracker.ietf.org/doc/html/draft-gouaillard-avtcore-codec-agn-rtp-payload-01</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="I-D.ietf-moq-transport">[I-D.ietf-moq-transport]</dt>
         <dd>
@@ -3205,7 +3213,7 @@ decryption has authenticated the application data.<a href="#section-9.4-2" class
 <dd class="break"></dd>
 <dt id="TestVectors">[TestVectors]</dt>
       <dd>
-<span class="refTitle">"SFrame Test Vectors"</span>, <span class="refContent">commit 025d568</span>, <time datetime="2023-09" class="refDate">September 2023</time>, <span>&lt;<a href="https://github.com/sframe-wg/sframe/blob/main/test-vectors/test-vectors.json">https://github.com/sframe-wg/sframe/blob/main/test-vectors/test-vectors.json</a>&gt;</span>. </dd>
+<span class="refTitle">"SFrame Test Vectors"</span>, <span class="refContent">commit 025d568</span>, <time datetime="2023-09" class="refDate">September 2023</time>, <span>&lt;<a href="https://github.com/sframe-wg/sframe/blob/025d568/test-vectors/test-vectors.json">https://github.com/sframe-wg/sframe/blob/025d568/test-vectors/test-vectors.json</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 </dl>
 </section>
@@ -3234,12 +3242,12 @@ context to be used for sending also tracks the next CTR value to be used.<a href
 no KID mappings.<a href="#appendix-A-5.1.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="appendix-A-5.2">
-          <p id="appendix-A-5.2.1"><strong>Add a key for sending:</strong> The key and salt are derived from the base key, and
-are used to initialize a send context, together with a zero counter value.<a href="#appendix-A-5.2.1" class="pilcrow">¶</a></p>
+          <p id="appendix-A-5.2.1"><strong>Add a key for sending:</strong> The key and salt are derived from the base key and
+used to initialize a send context, together with a zero counter value.<a href="#appendix-A-5.2.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="appendix-A-5.3">
-          <p id="appendix-A-5.3.1"><strong>Add a key for receiving:</strong> The key and salt are derived from the base key, and
-are used to initialize a send context.<a href="#appendix-A-5.3.1" class="pilcrow">¶</a></p>
+          <p id="appendix-A-5.3.1"><strong>Add a key for receiving:</strong> The key and salt are derived from the base key and
+used to initialize a send context.<a href="#appendix-A-5.3.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="appendix-A-5.4">
           <p id="appendix-A-5.4.1"><strong>Encrypt a plaintext:</strong> Encrypt a given plaintext using the key for a given KID,
@@ -3250,10 +3258,10 @@ including the specified metadata.<a href="#appendix-A-5.4.1" class="pilcrow">¶<
 and CTR values specified in the SFrame header, and the provided metadata.<a href="#appendix-A-5.5.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
-<p id="appendix-A-6"><a href="#rust-api" class="auto internal xref">Figure 9</a> shows an example of the types of structures and methods that could
+<p id="appendix-A-6"><a href="#rust-api" class="auto internal xref">Figure 10</a> shows an example of the types of structures and methods that could
 be used to create an SFrame API in Rust.<a href="#appendix-A-6" class="pilcrow">¶</a></p>
 <span id="name-an-example-sframe-api"></span><div id="rust-api">
-<figure id="figure-9">
+<figure id="figure-10">
         <div class="lang-rust sourcecode" id="appendix-A-7.1">
 <pre>
 type KeyId = u64;
@@ -3287,7 +3295,7 @@ trait SFrameContextMethods {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-9" class="selfRef">Figure 9</a>:
+<figcaption><a href="#figure-10" class="selfRef">Figure 10</a>:
 <a href="#name-an-example-sframe-api" class="selfRef">An Example SFrame API</a>
         </figcaption></figure>
 </div>
@@ -3365,7 +3373,7 @@ bound of those seen in practice.<a href="#appendix-B.1-1" class="pilcrow">¶</a>
             <tr>
               <td class="text-left" rowspan="1" colspan="1">Cipher overhead</td>
               <td class="text-right" rowspan="1" colspan="1">16</td>
-              <td class="text-left" rowspan="1" colspan="1">Full Galois/Counter Mode (GCM) tag (longest defined here)</td>
+              <td class="text-left" rowspan="1" colspan="1">Full authentication tag (longest defined here)</td>
             </tr>
           </tbody>
         </table>
@@ -3450,7 +3458,7 @@ multiple frames.  <a href="#video-overhead-per-frame" class="auto internal xref"
 show the estimated overhead of encrypting a video stream, where SFrame is
 applied per frame and per packet, respectively.  The choices of resolution,
 frames per second, and bandwidth roughly reflect the capabilities of
-modern video codecs across a range from very-low to very-high quality.<a href="#appendix-B.3-1" class="pilcrow">¶</a></p>
+modern video codecs across a range from very low to very high quality.<a href="#appendix-B.3-1" class="pilcrow">¶</a></p>
 <span id="name-sframe-overhead-for-a-video"></span><div id="video-overhead-per-frame">
 <table class="center" id="table-5">
           <caption>
@@ -3578,7 +3586,7 @@ bytes of SFrame overhead divided by an assumed 1200-byte MTU, or about 1.8%).<a 
 <a href="#appendix-B.4" class="section-number selfRef">B.4. </a><a href="#name-conferences" class="section-name selfRef">Conferences</a>
         </h3>
 <p id="appendix-B.4-1">Real conferences usually involve several audio and video streams.  The overhead
-of SFrame in such a conference is the aggregate of the overhead of all the
+of SFrame in such a conference is the aggregate of the overhead across all the
 individual streams.  Thus, while SFrame incurs a large percentage overhead on an
 audio stream, if the conference also involves a video stream, then the audio
 overhead is likely negligible relative to the overall bandwidth of the
@@ -3651,10 +3659,10 @@ that would need to be overcome.<a href="#appendix-B.5-1" class="pilcrow">¶</a><
 integrating SFrame into an application: applying SFrame per frame or per packet.
 In RTP-based applications, applying SFrame per packet means that the payload of
 each RTP packet will be an SFrame ciphertext, starting with an SFrame header, as
-shown in <a href="#sframe-packet" class="auto internal xref">Figure 10</a>.  Applying SFrame per frame means that different
-RTP payloads will have different formats: the first payload of a frame will
+shown in <a href="#sframe-packet" class="auto internal xref">Figure 11</a>.  Applying SFrame per frame means that different
+RTP payloads will have different formats: The first payload of a frame will
 contain the SFrame headers, and subsequent payloads will contain further chunks
-of the ciphertext, as shown in <a href="#sframe-multi-packet" class="auto internal xref">Figure 11</a>.<a href="#appendix-B.5-2" class="pilcrow">¶</a></p>
+of the ciphertext, as shown in <a href="#sframe-multi-packet" class="auto internal xref">Figure 12</a>.<a href="#appendix-B.5-2" class="pilcrow">¶</a></p>
 <p id="appendix-B.5-3">In order for these media payloads to be properly interpreted by receivers,
 receivers will need to be configured to know which of the above schemes the
 sender has  applied to a given sequence of RTP packets. SFrame does not provide
@@ -3663,12 +3671,12 @@ that use SDP for negotiating RTP media streams <span>[<a href="#RFC8866" class="
 extension to SDP could provide this function.<a href="#appendix-B.5-3" class="pilcrow">¶</a></p>
 <p id="appendix-B.5-4">Applying SFrame per frame also requires that packetization and depacketization
 be done in a generic manner that does not depend on the media content of the
-packets, since the content being packetized/depacketized will be opaque
+packets, since the content being packetized or depacketized will be opaque
 ciphertext (except for the SFrame header).  In order for such a generic
 packetization scheme to work interoperably, one would have to be defined, e.g.,
-as proposed in <span>[<a href="#I-D.codec-agnostic-rtp-payload-format" class="cite xref">I-D.codec-agnostic-rtp-payload-format</a>]</span>.<a href="#appendix-B.5-4" class="pilcrow">¶</a></p>
+as proposed in <span>[<a href="#I-D.gouaillard-avtcore-codec-agn-rtp-payload" class="cite xref">I-D.gouaillard-avtcore-codec-agn-rtp-payload</a>]</span>.<a href="#appendix-B.5-4" class="pilcrow">¶</a></p>
 <span id="name-srtp-packet-with-sframe-pro"></span><div id="sframe-packet">
-<figure id="figure-10">
+<figure id="figure-11">
           <div id="appendix-B.5-5.1">
             <div class="alignLeft art-svg artwork" id="appendix-B.5-5.1.1">
 <svg xmlns="http://www.w3.org/2000/svg" version="1.1" height="384" width="576" viewBox="0 0 576 384" class="diagram" text-anchor="middle" font-family="monospace" font-size="13px" stroke-linecap="round">
@@ -3741,12 +3749,12 @@ as proposed in <span>[<a href="#I-D.codec-agnostic-rtp-payload-format" class="ci
               </svg><a href="#appendix-B.5-5.1.1" class="pilcrow">¶</a>
 </div>
 </div>
-<figcaption><a href="#figure-10" class="selfRef">Figure 10</a>:
+<figcaption><a href="#figure-11" class="selfRef">Figure 11</a>:
 <a href="#name-srtp-packet-with-sframe-pro" class="selfRef">SRTP Packet with SFrame-Protected Payload</a>
           </figcaption></figure>
 </div>
 <span id="name-encryption-flow-with-per-fr"></span><div id="sframe-multi-packet">
-<figure id="figure-11">
+<figure id="figure-12">
           <div id="appendix-B.5-6.1">
             <div class="alignLeft art-svg artwork" id="appendix-B.5-6.1.1">
 <svg xmlns="http://www.w3.org/2000/svg" version="1.1" height="624" width="504" viewBox="0 0 504 624" class="diagram" text-anchor="middle" font-family="monospace" font-size="13px" stroke-linecap="round">
@@ -3821,7 +3829,7 @@ as proposed in <span>[<a href="#I-D.codec-agnostic-rtp-payload-format" class="ci
               </svg><a href="#appendix-B.5-6.1.1" class="pilcrow">¶</a>
 </div>
 </div>
-<figcaption><a href="#figure-11" class="selfRef">Figure 11</a>:
+<figcaption><a href="#figure-12" class="selfRef">Figure 12</a>:
 <a href="#name-encryption-flow-with-per-fr" class="selfRef">Encryption Flow with per-Frame Encryption for RTP</a>
           </figcaption></figure>
 </div>

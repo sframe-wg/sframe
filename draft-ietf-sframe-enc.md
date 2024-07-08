@@ -21,8 +21,8 @@ author:
     email: eomara@apple.com
  -
     name: Justin Uberti
-    organization: Google
-    email: juberti@google.com
+    organization: Fixie.ai
+    email: justin@fixie.ai
  -
     name: Sergio Garcia Murillo
     organization: CoSMo Software

@@ -143,7 +143,7 @@ media in a broad range of scenarios, as outlined by the following goals:
    network conditions as possible.
 
 4. Decouple the media encryption framework from the underlying transport,
-   allowing use in non-RTP, e.g., WebTransport
+   allowing use in non-RTP scenarios, e.g., WebTransport
    {{?I-D.ietf-webtrans-overview}}.
 
 5. When used with RTP and its associated error-resilience mechanisms, i.e., RTX

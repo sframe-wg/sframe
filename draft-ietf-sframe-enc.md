@@ -924,8 +924,8 @@ required for the new participant to display the video is minimized.
 
 Note that this issue does not arise for media streams that do not have
 dependencies among frames, e.g., audio streams.  In these streams, each frame is
-independently decodable, so there is never a need to process together two frames
-that might be on two sides of a key rotation.
+independently decodable, so a frame never depends on another frame that might be
+on the other side of a key rotation.
 
 ## Partial Decoding
 
@@ -1137,7 +1137,7 @@ could be adapted to use with SFrame, using the CTR field as the counter.
 
 ## Metadata
 
-The `metadata` input to SFrame operations an opaque byte string specified by the application. As
+The `metadata` input to SFrame operations is an opaque byte string specified by the application. As
 such, the application needs to define what information should go in the
 `metadata` input and ensure that it is provided to the encryption and decryption
 functions at the appropriate points.  A receiver MUST NOT use SFrame-authenticated

@@ -1041,7 +1041,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Omara, et al.</td>
-<td class="center">Expires 9 January 2025</td>
+<td class="center">Expires 11 January 2025</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1054,12 +1054,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ietf-sframe-enc-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2024-07-08" class="published">8 July 2024</time>
+<time datetime="2024-07-10" class="published">10 July 2024</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2025-01-09">9 January 2025</time></dd>
+<dd class="expires"><time datetime="2025-01-11">11 January 2025</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1117,7 +1117,7 @@ be applied to whole media frames in order to be more bandwidth efficient.<a href
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 9 January 2025.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 11 January 2025.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1425,7 +1425,7 @@ network conditions as possible.<a href="#section-3-2.3.1" class="pilcrow">¶</a>
 </li>
         <li id="section-3-2.4">
           <p id="section-3-2.4.1">Decouple the media encryption framework from the underlying transport,
-allowing use in non-RTP, e.g., WebTransport
+allowing use in non-RTP scenarios, e.g., WebTransport
 <span>[<a href="#I-D.ietf-webtrans-overview" class="cite xref">I-D.ietf-webtrans-overview</a>]</span>.<a href="#section-3-2.4.1" class="pilcrow">¶</a></p>
 </li>
         <li id="section-3-2.5">
@@ -1716,7 +1716,7 @@ derived:<a href="#section-4.3-1" class="pilcrow">¶</a></p>
             <p id="section-4.3-2.1.1">A Key ID (KID) that determines which encryption key should be used<a href="#section-4.3-2.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-4.3-2.2">
-            <p id="section-4.3-2.2.1">A counter (CTR) that is used to construct the nonce for the encryption<a href="#section-4.3-2.2.1" class="pilcrow">¶</a></p>
+            <p id="section-4.3-2.2.1">A Counter (CTR) that is used to construct the nonce for the encryption<a href="#section-4.3-2.2.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-4.3-3">Applications <span class="bcp14">MUST</span> ensure that each (KID, CTR) combination is used for exactly
@@ -1770,35 +1770,35 @@ outlined in <a href="#header-value-uniqueness" class="auto internal xref">Sectio
 <p id="section-4.3-5">The SFrame header has the overall structure shown in <a href="#fig-sframe-header" class="auto internal xref">Figure 3</a>.  The
 first byte is a "config byte", with the following fields:<a href="#section-4.3-5" class="pilcrow">¶</a></p>
 <span class="break"></span><dl class="dlParallel" id="section-4.3-6">
-          <dt id="section-4.3-6.1">Extended Key ID Flag (X, 1 bit):</dt>
+          <dt id="section-4.3-6.1">Extended KID Flag (X, 1 bit):</dt>
           <dd style="margin-left: 1.5em" id="section-4.3-6.2">
-            <p id="section-4.3-6.2.1">Indicates if the K field contains the Key ID or the Key ID length.<a href="#section-4.3-6.2.1" class="pilcrow">¶</a></p>
+            <p id="section-4.3-6.2.1">Indicates if the K field contains the KID or the KID length.<a href="#section-4.3-6.2.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-4.3-6.3">Key or Key Length (K, 3 bits):</dt>
+<dt id="section-4.3-6.3">KID or KID Length (K, 3 bits):</dt>
           <dd style="margin-left: 1.5em" id="section-4.3-6.4">
-            <p id="section-4.3-6.4.1">If the X flag is set to 0, this field contains the Key ID.  If the X flag is
-set to 1, then it contains the length of the Key ID, minus one.<a href="#section-4.3-6.4.1" class="pilcrow">¶</a></p>
+            <p id="section-4.3-6.4.1">If the X flag is set to 0, this field contains the KID.  If the X flag is
+set to 1, then it contains the length of the KID, minus one.<a href="#section-4.3-6.4.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-4.3-6.5">Extended Counter Flag (Y, 1 bit):</dt>
+<dt id="section-4.3-6.5">Extended CTR Flag (Y, 1 bit):</dt>
           <dd style="margin-left: 1.5em" id="section-4.3-6.6">
-            <p id="section-4.3-6.6.1">Indicates if the C field contains the Counter or the Counter length.<a href="#section-4.3-6.6.1" class="pilcrow">¶</a></p>
+            <p id="section-4.3-6.6.1">Indicates if the C field contains the CTR or the CTR length.<a href="#section-4.3-6.6.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-4.3-6.7">Counter or Counter Length (C, 3 bits):</dt>
+<dt id="section-4.3-6.7">CTR or CTR Length (C, 3 bits):</dt>
           <dd style="margin-left: 1.5em" id="section-4.3-6.8">
-            <p id="section-4.3-6.8.1">This field contains the Counter (CTR) if the Y flag is set to 0, or the counter
+            <p id="section-4.3-6.8.1">This field contains the CTR if the Y flag is set to 0, or the CTR
 length, minus one, if set to 1.<a href="#section-4.3-6.8.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 </dl>
-<p id="section-4.3-7">The Key ID and Counter fields are encoded as compact unsigned integers in
+<p id="section-4.3-7">The KID and CTR fields are encoded as compact unsigned integers in
 network (big-endian) byte order.  If the value of one of these fields is in the
 range 0-7, then the value is carried in the corresponding bits of the config
 byte (K or C) and the corresponding flag (X or Y) is set to zero.  Otherwise,
 the value <span class="bcp14">MUST</span> be encoded with the minimum number of bytes required and
-appended after the config byte, with the Key ID first and Counter second.
+appended after the config byte, with the KID first and CTR second.
 The header field (K or C) is set to the number of bytes in the encoded value,
 minus one.  The value 000 represents a length of 1, 001 a length of 2, etc.
 This allows a 3-bit length field to represent the value lengths 1-8.<a href="#section-4.3-7" class="pilcrow">¶</a></p>
@@ -2770,8 +2770,8 @@ policies, that new key frame could take some time to be generated.<a href="#sect
 required for the new participant to display the video is minimized.<a href="#section-6.2-4" class="pilcrow">¶</a></p>
 <p id="section-6.2-5">Note that this issue does not arise for media streams that do not have
 dependencies among frames, e.g., audio streams.  In these streams, each frame is
-independently decodable, so there is never a need to process together two frames
-that might be on two sides of a key rotation.<a href="#section-6.2-5" class="pilcrow">¶</a></p>
+independently decodable, so a frame never depends on another frame that might be
+on the other side of a key rotation.<a href="#section-6.2-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="partial-decoding">
@@ -3105,7 +3105,7 @@ could be adapted to use with SFrame, using the CTR field as the counter.<a href=
         <h3 id="name-metadata">
 <a href="#section-9.4" class="section-number selfRef">9.4. </a><a href="#name-metadata" class="section-name selfRef">Metadata</a>
         </h3>
-<p id="section-9.4-1">The <code>metadata</code> input to SFrame operations an opaque byte string specified by the application. As
+<p id="section-9.4-1">The <code>metadata</code> input to SFrame operations is an opaque byte string specified by the application. As
 such, the application needs to define what information should go in the
 <code>metadata</code> input and ensure that it is provided to the encryption and decryption
 functions at the appropriate points.  A receiver <span class="bcp14">MUST NOT</span> use SFrame-authenticated
@@ -3354,7 +3354,7 @@ bound of those seen in practice.<a href="#appendix-B.1-1" class="pilcrow">¶</a>
           </thead>
           <tbody>
             <tr>
-              <td class="text-left" rowspan="1" colspan="1">Fixed header</td>
+              <td class="text-left" rowspan="1" colspan="1">Config byte</td>
               <td class="text-right" rowspan="1" colspan="1">1</td>
               <td class="text-left" rowspan="1" colspan="1">Fixed</td>
             </tr>

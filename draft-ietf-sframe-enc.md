@@ -143,7 +143,7 @@ media in a broad range of scenarios, as outlined by the following goals:
    network conditions as possible.
 
 4. Decouple the media encryption framework from the underlying transport,
-   allowing use in non-RTP, e.g., WebTransport
+   allowing use in non-RTP scenarios, e.g., WebTransport
    {{?I-D.ietf-webtrans-overview}}.
 
 5. When used with RTP and its associated error-resilience mechanisms, i.e., RTX
@@ -286,7 +286,7 @@ The SFrame header specifies two values from which encryption parameters are
 derived:
 
 * A Key ID (KID) that determines which encryption key should be used
-* A counter (CTR) that is used to construct the nonce for the encryption
+* A Counter (CTR) that is used to construct the nonce for the encryption
 
 Applications MUST ensure that each (KID, CTR) combination is used for exactly
 one SFrame encryption operation. A typical approach to achieve this guarantee is
@@ -307,26 +307,26 @@ outlined in {{header-value-uniqueness}}.
 The SFrame header has the overall structure shown in {{fig-sframe-header}}.  The
 first byte is a "config byte", with the following fields:
 
-Extended Key ID Flag (X, 1 bit):
-: Indicates if the K field contains the Key ID or the Key ID length.
+Extended KID Flag (X, 1 bit):
+: Indicates if the K field contains the KID or the KID length.
 
-Key or Key Length (K, 3 bits):
-: If the X flag is set to 0, this field contains the Key ID.  If the X flag is
-set to 1, then it contains the length of the Key ID, minus one.
+KID or KID Length (K, 3 bits):
+: If the X flag is set to 0, this field contains the KID.  If the X flag is
+set to 1, then it contains the length of the KID, minus one.
 
-Extended Counter Flag (Y, 1 bit):
-: Indicates if the C field contains the Counter or the Counter length.
+Extended CTR Flag (Y, 1 bit):
+: Indicates if the C field contains the CTR or the CTR length.
 
-Counter or Counter Length (C, 3 bits):
-: This field contains the Counter (CTR) if the Y flag is set to 0, or the counter
+CTR or CTR Length (C, 3 bits):
+: This field contains the CTR if the Y flag is set to 0, or the CTR
 length, minus one, if set to 1.
 
-The Key ID and Counter fields are encoded as compact unsigned integers in
+The KID and CTR fields are encoded as compact unsigned integers in
 network (big-endian) byte order.  If the value of one of these fields is in the
 range 0-7, then the value is carried in the corresponding bits of the config
 byte (K or C) and the corresponding flag (X or Y) is set to zero.  Otherwise,
 the value MUST be encoded with the minimum number of bytes required and
-appended after the config byte, with the Key ID first and Counter second.
+appended after the config byte, with the KID first and CTR second.
 The header field (K or C) is set to the number of bytes in the encoded value,
 minus one.  The value 000 represents a length of 1, 001 a length of 2, etc.
 This allows a 3-bit length field to represent the value lengths 1-8.
@@ -924,8 +924,8 @@ required for the new participant to display the video is minimized.
 
 Note that this issue does not arise for media streams that do not have
 dependencies among frames, e.g., audio streams.  In these streams, each frame is
-independently decodable, so there is never a need to process together two frames
-that might be on two sides of a key rotation.
+independently decodable, so a frame never depends on another frame that might be
+on the other side of a key rotation.
 
 ## Partial Decoding
 
@@ -1137,7 +1137,7 @@ could be adapted to use with SFrame, using the CTR field as the counter.
 
 ## Metadata
 
-The `metadata` input to SFrame operations an opaque byte string specified by the application. As
+The `metadata` input to SFrame operations is an opaque byte string specified by the application. As
 such, the application needs to define what information should go in the
 `metadata` input and ensure that it is provided to the encryption and decryption
 functions at the appropriate points.  A receiver MUST NOT use SFrame-authenticated
@@ -1256,7 +1256,7 @@ bound of those seen in practice.
 
 | Field           | Bytes | Explanation                                       |
 |:----------------|------:|:--------------------------------------------------|
-| Fixed header    | 1     | Fixed                                             |
+| Config byte     | 1     | Fixed                                             |
 | Key ID (KID)    | 2     | >255 senders; or MLS epoch (E=4) and >16 senders  |
 | Counter (CTR)   | 3     | More than 24 hours of media in common cases       |
 | Cipher overhead | 16    | Full authentication tag (longest defined here)  |

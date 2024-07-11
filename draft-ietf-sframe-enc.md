@@ -428,10 +428,12 @@ def derive_key_salt(KID, base_key):
   sframe_secret = HKDF-Extract("", base_key)
 
   sframe_key_label = "SFrame 1.0 Secret key " + KID + cipher_suite
-  sframe_key = HKDF-Expand(sframe_secret, sframe_key_label, AEAD.Nk)
+  sframe_key =
+    HKDF-Expand(sframe_secret, sframe_key_label, AEAD.Nk)
 
   sframe_salt_label = "SFrame 1.0 Secret salt " + KID + cipher_suite
-  sframe_salt = HKDF-Expand(sframe_secret, sframe_salt_label, AEAD.Nn)
+  sframe_salt =
+    HKDF-Expand(sframe_secret, sframe_salt_label, AEAD.Nn)
 
   return sframe_key, sframe_salt
 ~~~
@@ -879,7 +881,7 @@ transport streams, the SFU may decide to reuse previously existing streams or
 even pre-allocate a predefined number of streams and choose in each moment in
 time which participant media will be sent through it.
 
-This means that in the same transport-level stream (e.g., an RTP stream defined
+This means that the same transport-level stream (e.g., an RTP stream defined
 by either SSRC or Media Identification (MID)) may carry media from different
 streams of different participants. Because each participant uses a different key
 to encrypt their media, the receiver will be able to verify the sender of the
@@ -1024,14 +1026,14 @@ rather than to add the additional defenses necessary to safely use short tags.
 # IANA Considerations
 
 IANA has created a new registry called "SFrame Cipher Suites" ({{sframe-cipher-suites}})
-under the "SFrame" group registry heading.  Assignments are made
-via the Specification Required policy {{!RFC8126}}.
+under the "SFrame" group registry heading.
 
 ## SFrame Cipher Suites
 
 The "SFrame Cipher Suites" registry lists identifiers for SFrame cipher suites as defined in
 {{cipher-suites}}.  The cipher suite field is two bytes wide, so the valid cipher
-suites are in the range 0x0000 to 0xFFFF.
+suites are in the range 0x0000 to 0xFFFF.  Except as noted below, assignments are made
+via the Specification Required policy {{!RFC8126}}.
 
 The registration template is as follows:
 
@@ -1048,6 +1050,7 @@ The registration template is as follows:
 * Reference: The document where this cipher suite is defined
 
 * Change Controller: Who is authorized to update the row in the registry
+
 Initial contents:
 
 

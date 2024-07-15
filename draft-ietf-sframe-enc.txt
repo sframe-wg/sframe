@@ -5,14 +5,14 @@
 sframe                                                          E. Omara
 Internet-Draft                                                     Apple
 Intended status: Standards Track                               J. Uberti
-Expires: 11 January 2025                                        Fixie.ai
+Expires: 16 January 2025                                        Fixie.ai
                                                            S. G. Murillo
                                                           CoSMo Software
                                                           R. Barnes, Ed.
                                                                    Cisco
                                                                Y. Fablet
                                                                    Apple
-                                                            10 July 2024
+                                                            15 July 2024
 
 
  Secure Frame (SFrame): Lightweight Authenticated Encryption for Real-
@@ -47,7 +47,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 11 January 2025.
+   This Internet-Draft will expire on 16 January 2025.
 
 Copyright Notice
 
@@ -482,10 +482,12 @@ Figure 1: Two Options for Integrating SFrame in a Typical Media Stack
      sframe_secret = HKDF-Extract("", base_key)
 
      sframe_key_label = "SFrame 1.0 Secret key " + KID + cipher_suite
-     sframe_key = HKDF-Expand(sframe_secret, sframe_key_label, AEAD.Nk)
+     sframe_key =
+       HKDF-Expand(sframe_secret, sframe_key_label, AEAD.Nk)
 
      sframe_salt_label = "SFrame 1.0 Secret salt " + KID + cipher_suite
-     sframe_salt = HKDF-Expand(sframe_secret, sframe_salt_label, AEAD.Nn)
+     sframe_salt =
+       HKDF-Expand(sframe_secret, sframe_salt_label, AEAD.Nn)
 
      return sframe_key, sframe_salt
 
@@ -941,15 +943,15 @@ Figure 1: Two Options for Integrating SFrame in a Typical Media Stack
    number of streams and choose in each moment in time which participant
    media will be sent through it.
 
-   This means that in the same transport-level stream (e.g., an RTP
-   stream defined by either SSRC or Media Identification (MID)) may
-   carry media from different streams of different participants.
-   Because each participant uses a different key to encrypt their media,
-   the receiver will be able to verify the sender of the media within
-   the RTP stream at any given point in time.  Thus the receiver will
-   correctly associate the media with the sender indicated by the
-   authenticated SFrame KID value, irrespective of how the SFU transmits
-   the media to the client.
+   This means that the same transport-level stream (e.g., an RTP stream
+   defined by either SSRC or Media Identification (MID)) may carry media
+   from different streams of different participants.  Because each
+   participant uses a different key to encrypt their media, the receiver
+   will be able to verify the sender of the media within the RTP stream
+   at any given point in time.  Thus the receiver will correctly
+   associate the media with the sender indicated by the authenticated
+   SFrame KID value, irrespective of how the SFU transmits the media to
+   the client.
 
    Note that in order to prevent impersonation by a malicious
    participant (not the SFU), a mechanism based on digital signature
@@ -1106,15 +1108,15 @@ Figure 1: Two Options for Integrating SFrame in a Typical Media Stack
 8.  IANA Considerations
 
    IANA has created a new registry called "SFrame Cipher Suites"
-   (Section 8.1) under the "SFrame" group registry heading.  Assignments
-   are made via the Specification Required policy [RFC8126].
+   (Section 8.1) under the "SFrame" group registry heading.
 
 8.1.  SFrame Cipher Suites
 
    The "SFrame Cipher Suites" registry lists identifiers for SFrame
    cipher suites as defined in Section 4.5.  The cipher suite field is
    two bytes wide, so the valid cipher suites are in the range 0x0000 to
-   0xFFFF.
+   0xFFFF.  Except as noted below, assignments are made via the
+   Specification Required policy [RFC8126].
 
    The registration template is as follows:
 
@@ -1132,7 +1134,9 @@ Figure 1: Two Options for Integrating SFrame in a Typical Media Stack
    *  Reference: The document where this cipher suite is defined
 
    *  Change Controller: Who is authorized to update the row in the
-      registry Initial contents:
+      registry
+
+   Initial contents:
 
    +========+============================+===+===========+============+
    | Value  | Name                       | R | Reference | Change     |

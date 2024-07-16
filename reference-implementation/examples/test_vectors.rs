@@ -49,7 +49,7 @@ mod header {
         fn to_markdown(&self) -> String {
             let TestVector { kid, ctr, encoded } = self;
             format!(
-                "~~~
+                "~~~ test-vectors
 kid: 0x{kid:016x}
 ctr: 0x{ctr:016x}
 header: {encoded:8}
@@ -185,7 +185,7 @@ mod aes_ctr_hmac {
             } = self;
 
             format!(
-                "~~~
+                "~~~ test-vectors
 cipher_suite: 0x{cipher_suite:04x}
 key: {key:5}
 enc_key: {enc_key:9}
@@ -302,7 +302,7 @@ mod sframe {
             } = self;
 
             format!(
-                "~~~
+                "~~~ test-vectors
 cipher_suite: 0x{cipher_suite:04x}
 kid: 0x{kid:016x}
 ctr: 0x{ctr:016x}

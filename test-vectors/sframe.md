@@ -1,4 +1,4 @@
-~~~
+~~~ test-vectors
 cipher_suite: 0x0001
 kid: 0x0000000000000123
 ctr: 0x0000000000004567
@@ -25,7 +25,7 @@ ct: 9901234567449408b6f490086165b9d6
     12e24f11
 ~~~
 
-~~~
+~~~ test-vectors
 cipher_suite: 0x0002
 kid: 0x0000000000000123
 ctr: 0x0000000000004567
@@ -52,7 +52,7 @@ ct: 99012345673f31438db4d09434e43afa
     d607
 ~~~
 
-~~~
+~~~ test-vectors
 cipher_suite: 0x0003
 kid: 0x0000000000000123
 ctr: 0x0000000000004567
@@ -78,7 +78,7 @@ ct: 990123456717fc8af28a5a695afcfc6c
     8df6358a17e26b2fcb3bae32e443
 ~~~
 
-~~~
+~~~ test-vectors
 cipher_suite: 0x0004
 kid: 0x0000000000000123
 ctr: 0x0000000000004567
@@ -103,7 +103,7 @@ ct: 9901234567b7412c2513a1b66dbb4884
     b091c07018ce4adb34eb
 ~~~
 
-~~~
+~~~ test-vectors
 cipher_suite: 0x0005
 kid: 0x0000000000000123
 ctr: 0x0000000000004567

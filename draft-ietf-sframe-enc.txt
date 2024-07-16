@@ -5,14 +5,14 @@
 sframe                                                          E. Omara
 Internet-Draft                                                     Apple
 Intended status: Standards Track                               J. Uberti
-Expires: 16 January 2025                                        Fixie.ai
+Expires: 17 January 2025                                        Fixie.ai
                                                            S. G. Murillo
                                                           CoSMo Software
                                                           R. Barnes, Ed.
                                                                    Cisco
                                                                Y. Fablet
                                                                    Apple
-                                                            15 July 2024
+                                                            16 July 2024
 
 
  Secure Frame (SFrame): Lightweight Authenticated Encryption for Real-
@@ -47,7 +47,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 16 January 2025.
+   This Internet-Draft will expire on 17 January 2025.
 
 Copyright Notice
 

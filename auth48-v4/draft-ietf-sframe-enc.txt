@@ -838,9 +838,9 @@ Figure 1: Two Options for Integrating SFrame in a Typical Media Stack
 5.2.  MLS
 
    The Messaging Layer Security (MLS) protocol provides group
-   authenticated key exchange [MLS-ARCH] [MLS-PROTO].  In principle, it
-   could be used to instantiate the sender key scheme above, but it can
-   also be used more efficiently directly.
+   authenticated key exchange [I-D.ietf-mls-architecture] [RFC9420].  In
+   principle, it could be used to instantiate the sender key scheme
+   above, but it can also be used more efficiently directly.
 
    MLS creates a linear sequence of keys, each of which is shared among
    the members of a group at a given point in time.  When a member joins
@@ -1126,10 +1126,10 @@ Figure 1: Two Options for Integrating SFrame in a Typical Media Stack
 
    *  Recommended: Whether support for this cipher suite is recommended
       by the IETF.  Valid values are "Y", "N", and "D" as described in
-      Section 17.1 of [MLS-PROTO].  The default value of the
-      "Recommended" column is "N".  Setting the Recommended item to "Y"
-      or "D", or changing an item whose current value is "Y" or "D",
-      requires Standards Action [RFC8126].
+      Section 17.1 of [RFC9420].  The default value of the "Recommended"
+      column is "N".  Setting the Recommended item to "Y" or "D", or
+      changing an item whose current value is "Y" or "D", requires
+      Standards Action [RFC8126].
 
    *  Reference: The document where this cipher suite is defined
 
@@ -1273,12 +1273,6 @@ Figure 1: Two Options for Integrating SFrame in a Typical Media Stack
 
 10.1.  Normative References
 
-   [MLS-PROTO]
-              Barnes, R., Beurdouche, B., Robert, R., Millican, J.,
-              Omara, E., and K. Cohn-Gordon, "The Messaging Layer
-              Security (MLS) Protocol", RFC 9420, DOI 10.17487/RFC9420,
-              July 2023, <https://www.rfc-editor.org/rfc/rfc9420>.
-
    [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
               Requirement Levels", BCP 14, RFC 2119,
               DOI 10.17487/RFC2119, March 1997,
@@ -1302,6 +1296,11 @@ Figure 1: Two Options for Integrating SFrame in a Typical Media Stack
               2119 Key Words", BCP 14, RFC 8174, DOI 10.17487/RFC8174,
               May 2017, <https://www.rfc-editor.org/rfc/rfc8174>.
 
+   [RFC9420]  Barnes, R., Beurdouche, B., Robert, R., Millican, J.,
+              Omara, E., and K. Cohn-Gordon, "The Messaging Layer
+              Security (MLS) Protocol", RFC 9420, DOI 10.17487/RFC9420,
+              July 2023, <https://www.rfc-editor.org/rfc/rfc9420>.
+
 10.2.  Informative References
 
    [I-D.gouaillard-avtcore-codec-agn-rtp-payload]
@@ -1311,6 +1310,14 @@ Figure 1: Two Options for Integrating SFrame in a Typical Media Stack
               payload-01, 9 March 2021,
               <https://datatracker.ietf.org/doc/html/draft-gouaillard-
               avtcore-codec-agn-rtp-payload-01>.
+
+   [I-D.ietf-mls-architecture]
+              Beurdouche, B., Rescorla, E., Omara, E., Inguva, S., and
+              A. Duric, "The Messaging Layer Security (MLS)
+              Architecture", Work in Progress, Internet-Draft, draft-
+              ietf-mls-architecture-14, 8 July 2024,
+              <https://datatracker.ietf.org/doc/html/draft-ietf-mls-
+              architecture-14>.
 
    [I-D.ietf-moq-transport]
               Curley, L., Pugin, K., Nandakumar, S., Vasiliev, V., and
@@ -1324,13 +1331,6 @@ Figure 1: Two Options for Integrating SFrame in a Typical Media Stack
               in Progress, Internet-Draft, draft-ietf-webtrans-overview-
               07, 4 March 2024, <https://datatracker.ietf.org/doc/html/
               draft-ietf-webtrans-overview-07>.
-
-   [MLS-ARCH] Beurdouche, B., Rescorla, E., Omara, E., Inguva, S., and
-              A. Duric, "The Messaging Layer Security (MLS)
-              Architecture", Work in Progress, Internet-Draft, draft-
-              ietf-mls-architecture-14, 8 July 2024,
-              <https://datatracker.ietf.org/doc/html/draft-ietf-mls-
-              architecture-14>.
 
    [RFC3711]  Baugher, M., McGrew, D., Naslund, M., Carrara, E., and K.
               Norrman, "The Secure Real-time Transport Protocol (SRTP)",

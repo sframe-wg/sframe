@@ -1376,28 +1376,28 @@ packetization scheme to work interoperably, one would have to be defined, e.g.,
 as proposed in {{?I-D.gouaillard-avtcore-codec-agn-rtp-payload}}.
 
 ~~~ aasvg
-   +---+-+-+-------+-+-------------+-------------------------------+<-+
-   |V=2|P|X|  CC   |M|     PT      |       sequence number         |  |
-   +---+-+-+-------+-+-------------+-------------------------------+  |
-   |                           timestamp                           |  |
-   +---------------------------------------------------------------+  |
-   |           synchronization source (SSRC) identifier            |  |
-   +===============================================================+  |
-   |            contributing source (CSRC) identifiers             |  |
-   |                               ....                            |  |
-   +---------------------------------------------------------------+  |
-   |                   RTP extension(s) (OPTIONAL)                 |  |
-+->+--------------------+------------------------------------------+  |
-|  |   SFrame header    |                                          |  |
-|  +--------------------+                                          |  |
-|  |                                                               |  |
-|  |          SFrame encrypted and authenticated payload           |  |
-|  |                                                               |  |
-+->+---------------------------------------------------------------+<-+
-|  |                    SRTP authentication tag                    |  |
-|  +---------------------------------------------------------------+  |
-|                                                                     |
-+--- SRTP Encrypted Portion             SRTP Authenticated Portion ---+
+   +---+-+-+-------+-+-----------+------------------------------+<-+
+   |V=2|P|X|  CC   |M|     PT    |       sequence number        |  |
+   +---+-+-+-------+-+-----------+------------------------------+  |
+   |                          timestamp                         |  |
+   +------------------------------------------------------------+  |
+   |          synchronization source (SSRC) identifier          |  |
+   +============================================================+  |
+   |           contributing source (CSRC) identifiers           |  |
+   |                              ....                          |  |
+   +------------------------------------------------------------+  |
+   |                  RTP extension(s) (OPTIONAL)               |  |
++->+-------------------+----------------------------------------+  |
+|  |  SFrame header    |                                        |  |
+|  +-------------------+                                        |  |
+|  |                                                            |  |
+|  |         SFrame encrypted and authenticated payload         |  |
+|  |                                                            |  |
++->+------------------------------------------------------------+<-+
+|  |                   SRTP authentication tag                  |  |
+|  +------------------------------------------------------------+  |
+|                                                                  |
++--- SRTP Encrypted Portion          SRTP Authenticated Portion ---+
 ~~~
 {: #sframe-packet title="SRTP Packet with SFrame-Protected Payload"}
 

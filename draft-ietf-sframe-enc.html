@@ -1041,7 +1041,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Omara, et al.</td>
-<td class="center">Expires 17 January 2025</td>
+<td class="center">Expires 25 January 2025</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1054,12 +1054,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ietf-sframe-enc-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2024-07-16" class="published">16 July 2024</time>
+<time datetime="2024-07-24" class="published">24 July 2024</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2025-01-17">17 January 2025</time></dd>
+<dd class="expires"><time datetime="2025-01-25">25 January 2025</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1117,7 +1117,7 @@ be applied to whole media frames in order to be more bandwidth efficient.<a href
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 17 January 2025.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 25 January 2025.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -2508,7 +2508,7 @@ they are removed), then the sender will need to distribute a new sender key.<a h
 <a href="#section-5.2" class="section-number selfRef">5.2. </a><a href="#name-mls" class="section-name selfRef">MLS</a>
         </h3>
 <p id="section-5.2-1">The Messaging Layer Security (MLS) protocol provides group authenticated key
-exchange <span>[<a href="#MLS-ARCH" class="cite xref">MLS-ARCH</a>]</span> <span>[<a href="#MLS-PROTO" class="cite xref">MLS-PROTO</a>]</span>.  In
+exchange <span>[<a href="#I-D.ietf-mls-architecture" class="cite xref">I-D.ietf-mls-architecture</a>]</span> <span>[<a href="#RFC9420" class="cite xref">RFC9420</a>]</span>.  In
 principle, it could be used to instantiate the sender key scheme above, but it
 can also be used more efficiently directly.<a href="#section-5.2-1" class="pilcrow">¶</a></p>
 <p id="section-5.2-2">MLS creates a linear sequence of keys, each of which is shared among the members
@@ -2928,7 +2928,7 @@ via the Specification Required policy <span>[<a href="#RFC8126" class="cite xref
 </li>
           <li class="normal" id="section-8.1-3.3">
             <p id="section-8.1-3.3.1">Recommended: Whether support for this cipher suite is recommended by the IETF.
-Valid values are "Y", "N", and "D" as described in <span><a href="https://rfc-editor.org/rfc/rfc9420#section-17.1" class="relref">Section 17.1</a> of [<a href="#MLS-PROTO" class="cite xref">MLS-PROTO</a>]</span>. The default value of the "Recommended" column is "N". Setting the
+Valid values are "Y", "N", and "D" as described in <span><a href="https://rfc-editor.org/rfc/rfc9420#section-17.1" class="relref">Section 17.1</a> of [<a href="#RFC9420" class="cite xref">RFC9420</a>]</span>. The default value of the "Recommended" column is "N". Setting the
 Recommended item to "Y" or "D", or changing an item whose current value is "Y"
 or "D", requires Standards Action <span>[<a href="#RFC8126" class="cite xref">RFC8126</a>]</span>.<a href="#section-8.1-3.3.1" class="pilcrow">¶</a></p>
 </li>
@@ -3128,6 +3128,7 @@ decryption has authenticated the application data.<a href="#section-9.4-2" class
 </div>
 </section>
 </div>
+<div id="sec-combined-references">
 <section id="section-10">
       <h2 id="name-references">
 <a href="#section-10" class="section-number selfRef">10. </a><a href="#name-references" class="section-name selfRef">References</a>
@@ -3138,10 +3139,6 @@ decryption has authenticated the application data.<a href="#section-9.4-2" class
 <a href="#section-10.1" class="section-number selfRef">10.1. </a><a href="#name-normative-references" class="section-name selfRef">Normative References</a>
         </h3>
 <dl class="references">
-<dt id="MLS-PROTO">[MLS-PROTO]</dt>
-        <dd>
-<span class="refAuthor">Barnes, R.</span>, <span class="refAuthor">Beurdouche, B.</span>, <span class="refAuthor">Robert, R.</span>, <span class="refAuthor">Millican, J.</span>, <span class="refAuthor">Omara, E.</span>, and <span class="refAuthor">K. Cohn-Gordon</span>, <span class="refTitle">"The Messaging Layer Security (MLS) Protocol"</span>, <span class="seriesInfo">RFC 9420</span>, <span class="seriesInfo">DOI 10.17487/RFC9420</span>, <time datetime="2023-07" class="refDate">July 2023</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9420">https://www.rfc-editor.org/rfc/rfc9420</a>&gt;</span>. </dd>
-<dd class="break"></dd>
 <dt id="RFC2119">[RFC2119]</dt>
         <dd>
 <span class="refAuthor">Bradner, S.</span>, <span class="refTitle">"Key words for use in RFCs to Indicate Requirement Levels"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 2119</span>, <span class="seriesInfo">DOI 10.17487/RFC2119</span>, <time datetime="1997-03" class="refDate">March 1997</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc2119">https://www.rfc-editor.org/rfc/rfc2119</a>&gt;</span>. </dd>
@@ -3159,8 +3156,12 @@ decryption has authenticated the application data.<a href="#section-9.4-2" class
 <span class="refAuthor">Cotton, M.</span>, <span class="refAuthor">Leiba, B.</span>, and <span class="refAuthor">T. Narten</span>, <span class="refTitle">"Guidelines for Writing an IANA Considerations Section in RFCs"</span>, <span class="seriesInfo">BCP 26</span>, <span class="seriesInfo">RFC 8126</span>, <span class="seriesInfo">DOI 10.17487/RFC8126</span>, <time datetime="2017-06" class="refDate">June 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8126">https://www.rfc-editor.org/rfc/rfc8126</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RFC8174">[RFC8174]</dt>
-      <dd>
+        <dd>
 <span class="refAuthor">Leiba, B.</span>, <span class="refTitle">"Ambiguity of Uppercase vs Lowercase in RFC 2119 Key Words"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 8174</span>, <span class="seriesInfo">DOI 10.17487/RFC8174</span>, <time datetime="2017-05" class="refDate">May 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8174">https://www.rfc-editor.org/rfc/rfc8174</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC9420">[RFC9420]</dt>
+      <dd>
+<span class="refAuthor">Barnes, R.</span>, <span class="refAuthor">Beurdouche, B.</span>, <span class="refAuthor">Robert, R.</span>, <span class="refAuthor">Millican, J.</span>, <span class="refAuthor">Omara, E.</span>, and <span class="refAuthor">K. Cohn-Gordon</span>, <span class="refTitle">"The Messaging Layer Security (MLS) Protocol"</span>, <span class="seriesInfo">RFC 9420</span>, <span class="seriesInfo">DOI 10.17487/RFC9420</span>, <time datetime="2023-07" class="refDate">July 2023</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9420">https://www.rfc-editor.org/rfc/rfc9420</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 </dl>
 </section>
@@ -3175,6 +3176,10 @@ decryption has authenticated the application data.<a href="#section-9.4-2" class
         <dd>
 <span class="refAuthor">Murillo, S. G.</span>, <span class="refAuthor">Fablet, Y.</span>, and <span class="refAuthor">A. Gouaillard</span>, <span class="refTitle">"Codec agnostic RTP payload format for video"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-gouaillard-avtcore-codec-agn-rtp-payload-01</span>, <time datetime="2021-03-09" class="refDate">9 March 2021</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-gouaillard-avtcore-codec-agn-rtp-payload-01">https://datatracker.ietf.org/doc/html/draft-gouaillard-avtcore-codec-agn-rtp-payload-01</a>&gt;</span>. </dd>
 <dd class="break"></dd>
+<dt id="I-D.ietf-mls-architecture">[I-D.ietf-mls-architecture]</dt>
+        <dd>
+<span class="refAuthor">Beurdouche, B.</span>, <span class="refAuthor">Rescorla, E.</span>, <span class="refAuthor">Omara, E.</span>, <span class="refAuthor">Inguva, S.</span>, and <span class="refAuthor">A. Duric</span>, <span class="refTitle">"The Messaging Layer Security (MLS) Architecture"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-mls-architecture-14</span>, <time datetime="2024-07-08" class="refDate">8 July 2024</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-mls-architecture-14">https://datatracker.ietf.org/doc/html/draft-ietf-mls-architecture-14</a>&gt;</span>. </dd>
+<dd class="break"></dd>
 <dt id="I-D.ietf-moq-transport">[I-D.ietf-moq-transport]</dt>
         <dd>
 <span class="refAuthor">Curley, L.</span>, <span class="refAuthor">Pugin, K.</span>, <span class="refAuthor">Nandakumar, S.</span>, <span class="refAuthor">Vasiliev, V.</span>, and <span class="refAuthor">I. Swett</span>, <span class="refTitle">"Media over QUIC Transport"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-moq-transport-05</span>, <time datetime="2024-07-08" class="refDate">8 July 2024</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-moq-transport-05">https://datatracker.ietf.org/doc/html/draft-ietf-moq-transport-05</a>&gt;</span>. </dd>
@@ -3182,10 +3187,6 @@ decryption has authenticated the application data.<a href="#section-9.4-2" class
 <dt id="I-D.ietf-webtrans-overview">[I-D.ietf-webtrans-overview]</dt>
         <dd>
 <span class="refAuthor">Vasiliev, V.</span>, <span class="refTitle">"The WebTransport Protocol Framework"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-webtrans-overview-07</span>, <time datetime="2024-03-04" class="refDate">4 March 2024</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-overview-07">https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-overview-07</a>&gt;</span>. </dd>
-<dd class="break"></dd>
-<dt id="MLS-ARCH">[MLS-ARCH]</dt>
-        <dd>
-<span class="refAuthor">Beurdouche, B.</span>, <span class="refAuthor">Rescorla, E.</span>, <span class="refAuthor">Omara, E.</span>, <span class="refAuthor">Inguva, S.</span>, and <span class="refAuthor">A. Duric</span>, <span class="refTitle">"The Messaging Layer Security (MLS) Architecture"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-mls-architecture-14</span>, <time datetime="2024-07-08" class="refDate">8 July 2024</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-mls-architecture-14">https://datatracker.ietf.org/doc/html/draft-ietf-mls-architecture-14</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RFC3711">[RFC3711]</dt>
         <dd>
@@ -3219,6 +3220,7 @@ decryption has authenticated the application data.<a href="#section-9.4-2" class
 </section>
 </div>
 </section>
+</div>
 <div id="example-api">
 <section id="appendix-A">
       <h2 id="name-example-api">
@@ -3672,7 +3674,7 @@ as proposed in <span>[<a href="#I-D.gouaillard-avtcore-codec-agn-rtp-payload" cl
 <figure id="figure-11">
           <div id="appendix-B.5-5.1">
             <div class="alignLeft art-svg artwork" id="appendix-B.5-5.1.1">
-<svg xmlns="http://www.w3.org/2000/svg" version="1.1" height="384" width="576" viewBox="0 0 576 384" class="diagram" text-anchor="middle" font-family="monospace" font-size="13px" stroke-linecap="round">
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" height="384" width="552" viewBox="0 0 552 384" class="diagram" text-anchor="middle" font-family="monospace" font-size="13px" stroke-linecap="round">
                 <path d="M 8,208 L 8,368" fill="none" stroke="black"></path>
                 <path d="M 32,32 L 32,336" fill="none" stroke="black"></path>
                 <path d="M 64,32 L 64,64" fill="none" stroke="black"></path>
@@ -3680,24 +3682,24 @@ as proposed in <span>[<a href="#I-D.gouaillard-avtcore-codec-agn-rtp-payload" cl
                 <path d="M 96,32 L 96,64" fill="none" stroke="black"></path>
                 <path d="M 160,32 L 160,64" fill="none" stroke="black"></path>
                 <path d="M 176,32 L 176,64" fill="none" stroke="black"></path>
-                <path d="M 200,208 L 200,240" fill="none" stroke="black"></path>
-                <path d="M 288,32 L 288,64" fill="none" stroke="black"></path>
-                <path d="M 544,32 L 544,336" fill="none" stroke="black"></path>
-                <path d="M 568,32 L 568,368" fill="none" stroke="black"></path>
-                <path d="M 32,32 L 568,32" fill="none" stroke="black"></path>
-                <path d="M 32,64 L 544,64" fill="none" stroke="black"></path>
-                <path d="M 32,96 L 544,96" fill="none" stroke="black"></path>
-                <path d="M 32,126 L 544,126" fill="none" stroke="black"></path>
-                <path d="M 32,130 L 544,130" fill="none" stroke="black"></path>
-                <path d="M 32,176 L 544,176" fill="none" stroke="black"></path>
-                <path d="M 8,208 L 544,208" fill="none" stroke="black"></path>
-                <path d="M 32,240 L 200,240" fill="none" stroke="black"></path>
-                <path d="M 8,304 L 568,304" fill="none" stroke="black"></path>
-                <path d="M 32,336 L 544,336" fill="none" stroke="black"></path>
+                <path d="M 192,208 L 192,240" fill="none" stroke="black"></path>
+                <path d="M 272,32 L 272,64" fill="none" stroke="black"></path>
+                <path d="M 520,32 L 520,336" fill="none" stroke="black"></path>
+                <path d="M 544,32 L 544,368" fill="none" stroke="black"></path>
+                <path d="M 32,32 L 544,32" fill="none" stroke="black"></path>
+                <path d="M 32,64 L 520,64" fill="none" stroke="black"></path>
+                <path d="M 32,96 L 520,96" fill="none" stroke="black"></path>
+                <path d="M 32,126 L 520,126" fill="none" stroke="black"></path>
+                <path d="M 32,130 L 520,130" fill="none" stroke="black"></path>
+                <path d="M 32,176 L 520,176" fill="none" stroke="black"></path>
+                <path d="M 8,208 L 520,208" fill="none" stroke="black"></path>
+                <path d="M 32,240 L 192,240" fill="none" stroke="black"></path>
+                <path d="M 8,304 L 544,304" fill="none" stroke="black"></path>
+                <path d="M 32,336 L 520,336" fill="none" stroke="black"></path>
                 <path d="M 8,368 L 32,368" fill="none" stroke="black"></path>
-                <path d="M 544,368 L 568,368" fill="none" stroke="black"></path>
-                <polygon class="arrowhead" points="560,304 548,298.4 548,309.6" fill="black" transform="rotate(180,552,304)"></polygon>
-                <polygon class="arrowhead" points="560,32 548,26.4 548,37.6" fill="black" transform="rotate(180,552,32)"></polygon>
+                <path d="M 520,368 L 544,368" fill="none" stroke="black"></path>
+                <polygon class="arrowhead" points="536,304 524,298.4 524,309.6" fill="black" transform="rotate(180,528,304)"></polygon>
+                <polygon class="arrowhead" points="536,32 524,26.4 524,37.6" fill="black" transform="rotate(180,528,32)"></polygon>
                 <polygon class="arrowhead" points="32,304 20,298.4 20,309.6" fill="black" transform="rotate(0,24,304)"></polygon>
                 <polygon class="arrowhead" points="32,208 20,202.4 20,213.6" fill="black" transform="rotate(0,24,208)"></polygon>
                 <g class="text">
@@ -3707,37 +3709,37 @@ as proposed in <span>[<a href="#I-D.gouaillard-avtcore-codec-agn-rtp-payload" cl
                   <text x="124" y="52">CC</text>
                   <text x="168" y="52">M</text>
                   <text x="228" y="52">PT</text>
-                  <text x="380" y="52">sequence</text>
-                  <text x="444" y="52">number</text>
-                  <text x="288" y="84">timestamp</text>
-                  <text x="184" y="116">synchronization</text>
-                  <text x="276" y="116">source</text>
-                  <text x="332" y="116">(SSRC)</text>
-                  <text x="404" y="116">identifier</text>
-                  <text x="180" y="148">contributing</text>
-                  <text x="260" y="148">source</text>
-                  <text x="316" y="148">(CSRC)</text>
-                  <text x="392" y="148">identifiers</text>
-                  <text x="300" y="164">....</text>
-                  <text x="200" y="196">RTP</text>
-                  <text x="268" y="196">extension(s)</text>
-                  <text x="364" y="196">(OPTIONAL)</text>
-                  <text x="84" y="228">SFrame</text>
-                  <text x="140" y="228">header</text>
-                  <text x="140" y="276">SFrame</text>
-                  <text x="208" y="276">encrypted</text>
-                  <text x="264" y="276">and</text>
-                  <text x="336" y="276">authenticated</text>
-                  <text x="424" y="276">payload</text>
-                  <text x="212" y="324">SRTP</text>
-                  <text x="292" y="324">authentication</text>
-                  <text x="368" y="324">tag</text>
+                  <text x="364" y="52">sequence</text>
+                  <text x="428" y="52">number</text>
+                  <text x="280" y="84">timestamp</text>
+                  <text x="176" y="116">synchronization</text>
+                  <text x="268" y="116">source</text>
+                  <text x="324" y="116">(SSRC)</text>
+                  <text x="396" y="116">identifier</text>
+                  <text x="172" y="148">contributing</text>
+                  <text x="252" y="148">source</text>
+                  <text x="308" y="148">(CSRC)</text>
+                  <text x="384" y="148">identifiers</text>
+                  <text x="292" y="164">....</text>
+                  <text x="192" y="196">RTP</text>
+                  <text x="260" y="196">extension(s)</text>
+                  <text x="356" y="196">(OPTIONAL)</text>
+                  <text x="76" y="228">SFrame</text>
+                  <text x="132" y="228">header</text>
+                  <text x="132" y="276">SFrame</text>
+                  <text x="200" y="276">encrypted</text>
+                  <text x="256" y="276">and</text>
+                  <text x="328" y="276">authenticated</text>
+                  <text x="416" y="276">payload</text>
+                  <text x="204" y="324">SRTP</text>
+                  <text x="284" y="324">authentication</text>
+                  <text x="360" y="324">tag</text>
                   <text x="60" y="372">SRTP</text>
                   <text x="120" y="372">Encrypted</text>
                   <text x="192" y="372">Portion</text>
-                  <text x="340" y="372">SRTP</text>
-                  <text x="416" y="372">Authenticated</text>
-                  <text x="504" y="372">Portion</text>
+                  <text x="316" y="372">SRTP</text>
+                  <text x="392" y="372">Authenticated</text>
+                  <text x="480" y="372">Portion</text>
                 </g>
               </svg><a href="#appendix-B.5-5.1.1" class="pilcrow">¶</a>
 </div>

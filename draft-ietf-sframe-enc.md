@@ -775,7 +775,7 @@ they are removed), then the sender will need to distribute a new sender key.
 ## MLS
 
 The Messaging Layer Security (MLS) protocol provides group authenticated key
-exchange {{?MLS-ARCH=I-D.ietf-mls-architecture}} {{!MLS-PROTO=RFC9420}}.  In
+exchange {{?I-D.ietf-mls-architecture}} {{!RFC9420}}.  In
 principle, it could be used to instantiate the sender key scheme above, but it
 can also be used more efficiently directly.
 
@@ -1043,7 +1043,7 @@ The registration template is as follows:
 
 * Recommended: Whether support for this cipher suite is recommended by the IETF.
   Valid values are "Y", "N", and "D" as described in {{Section 17.1 of
-  MLS-PROTO}}. The default value of the "Recommended" column is "N". Setting the
+  RFC9420}}. The default value of the "Recommended" column is "N". Setting the
   Recommended item to "Y" or "D", or changing an item whose current value is "Y"
   or "D", requires Standards Action {{RFC8126}}.
 
@@ -1376,28 +1376,28 @@ packetization scheme to work interoperably, one would have to be defined, e.g.,
 as proposed in {{?I-D.gouaillard-avtcore-codec-agn-rtp-payload}}.
 
 ~~~ aasvg
-   +---+-+-+-------+-+-------------+-------------------------------+<-+
-   |V=2|P|X|  CC   |M|     PT      |       sequence number         |  |
-   +---+-+-+-------+-+-------------+-------------------------------+  |
-   |                           timestamp                           |  |
-   +---------------------------------------------------------------+  |
-   |           synchronization source (SSRC) identifier            |  |
-   +===============================================================+  |
-   |            contributing source (CSRC) identifiers             |  |
-   |                               ....                            |  |
-   +---------------------------------------------------------------+  |
-   |                   RTP extension(s) (OPTIONAL)                 |  |
-+->+--------------------+------------------------------------------+  |
-|  |   SFrame header    |                                          |  |
-|  +--------------------+                                          |  |
-|  |                                                               |  |
-|  |          SFrame encrypted and authenticated payload           |  |
-|  |                                                               |  |
-+->+---------------------------------------------------------------+<-+
-|  |                    SRTP authentication tag                    |  |
-|  +---------------------------------------------------------------+  |
-|                                                                     |
-+--- SRTP Encrypted Portion             SRTP Authenticated Portion ---+
+   +---+-+-+-------+-+-----------+------------------------------+<-+
+   |V=2|P|X|  CC   |M|     PT    |       sequence number        |  |
+   +---+-+-+-------+-+-----------+------------------------------+  |
+   |                          timestamp                         |  |
+   +------------------------------------------------------------+  |
+   |          synchronization source (SSRC) identifier          |  |
+   +============================================================+  |
+   |           contributing source (CSRC) identifiers           |  |
+   |                              ....                          |  |
+   +------------------------------------------------------------+  |
+   |                  RTP extension(s) (OPTIONAL)               |  |
++->+-------------------+----------------------------------------+  |
+|  |  SFrame header    |                                        |  |
+|  +-------------------+                                        |  |
+|  |                                                            |  |
+|  |         SFrame encrypted and authenticated payload         |  |
+|  |                                                            |  |
++->+------------------------------------------------------------+<-+
+|  |                   SRTP authentication tag                  |  |
+|  +------------------------------------------------------------+  |
+|                                                                  |
++--- SRTP Encrypted Portion          SRTP Authenticated Portion ---+
 ~~~
 {: #sframe-packet title="SRTP Packet with SFrame-Protected Payload"}
 

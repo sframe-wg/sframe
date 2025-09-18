@@ -59,7 +59,7 @@ header: {encoded:8}
     }
 }
 
-mod aes_ctr_hmac {
+mod aes_128_ctr_hmac {
     use super::Hex;
     use aead::{Aead, Key, KeyInit, KeySizeUser, Nonce, Payload};
     use aes::Aes128;
@@ -200,7 +200,7 @@ ct: {ct:4}
     }
 }
 
-mod aes256_ctr_hmac {
+mod aes_256_ctr_hmac {
     use super::Hex;
     use aead::{Aead, Key, KeyInit, KeySizeUser, Nonce, Payload};
     use aes::Aes256;
@@ -400,8 +400,15 @@ mod sframe {
             }
         }
 
-        pub fn make_all() -> Vec<TestVector> {
-            sframe_reference::cipher::ALL_CIPHER_SUITES
+        pub fn make_rfc() -> Vec<TestVector> {
+            sframe_reference::cipher::RFC_CIPHER_SUITES
+                .iter()
+                .map(|&cipher_suite| TestVector::new(cipher_suite))
+                .collect()
+        }
+
+        pub fn make_aes_256_ctr_hmac() -> Vec<TestVector> {
+            sframe_reference::cipher::AES_256_CTR_HMAC_CIPHER_SUITES
                 .iter()
                 .map(|&cipher_suite| TestVector::new(cipher_suite))
                 .collect()
@@ -533,43 +540,99 @@ impl<T: AsRef<[u8]>> PartialEq<T> for Hex {
     }
 }
 
-#[derive(Copy, Clone, ValueEnum)]
+#[derive(Copy, Clone, PartialEq, ValueEnum)]
 enum TestVectorType {
     Header,
-    AesCtrHmac,
+    Aes128CtrHmac,
     Aes256CtrHmac,
-    Sframe,
+    SframeRfc,
+    SframeAes256CtrHmac,
 }
 
 trait ToMarkdown {
     fn to_markdown(&self) -> String;
 }
 
-#[derive(Serialize, Deserialize)]
+// The serde directives here are for the following purposes:
+// * `default` - allows some types of test vector to be absent on deserialize
+// * `skip_serializing_if` - don't serialize empty vectors
+// * `rename` - maintain backwards compatibility with the current test vectors
+#[derive(Default, Serialize, Deserialize)]
 struct TestVectors {
+    #[serde(skip_serializing_if = "Vec::is_empty", default = "Vec::new")]
     header: Vec<header::TestVector>,
-    aes_ctr_hmac: Vec<aes_ctr_hmac::TestVector>,
-    aes256_ctr_hmac: Vec<aes256_ctr_hmac::TestVector>,
-    sframe: Vec<sframe::TestVector>,
+
+    #[serde(
+        rename = "aes_ctr_hmac",
+        skip_serializing_if = "Vec::is_empty",
+        default = "Vec::new"
+    )]
+    aes_128_ctr_hmac: Vec<aes_128_ctr_hmac::TestVector>,
+
+    #[serde(skip_serializing_if = "Vec::is_empty", default = "Vec::new")]
+    aes_256_ctr_hmac: Vec<aes_256_ctr_hmac::TestVector>,
+
+    #[serde(
+        rename = "sframe",
+        skip_serializing_if = "Vec::is_empty",
+        default = "Vec::new"
+    )]
+    sframe_rfc: Vec<sframe::TestVector>,
+
+    #[serde(skip_serializing_if = "Vec::is_empty", default = "Vec::new")]
+    sframe_aes_256_ctr_hmac: Vec<sframe::TestVector>,
 }
 
 impl TestVectors {
     fn make_all() -> Self {
         Self {
             header: header::TestVector::make_all(),
-            aes_ctr_hmac: aes_ctr_hmac::TestVector::make_all(),
-            aes256_ctr_hmac: aes256_ctr_hmac::TestVector::make_all(),
-            sframe: sframe::TestVector::make_all(),
+            aes_128_ctr_hmac: aes_128_ctr_hmac::TestVector::make_all(),
+            aes_256_ctr_hmac: aes_256_ctr_hmac::TestVector::make_all(),
+            sframe_rfc: sframe::TestVector::make_rfc(),
+            sframe_aes_256_ctr_hmac: sframe::TestVector::make_aes_256_ctr_hmac(),
         }
+    }
+
+    fn make(which: &[TestVectorType]) -> Self {
+        let mut tvs = Self::default();
+
+        if which.contains(&TestVectorType::Header) {
+            tvs.header = header::TestVector::make_all();
+        }
+
+        if which.contains(&TestVectorType::Aes128CtrHmac) {
+            tvs.aes_128_ctr_hmac = aes_128_ctr_hmac::TestVector::make_all();
+        }
+
+        if which.contains(&TestVectorType::Aes128CtrHmac) {
+            tvs.aes_256_ctr_hmac = aes_256_ctr_hmac::TestVector::make_all();
+        }
+
+        if which.contains(&TestVectorType::SframeRfc) {
+            tvs.sframe_rfc = sframe::TestVector::make_rfc();
+        }
+
+        if which.contains(&TestVectorType::SframeAes256CtrHmac) {
+            tvs.sframe_aes_256_ctr_hmac = sframe::TestVector::make_aes_256_ctr_hmac();
+        }
+
+        tvs
     }
 
     fn verify_all(&self) -> bool {
         let header = self.header.iter().map(|tv| tv.verify());
-        let aes_ctr_hmac = self.aes_ctr_hmac.iter().map(|tv| tv.verify());
-        let sframe = self.sframe.iter().map(|tv| tv.verify());
-        let aes256_ctr_hmac = self.aes256_ctr_hmac.iter().map(|tv| tv.verify());
+        let aes_128_ctr_hmac = self.aes_128_ctr_hmac.iter().map(|tv| tv.verify());
+        let aes_256_ctr_hmac = self.aes_256_ctr_hmac.iter().map(|tv| tv.verify());
+        let sframe_rfc = self.sframe_rfc.iter().map(|tv| tv.verify());
+        let sframe_aes_256_ctr_hmac = self.sframe_aes_256_ctr_hmac.iter().map(|tv| tv.verify());
 
-        header.chain(aes_ctr_hmac).chain(aes256_ctr_hmac).chain(sframe).all(|x| x)
+        header
+            .chain(aes_128_ctr_hmac)
+            .chain(aes_256_ctr_hmac)
+            .chain(sframe_rfc)
+            .chain(sframe_aes_256_ctr_hmac)
+            .all(|x| x)
     }
 
     fn print_md_all<T: ToMarkdown>(vecs: &[T]) {
@@ -578,12 +641,25 @@ impl TestVectors {
         }
     }
 
-    fn print_md(&self, vec_type: TestVectorType) {
-        match vec_type {
-            TestVectorType::Header => Self::print_md_all(&self.header),
-            TestVectorType::AesCtrHmac => Self::print_md_all(&self.aes_ctr_hmac),
-            TestVectorType::Aes256CtrHmac => Self::print_md_all(&self.aes256_ctr_hmac),
-            TestVectorType::Sframe => Self::print_md_all(&self.sframe),
+    fn print_md(&self) {
+        if !self.header.is_empty() {
+            Self::print_md_all(&self.header)
+        }
+
+        if !self.aes_128_ctr_hmac.is_empty() {
+            Self::print_md_all(&self.aes_128_ctr_hmac)
+        }
+
+        if !self.aes_256_ctr_hmac.is_empty() {
+            Self::print_md_all(&self.aes_256_ctr_hmac)
+        }
+
+        if !self.sframe_rfc.is_empty() {
+            Self::print_md_all(&self.sframe_rfc)
+        }
+
+        if !self.sframe_aes_256_ctr_hmac.is_empty() {
+            Self::print_md_all(&self.sframe_aes_256_ctr_hmac)
         }
     }
 }
@@ -596,8 +672,14 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
-    Md { vec_type: TestVectorType },
-    Json,
+    Md {
+        #[clap(default_values = ["header", "aes128-ctr-hmac", "sframe-rfc"])]
+        which: Vec<TestVectorType>,
+    },
+    Json {
+        #[clap(default_values = ["header", "aes128-ctr-hmac", "sframe-rfc"])]
+        which: Vec<TestVectorType>,
+    },
     Verify,
     SelfTest,
 }
@@ -606,14 +688,14 @@ fn main() -> Result<(), u32> {
     let cli = Cli::parse();
 
     match &cli.command {
-        Commands::Md { vec_type } => {
-            let vec = TestVectors::make_all();
-            vec.print_md(*vec_type);
+        Commands::Md { which } => {
+            let vec = TestVectors::make(which);
+            vec.print_md();
             Ok(())
         }
 
-        Commands::Json => {
-            let vec = TestVectors::make_all();
+        Commands::Json { which } => {
+            let vec = TestVectors::make(which);
             println!("{}", serde_json::to_string_pretty(&vec).unwrap());
             Ok(())
         }

@@ -43,13 +43,29 @@ impl CipherSuite {
     pub const AES_256_CTR_HMAC_SHA_512_32: CipherSuite = CipherSuite(0x0008);
 }
 
-/// A list of all available ciphersuites
+/// A list of all available cipher suites
 pub const ALL_CIPHER_SUITES: [CipherSuite; 8] = [
     CipherSuite::AES_128_CTR_HMAC_SHA_256_80,
     CipherSuite::AES_128_CTR_HMAC_SHA_256_64,
     CipherSuite::AES_128_CTR_HMAC_SHA_256_32,
     CipherSuite::AES_128_GCM_SHA_256,
     CipherSuite::AES_256_GCM_SHA_512,
+    CipherSuite::AES_256_CTR_HMAC_SHA_512_80,
+    CipherSuite::AES_256_CTR_HMAC_SHA_512_64,
+    CipherSuite::AES_256_CTR_HMAC_SHA_512_32,
+];
+
+/// A list of cipher suites defined in RFC 9180
+pub const RFC_CIPHER_SUITES: [CipherSuite; 5] = [
+    CipherSuite::AES_128_CTR_HMAC_SHA_256_80,
+    CipherSuite::AES_128_CTR_HMAC_SHA_256_64,
+    CipherSuite::AES_128_CTR_HMAC_SHA_256_32,
+    CipherSuite::AES_128_GCM_SHA_256,
+    CipherSuite::AES_256_GCM_SHA_512,
+];
+
+/// A list of AES-256-CTR-HMAC cipher suites
+pub const AES_256_CTR_HMAC_CIPHER_SUITES: [CipherSuite; 3] = [
     CipherSuite::AES_256_CTR_HMAC_SHA_512_80,
     CipherSuite::AES_256_CTR_HMAC_SHA_512_64,
     CipherSuite::AES_256_CTR_HMAC_SHA_512_32,

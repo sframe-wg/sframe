@@ -200,6 +200,150 @@ ct: {ct:4}
     }
 }
 
+mod aes256_ctr_hmac {
+    use super::Hex;
+    use aead::{Aead, Key, KeyInit, KeySizeUser, Nonce, Payload};
+    use aes::Aes256;
+    use cipher::{
+        consts::{U10, U32, U4, U8},
+        ArrayLength,
+    };
+    use hex_literal::hex;
+    use serde::{Deserialize, Serialize};
+    use sframe_reference::{aes_ctr_hmac::*, cipher::CipherSuite};
+    use sha2::Sha512;
+
+    #[derive(Serialize, Deserialize)]
+    pub struct TestVector {
+        cipher_suite: u16,
+        key: Hex,
+        enc_key: Hex,
+        auth_key: Hex,
+        nonce: Hex,
+        aad: Hex,
+        pt: Hex,
+        ct: Hex,
+    }
+
+    impl TestVector {
+        fn new<C, D, T>() -> Self
+        where
+            C: Cipher + KeySizeUser<KeySize = U32>,
+            D: Digest,
+            T: ArrayLength<u8>,
+            AesCtrHmac<C, D, T>: KeySizeUser + KeyInit,
+        {
+            let cipher_suite = match T::to_usize() {
+                10 => CipherSuite::AES_256_CTR_HMAC_SHA_512_80,
+                8 => CipherSuite::AES_256_CTR_HMAC_SHA_512_64,
+                4 => CipherSuite::AES_256_CTR_HMAC_SHA_512_32,
+                _ => unreachable!(),
+            };
+
+            let key = hex!("000102030405060708090a0b0c0d0e0f"
+                           "101112131415161718191a1b1c1d1e1f"
+                           "202122232425262728292a2b2c2d2e2f"
+                           "303132333435363738393a3b3c3d3e3f"
+                           "404142434445464748494a4b4c4d4e4f"
+                           "505152535455565758595a5b5c5d5e5f");
+            let key = Key::<AesCtrHmac<C, D, T>>::clone_from_slice(&key);
+            let nonce: Nonce<AesCtrHmac<C, D, T>> = hex!("101112131415161718191a1b").into();
+            let aad = b"IETF SFrame WG";
+            let pt = b"draft-ietf-sframe-enc";
+
+            let cipher = AesCtrHmac::<C, D, T>::new(&key);
+            let ct = cipher.encrypt(&nonce, Payload { msg: pt, aad }).unwrap();
+
+            Self {
+                cipher_suite: cipher_suite.0,
+                key: Hex::from(key),
+                enc_key: Hex::from(cipher.enc_key),
+                auth_key: Hex::from(cipher.auth_key),
+                nonce: Hex::from(nonce),
+                aad: Hex::from(aad),
+                pt: Hex::from(pt),
+                ct: Hex::from(ct),
+            }
+        }
+
+        pub fn make_all() -> Vec<Self> {
+            vec![
+                Self::new::<Aes256, Sha512, U10>(),
+                Self::new::<Aes256, Sha512, U8>(),
+                Self::new::<Aes256, Sha512, U4>(),
+            ]
+        }
+
+        fn verify_one<C, D, T>(&self) -> bool
+        where
+            C: Cipher + KeySizeUser<KeySize = U32>,
+            D: Digest,
+            T: ArrayLength<u8>,
+            AesCtrHmac<C, D, T>: KeySizeUser + KeyInit,
+        {
+            let key = Key::<AesCtrHmac<C, D, T>>::from_slice(&self.key);
+            let nonce = Nonce::<AesCtrHmac<C, D, T>>::from_slice(&self.nonce);
+
+            let cipher = AesCtrHmac::<C, D, T>::new(&key);
+
+            let payload = Payload {
+                msg: &self.pt,
+                aad: &self.aad,
+            };
+            let encrypted = cipher.encrypt(&nonce, payload).unwrap();
+            let encrypt_pass = self.ct == encrypted;
+
+            let payload = Payload {
+                msg: &self.ct,
+                aad: &self.aad,
+            };
+            let decrypted = cipher.decrypt(&nonce, payload).unwrap();
+            let decrypt_pass = self.pt == decrypted;
+
+            encrypt_pass && decrypt_pass
+        }
+
+        pub fn verify(&self) -> bool {
+            match CipherSuite(self.cipher_suite) {
+                CipherSuite::AES_256_CTR_HMAC_SHA_512_80 => {
+                    self.verify_one::<Aes256, Sha512, U10>()
+                }
+                CipherSuite::AES_256_CTR_HMAC_SHA_512_64 => self.verify_one::<Aes256, Sha512, U8>(),
+                CipherSuite::AES_256_CTR_HMAC_SHA_512_32 => self.verify_one::<Aes256, Sha512, U4>(),
+                _ => unreachable!(),
+            }
+        }
+    }
+
+    impl super::ToMarkdown for TestVector {
+        fn to_markdown(&self) -> String {
+            let TestVector {
+                cipher_suite,
+                key,
+                enc_key,
+                auth_key,
+                nonce,
+                aad,
+                pt,
+                ct,
+            } = self;
+
+            format!(
+                "~~~ test-vectors
+cipher_suite: 0x{cipher_suite:04x}
+key: {key:5}
+enc_key: {enc_key:9}
+auth_key: {auth_key:10}
+nonce: {nonce:7}
+aad: {aad:5}
+pt: {pt:4}
+ct: {ct:4}
+~~~"
+            )
+        }
+    }
+}
+
 mod sframe {
     use super::Hex;
     use hex_literal::hex;
@@ -393,6 +537,7 @@ impl<T: AsRef<[u8]>> PartialEq<T> for Hex {
 enum TestVectorType {
     Header,
     AesCtrHmac,
+    Aes256CtrHmac,
     Sframe,
 }
 
@@ -404,6 +549,7 @@ trait ToMarkdown {
 struct TestVectors {
     header: Vec<header::TestVector>,
     aes_ctr_hmac: Vec<aes_ctr_hmac::TestVector>,
+    aes256_ctr_hmac: Vec<aes256_ctr_hmac::TestVector>,
     sframe: Vec<sframe::TestVector>,
 }
 
@@ -412,6 +558,7 @@ impl TestVectors {
         Self {
             header: header::TestVector::make_all(),
             aes_ctr_hmac: aes_ctr_hmac::TestVector::make_all(),
+            aes256_ctr_hmac: aes256_ctr_hmac::TestVector::make_all(),
             sframe: sframe::TestVector::make_all(),
         }
     }
@@ -420,8 +567,9 @@ impl TestVectors {
         let header = self.header.iter().map(|tv| tv.verify());
         let aes_ctr_hmac = self.aes_ctr_hmac.iter().map(|tv| tv.verify());
         let sframe = self.sframe.iter().map(|tv| tv.verify());
+        let aes256_ctr_hmac = self.aes256_ctr_hmac.iter().map(|tv| tv.verify());
 
-        header.chain(aes_ctr_hmac).chain(sframe).all(|x| x)
+        header.chain(aes_ctr_hmac).chain(aes256_ctr_hmac).chain(sframe).all(|x| x)
     }
 
     fn print_md_all<T: ToMarkdown>(vecs: &[T]) {
@@ -434,6 +582,7 @@ impl TestVectors {
         match vec_type {
             TestVectorType::Header => Self::print_md_all(&self.header),
             TestVectorType::AesCtrHmac => Self::print_md_all(&self.aes_ctr_hmac),
+            TestVectorType::Aes256CtrHmac => Self::print_md_all(&self.aes256_ctr_hmac),
             TestVectorType::Sframe => Self::print_md_all(&self.sframe),
         }
     }

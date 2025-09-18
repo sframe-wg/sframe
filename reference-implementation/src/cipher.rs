@@ -3,7 +3,7 @@ use crate::header::{Header, KeyId};
 use crate::{Error, Result};
 
 use aead::{AeadCore, Key, KeyInit, KeySizeUser, Nonce, Payload};
-use aes::Aes128;
+use aes::{Aes128, Aes256};
 use aes_gcm::{Aes128Gcm, Aes256Gcm};
 use cipher::consts::{U10, U4, U8};
 use cipher::Unsigned;
@@ -32,15 +32,27 @@ impl CipherSuite {
 
     /// AES-256-GCM, with a full 16-byte tag
     pub const AES_256_GCM_SHA_512: CipherSuite = CipherSuite(0x0005);
+
+    /// AES-256-CTR with HMAC-SHA-512, with a 10-byte tag
+    pub const AES_256_CTR_HMAC_SHA_512_80: CipherSuite = CipherSuite(0x0006);
+
+    /// AES-256-CTR with HMAC-SHA-512, with an 8-byte tag
+    pub const AES_256_CTR_HMAC_SHA_512_64: CipherSuite = CipherSuite(0x0007);
+
+    /// AES-256-CTR with HMAC-SHA-512, with an 4-byte tag
+    pub const AES_256_CTR_HMAC_SHA_512_32: CipherSuite = CipherSuite(0x0008);
 }
 
 /// A list of all available ciphersuites
-pub const ALL_CIPHER_SUITES: [CipherSuite; 5] = [
+pub const ALL_CIPHER_SUITES: [CipherSuite; 8] = [
     CipherSuite::AES_128_CTR_HMAC_SHA_256_80,
     CipherSuite::AES_128_CTR_HMAC_SHA_256_64,
     CipherSuite::AES_128_CTR_HMAC_SHA_256_32,
     CipherSuite::AES_128_GCM_SHA_256,
     CipherSuite::AES_256_GCM_SHA_512,
+    CipherSuite::AES_256_CTR_HMAC_SHA_512_80,
+    CipherSuite::AES_256_CTR_HMAC_SHA_512_64,
+    CipherSuite::AES_256_CTR_HMAC_SHA_512_32,
 ];
 
 /// A convenience trait summarizing all of the salient aspects of an AEAD cipher.
@@ -246,6 +258,9 @@ type Aes128CtrHmacSha256_64 = CipherImpl<AesCtrHmac<Aes128, Sha256, U8>>;
 type Aes128CtrHmacSha256_32 = CipherImpl<AesCtrHmac<Aes128, Sha256, U4>>;
 type Aes128GcmSha256 = CipherImpl<Aes128Gcm>;
 type Aes256GcmSha512 = CipherImpl<Aes256Gcm>;
+type Aes256CtrHmacSha512_80 = CipherImpl<AesCtrHmac<Aes256, Sha512, U10>>;
+type Aes256CtrHmacSha512_64 = CipherImpl<AesCtrHmac<Aes256, Sha512, U8>>;
+type Aes256CtrHmacSha512_32 = CipherImpl<AesCtrHmac<Aes256, Sha512, U4>>;
 
 /// Construct a new cipher for the specified ciphersuite.  The key and salt for the cipher are
 /// derived from the `base_key` and `kid`.
@@ -266,6 +281,15 @@ pub fn new_cipher(cipher_suite: CipherSuite, kid: KeyId, base_key: &[u8]) -> Box
         CipherSuite::AES_256_GCM_SHA_512 => {
             Box::new(Aes256GcmSha512::new::<Sha512>(cipher_suite, kid, base_key))
         }
+        CipherSuite::AES_256_CTR_HMAC_SHA_512_80 => Box::new(
+            Aes256CtrHmacSha512_80::new::<Sha512>(cipher_suite, kid, base_key),
+        ),
+        CipherSuite::AES_256_CTR_HMAC_SHA_512_64 => Box::new(
+            Aes256CtrHmacSha512_64::new::<Sha512>(cipher_suite, kid, base_key),
+        ),
+        CipherSuite::AES_256_CTR_HMAC_SHA_512_32 => Box::new(
+            Aes256CtrHmacSha512_32::new::<Sha512>(cipher_suite, kid, base_key),
+        ),
         _ => unreachable!(),
     }
 }

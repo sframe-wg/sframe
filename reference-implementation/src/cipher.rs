@@ -295,7 +295,7 @@ pub fn new_cipher(cipher_suite: CipherSuite, kid: KeyId, base_key: &[u8]) -> Box
 }
 
 #[cfg(test)]
-pub mod test {
+mod test {
     use super::*;
     use crate::Counter;
 

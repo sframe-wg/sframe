@@ -168,7 +168,7 @@ where
 
 #[cfg(test)]
 #[generic_tests::define]
-mod test {
+mod test_aes128 {
     use super::*;
     use aead::Aead;
     use aes::Aes128;
@@ -232,4 +232,75 @@ mod test {
 
     #[instantiate_tests(<Aes128, Sha256, U4>)]
     mod aes_128_ctr_sha_256_32 {}
+}
+
+#[cfg(test)]
+#[generic_tests::define]
+mod test_aes256 {
+    use super::*;
+    use aead::Aead;
+    use aes::Aes256;
+    use cipher::consts::{U10, U4, U8};
+    use hex_literal::hex;
+    use sha2::Sha512;
+
+    #[test]
+    fn round_trip<C, D, T>()
+    where
+        C: Cipher + KeySizeUser<KeySize = U32>,
+        D: Digest,
+        T: ArrayLength<u8>,
+        AesCtrHmac<C, D, T>: KeySizeUser + KeyInit,
+    {
+        let key = hex!("000102030405060708090a0b0c0d0e0f"
+                       "101112131415161718191a1b1c1d1e1f"
+                       "202122232425262728292a2b2c2d2e2f"
+                       "303132333435363738393a3b3c3d3e3f"
+                       "404142434445464748494a4b4c4d4e4f"
+                       "505152535455565758595a5b5c5d5e5f");
+        let key = Key::<AesCtrHmac<C, D, T>>::clone_from_slice(&key);
+        let nonce: Nonce<AesCtrHmac<C, D, T>> = hex!("101112131415161718191a1b").into();
+        let msg = b"Never gonna give you up";
+        let aad = b"Never gonna let you down";
+
+        let cipher = AesCtrHmac::<C, D, T>::new(&key);
+
+        // Verify that an encrypt/decrypt round-trip works
+        let encrypt_payload = Payload { msg, aad };
+        let encrypted = cipher.encrypt(&nonce, encrypt_payload).unwrap();
+        assert_eq!(encrypted.len(), msg.len() + T::to_usize());
+
+        let decrypt_payload = Payload {
+            msg: &encrypted,
+            aad,
+        };
+        let decrypted = cipher.decrypt(&nonce, decrypt_payload).unwrap();
+        assert_eq!(&decrypted, msg);
+
+        // Verify that trying to decrypt with different AAD fails
+        let different_aad = b"Never gonna run around and hurt you";
+        let different_aad_payload = Payload {
+            msg: &encrypted,
+            aad: different_aad,
+        };
+        assert!(cipher.decrypt(&nonce, different_aad_payload).is_err());
+
+        // Verify that trying to decrypt with corrupted ciphertext fails
+        let mut different_msg = encrypted.clone();
+        different_msg[0] ^= 0xff;
+        let different_msg_payload = Payload {
+            msg: &different_msg,
+            aad,
+        };
+        assert!(cipher.decrypt(&nonce, different_msg_payload).is_err());
+    }
+
+    #[instantiate_tests(<Aes256, Sha512, U10>)]
+    mod aes_256_ctr_sha_512_80 {}
+
+    #[instantiate_tests(<Aes256, Sha512, U8>)]
+    mod aes_256_ctr_sha_256_64 {}
+
+    #[instantiate_tests(<Aes256, Sha512, U4>)]
+    mod aes_256_ctr_sha_512_32 {}
 }

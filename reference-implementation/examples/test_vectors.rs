@@ -567,11 +567,9 @@ impl TestVectors {
         let header = self.header.iter().map(|tv| tv.verify());
         let aes_ctr_hmac = self.aes_ctr_hmac.iter().map(|tv| tv.verify());
         let sframe = self.sframe.iter().map(|tv| tv.verify());
-        let header256 = self.header.iter().map(|tv| tv.verify());
         let aes256_ctr_hmac = self.aes256_ctr_hmac.iter().map(|tv| tv.verify());
-        let sframe256 = self.sframe.iter().map(|tv| tv.verify());
 
-        header.chain(aes_ctr_hmac).chain(sframe).all(|x| x) || header256.chain(aes256_ctr_hmac).chain(sframe256).all(|x| x)
+        header.chain(aes_ctr_hmac).chain(aes256_ctr_hmac).chain(sframe).all(|x| x)
     }
 
     fn print_md_all<T: ToMarkdown>(vecs: &[T]) {
